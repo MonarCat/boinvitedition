@@ -1,17 +1,20 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import AuthPage from '@/pages/AuthPage';
-import DashboardPage from '@/pages/DashboardPage';
 import SettingsPage from '@/pages/SettingsPage';
 import { AuthenticatedApp } from '@/pages/AuthenticatedApp';
-import { QueryClient } from '@tanstack/react-query';
 import AdminPage from '@/pages/AdminPage';
 import FirstAdminPage from '@/pages/FirstAdminPage';
 
+// Create a client instance
+const queryClient = new QueryClient();
+
 function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
           <Routes>
@@ -38,7 +41,7 @@ function App() {
           </Routes>
         </Router>
       </AuthProvider>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 

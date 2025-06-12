@@ -127,40 +127,100 @@ export type Database = {
           },
         ]
       }
+      business_reviews: {
+        Row: {
+          booking_id: string
+          business_id: string
+          comment: string | null
+          created_at: string | null
+          id: string
+          rating: number
+        }
+        Insert: {
+          booking_id: string
+          business_id: string
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating: number
+        }
+        Update: {
+          booking_id?: string
+          business_id?: string
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_reviews_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_settings: {
         Row: {
           auto_confirm_bookings: boolean | null
+          booking_advance_days: number | null
+          booking_buffer_minutes: number | null
           booking_slot_duration_minutes: number | null
           business_id: string
           created_at: string | null
           currency: string | null
+          default_tax_rate: number | null
           id: string
           max_bookings_per_slot: number | null
+          notification_preferences: Json | null
+          reminder_hours_before: number | null
           require_payment: boolean | null
+          send_reminders: boolean | null
           timezone: string | null
           updated_at: string | null
         }
         Insert: {
           auto_confirm_bookings?: boolean | null
+          booking_advance_days?: number | null
+          booking_buffer_minutes?: number | null
           booking_slot_duration_minutes?: number | null
           business_id: string
           created_at?: string | null
           currency?: string | null
+          default_tax_rate?: number | null
           id?: string
           max_bookings_per_slot?: number | null
+          notification_preferences?: Json | null
+          reminder_hours_before?: number | null
           require_payment?: boolean | null
+          send_reminders?: boolean | null
           timezone?: string | null
           updated_at?: string | null
         }
         Update: {
           auto_confirm_bookings?: boolean | null
+          booking_advance_days?: number | null
+          booking_buffer_minutes?: number | null
           booking_slot_duration_minutes?: number | null
           business_id?: string
           created_at?: string | null
           currency?: string | null
+          default_tax_rate?: number | null
           id?: string
           max_bookings_per_slot?: number | null
+          notification_preferences?: Json | null
+          reminder_hours_before?: number | null
           require_payment?: boolean | null
+          send_reminders?: boolean | null
           timezone?: string | null
           updated_at?: string | null
         }
@@ -178,6 +238,8 @@ export type Database = {
         Row: {
           address: string | null
           average_rating: number | null
+          city: string | null
+          country: string | null
           created_at: string | null
           description: string | null
           email: string | null
@@ -195,6 +257,8 @@ export type Database = {
         Insert: {
           address?: string | null
           average_rating?: number | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           description?: string | null
           email?: string | null
@@ -212,6 +276,8 @@ export type Database = {
         Update: {
           address?: string | null
           average_rating?: number | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           description?: string | null
           email?: string | null
@@ -230,6 +296,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          address: string | null
           business_id: string
           created_at: string | null
           email: string
@@ -240,6 +307,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          address?: string | null
           business_id: string
           created_at?: string | null
           email: string
@@ -250,6 +318,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          address?: string | null
           business_id?: string
           created_at?: string | null
           email?: string

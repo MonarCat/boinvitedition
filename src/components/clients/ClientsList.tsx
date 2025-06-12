@@ -3,10 +3,12 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, Phone, Mail, MapPin, Edit, Calendar } from 'lucide-react';
+import { User, Phone, Mail, Edit, Calendar } from 'lucide-react';
+import { CardSkeleton } from '@/components/ui/loading-skeleton';
 import { format } from 'date-fns';
 
 interface ClientsListProps {
@@ -15,6 +17,7 @@ interface ClientsListProps {
 
 export const ClientsList = ({ onEditClient }: ClientsListProps) => {
   const { user } = useAuth();
+  const { handleError } = useErrorHandler();
 
   const { data: business } = useQuery({
     queryKey: ['user-business', user?.id],
@@ -33,7 +36,7 @@ export const ClientsList = ({ onEditClient }: ClientsListProps) => {
     enabled: !!user,
   });
 
-  const { data: clients, isLoading } = useQuery({
+  const { data: clients, isLoading, error } = useQuery({
     queryKey: ['clients', business?.id],
     queryFn: async () => {
       if (!business) return [];
@@ -51,18 +54,30 @@ export const ClientsList = ({ onEditClient }: ClientsListProps) => {
       return clientsData;
     },
     enabled: !!business,
+    onError: (error) => {
+      handleError(error, { customMessage: 'Failed to load clients' });
+    },
   });
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="text-center py-12">
+          <div className="text-red-600 mb-4">
+            <User className="mx-auto h-12 w-12 mb-2" />
+            <p>Failed to load clients</p>
+          </div>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-            </CardContent>
-          </Card>
+          <CardSkeleton key={i} />
         ))}
       </div>
     );
@@ -125,13 +140,6 @@ export const ClientsList = ({ onEditClient }: ClientsListProps) => {
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Phone className="h-4 w-4" />
                   {client.phone}
-                </div>
-              )}
-              
-              {client.address && (
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <MapPin className="h-4 w-4" />
-                  {client.address}
                 </div>
               )}
 

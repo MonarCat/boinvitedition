@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -32,6 +31,22 @@ export const AuthForm = () => {
   const [authError, setAuthError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('signin');
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
+
+  // Check for email confirmation on component mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token');
+    
+    if (accessToken && refreshToken) {
+      // User is coming back from email confirmation
+      toast.success('Email confirmed successfully! You are now signed in.');
+      // Clear the URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // Redirect authenticated users
   useEffect(() => {
@@ -114,7 +129,10 @@ export const AuthForm = () => {
         if (error.message.includes('Invalid login credentials')) {
           setAuthError('Invalid email or password. Please check your credentials and try again.');
         } else if (error.message.includes('Email not confirmed')) {
-          setAuthError('Please check your email and click the confirmation link before signing in.');
+          setAuthError('Please check your email and click the confirmation link before signing in. Check your spam folder if you don\'t see it.');
+          // Switch to sign up tab to show the resend option
+          setActiveTab('signup');
+          setPendingEmail(email);
         } else if (error.message.includes('Too many requests')) {
           setAuthError('Too many sign-in attempts. Please wait a moment and try again.');
         } else {
@@ -176,6 +194,7 @@ export const AuthForm = () => {
       if (error) {
         if (error.message.includes('User already registered')) {
           setAuthError('An account with this email already exists. Please sign in instead.');
+          setActiveTab('signin');
         } else if (error.message.includes('Password should be at least')) {
           setAuthError('Password must be at least 6 characters long.');
         } else {
@@ -183,10 +202,11 @@ export const AuthForm = () => {
         }
         toast.error('Sign up failed');
       } else {
+        setSignUpSuccess(true);
+        setPendingEmail(email);
         toast.success('Account created! Please check your email for the confirmation link.');
         setAuthError(null);
         // Clear form
-        setEmail('');
         setPassword('');
         setConfirmPassword('');
         setFirstName('');
@@ -234,6 +254,7 @@ export const AuthForm = () => {
   const clearError = () => {
     setAuthError(null);
     setResetEmailSent(false);
+    setSignUpSuccess(false);
   };
 
   const isFormDisabled = loading || authLoading;
@@ -253,6 +274,24 @@ export const AuthForm = () => {
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{authError}</AlertDescription>
+            </Alert>
+          )}
+
+          {signUpSuccess && (
+            <Alert className="mb-4 border-blue-200 bg-blue-50">
+              <Mail className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <div className="space-y-2">
+                  <div className="font-medium">Please confirm your email address</div>
+                  <div className="text-sm">
+                    We've sent a confirmation link to <strong>{pendingEmail}</strong>.
+                    Click the link in the email to activate your account and sign in.
+                  </div>
+                  <div className="text-sm text-blue-600">
+                    Don't see the email? Check your spam folder or wait a few minutes.
+                  </div>
+                </div>
+              </AlertDescription>
             </Alert>
           )}
 
@@ -320,6 +359,18 @@ export const AuthForm = () => {
                     </button>
                   </div>
                 </div>
+
+                {pendingEmail && (
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <div className="flex items-center gap-2 text-yellow-800 text-sm">
+                      <Mail className="h-4 w-4" />
+                      <span>
+                        Account requires email confirmation. Please check your email for the confirmation link.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <Button type="submit" className="w-full bg-royal-red hover:bg-royal-red/90" disabled={isFormDisabled}>
                   {isFormDisabled ? 'Signing in...' : 'Sign In'}
                 </Button>
@@ -331,6 +382,7 @@ export const AuthForm = () => {
             
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-firstname">First Name</Label>
@@ -470,6 +522,20 @@ export const AuthForm = () => {
                     </div>
                   )}
                 </div>
+
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="flex items-start gap-2 text-blue-800 text-sm">
+                    <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <div className="font-medium mb-1">Email confirmation required</div>
+                      <div>
+                        After creating your account, you'll receive a confirmation email. 
+                        Click the link in the email to activate your account and sign in.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <Button 
                   type="submit" 
                   className="w-full bg-royal-red hover:bg-royal-red/90" 

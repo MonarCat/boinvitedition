@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,10 +53,14 @@ export const ClientsList = ({ onEditClient }: ClientsListProps) => {
       return clientsData;
     },
     enabled: !!business,
-    onError: (error) => {
-      handleError(error, { customMessage: 'Failed to load clients' });
-    },
   });
+
+  // Handle error using useEffect
+  React.useEffect(() => {
+    if (error) {
+      handleError(error, { customMessage: 'Failed to load clients' });
+    }
+  }, [error, handleError]);
 
   if (error) {
     return (

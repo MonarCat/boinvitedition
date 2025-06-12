@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,7 +19,7 @@ export const BusinessSettings = () => {
   const queryClient = useQueryClient();
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { data: business, isLoading } = useQuery({
+  const { data: business, isLoading, error } = useQuery({
     queryKey: ['user-business', user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -35,10 +34,14 @@ export const BusinessSettings = () => {
       return data;
     },
     enabled: !!user,
-    onError: (error) => {
-      handleError(error, { customMessage: 'Failed to load business settings' });
-    },
   });
+
+  // Handle error using useEffect
+  React.useEffect(() => {
+    if (error) {
+      handleError(error, { customMessage: 'Failed to load business settings' });
+    }
+  }, [error, handleError]);
 
   const updateBusinessMutation = useMutation({
     mutationFn: async (formData: FormData) => {

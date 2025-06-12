@@ -18,7 +18,9 @@ import {
   Check,
   Zap,
   Shield,
-  Globe
+  Globe,
+  Download,
+  Smartphone
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
@@ -49,7 +51,7 @@ const Index = () => {
       <header className="container mx-auto px-6 py-8">
         <nav className="flex justify-between items-center mb-16">
           <div className="flex items-center space-x-2">
-            <Ticket className="h-8 w-8 text-blue-600" />
+            <Ticket className="h-8 w-8 text-royal-red" />
             <span className="text-2xl font-bold text-gray-900">Boinvit</span>
           </div>
           <div className="space-x-4">
@@ -57,37 +59,72 @@ const Index = () => {
               <Button variant="outline">Sign In</Button>
             </Link>
             <Link to="/signup">
-              <Button>Get Started Free</Button>
+              <Button className="bg-royal-red hover:bg-royal-red-accent text-royal-red-foreground">Get Started Free</Button>
             </Link>
           </div>
         </nav>
 
         <div className="text-center max-w-5xl mx-auto">
-          <Badge className="mb-6 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 hover:bg-blue-100">
+          <Badge className="mb-6 bg-gradient-to-r from-royal-red-muted to-purple-100 text-royal-red border-royal-red hover:bg-royal-red-muted">
             <Star className="w-4 h-4 mr-1" />
             Trusted by 10,000+ Service Businesses Globally
           </Badge>
           <h1 className="text-6xl font-bold text-gray-900 mb-6 leading-tight">
             Complete Business Solution for
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Service Industries</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-royal-red to-purple-600"> Service Industries</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl mx-auto">
             From transport and logistics to beauty and healthcare - Boinvit powers booking, invoicing, and ticketing for diverse service businesses worldwide. Generate QR codes, accept payments, and delight customers with our all-in-one platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link to="/signup">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4">
+              <Button size="lg" className="bg-gradient-to-r from-royal-red to-purple-600 hover:from-royal-red-accent hover:to-purple-700 text-white px-8 py-4">
                 <Zap className="mr-2 h-5 w-5" />
                 Start Free Trial - No Credit Card
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="px-8 py-4">
+            <Button size="lg" variant="outline" className="px-8 py-4 border-royal-red text-royal-red hover:bg-royal-red-muted">
               <Youtube className="mr-2 h-4 w-4" />
               Watch 2-Min Demo
             </Button>
           </div>
         </div>
       </header>
+
+      {/* Mobile App Download Section */}
+      <section className="py-16 bg-gradient-to-r from-royal-red-muted to-blue-50">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-royal-red text-royal-red-foreground">
+              <Smartphone className="w-4 h-4 mr-2" />
+              Mobile Apps Available
+            </Badge>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Download Our Mobile App
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Take your business on the go with our native mobile apps for Android and iOS. Manage bookings, send invoices, and track your business from anywhere.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center max-w-md mx-auto">
+            <Button size="lg" className="w-full sm:w-auto bg-royal-red hover:bg-royal-red-accent text-royal-red-foreground px-8 py-4">
+              <Download className="mr-2 h-5 w-5" />
+              Download for Android
+            </Button>
+            <Button size="lg" className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white px-8 py-4">
+              <Download className="mr-2 h-5 w-5" />
+              Download for iOS
+            </Button>
+          </div>
+          
+          <div className="text-center mt-6">
+            <p className="text-sm text-gray-600">
+              Coming to app stores soon! Get notified when available.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Sliding Business Types Showcase */}
       <section className="py-16 bg-white overflow-hidden">
@@ -104,16 +141,16 @@ const Index = () => {
           <div className="relative">
             <div className="flex animate-[slide-in-right_20s_linear_infinite] space-x-8">
               {[...businessTypes, ...businessTypes].map((business, index) => (
-                <Card key={index} className="min-w-[300px] border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-blue-50">
+                <Card key={index} className="min-w-[300px] border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-blue-50 hover:border-royal-red">
                   <CardHeader className="text-center pb-4">
-                    <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-4">
-                      <business.icon className="h-8 w-8 text-blue-600" />
+                    <div className="mx-auto w-16 h-16 bg-gradient-to-br from-royal-red-muted to-purple-100 rounded-full flex items-center justify-center mb-4">
+                      <business.icon className="h-8 w-8 text-royal-red" />
                     </div>
                     <CardTitle className="text-xl text-gray-900">{business.name}</CardTitle>
                     <CardDescription className="text-gray-600">{business.desc}</CardDescription>
                   </CardHeader>
                   <CardContent className="text-center">
-                    <Badge variant="outline" className="text-blue-600 border-blue-200">
+                    <Badge variant="outline" className="text-royal-red border-royal-red">
                       <Check className="w-3 h-3 mr-1" />
                       Active Businesses: 500+
                     </Badge>
@@ -126,10 +163,10 @@ const Index = () => {
       </section>
 
       {/* Unique QR Code Feature Highlight */}
-      <section className="py-16 bg-gradient-to-r from-purple-50 to-blue-50">
+      <section className="py-16 bg-gradient-to-r from-purple-50 to-royal-red-muted">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-purple-100 text-purple-800">
+            <Badge className="mb-4 bg-royal-red text-royal-red-foreground">
               <QrCode className="w-4 h-4 mr-2" />
               Exclusive Feature
             </Badge>
@@ -145,8 +182,8 @@ const Index = () => {
             <div>
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <QrCode className="w-4 h-4 text-purple-600" />
+                  <div className="w-8 h-8 bg-royal-red-muted rounded-full flex items-center justify-center flex-shrink-0">
+                    <QrCode className="w-4 h-4 text-royal-red" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2">Instant Access</h3>
@@ -174,10 +211,10 @@ const Index = () => {
               </div>
             </div>
             <div className="text-center">
-              <div className="bg-white p-8 rounded-xl shadow-2xl inline-block">
+              <div className="bg-white p-8 rounded-xl shadow-2xl inline-block border-2 border-royal-red-muted">
                 <QrCode className="w-32 h-32 text-gray-800 mx-auto mb-4" />
                 <p className="text-sm text-gray-600 mb-2">Sample QR Code</p>
-                <Badge className="bg-green-100 text-green-800">
+                <Badge className="bg-royal-red text-royal-red-foreground">
                   Scan with your phone camera
                 </Badge>
               </div>
@@ -283,28 +320,28 @@ const Index = () => {
 
           <div className="grid md:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+              <div className="w-12 h-12 bg-royal-red text-royal-red-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
                 1
               </div>
               <h3 className="font-semibold mb-2">Create Business Profile</h3>
               <p className="text-sm text-gray-600">Set up your business details, services, and branding</p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+              <div className="w-12 h-12 bg-royal-red text-royal-red-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
                 2
               </div>
               <h3 className="font-semibold mb-2">Share Booking Link</h3>
               <p className="text-sm text-gray-600">Clients book services through your custom subdomain</p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+              <div className="w-12 h-12 bg-royal-red text-royal-red-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
                 3
               </div>
               <h3 className="font-semibold mb-2">Generate Tickets</h3>
               <p className="text-sm text-gray-600">Automatic service tickets sent to clients</p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+              <div className="w-12 h-12 bg-royal-red text-royal-red-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
                 4
               </div>
               <h3 className="font-semibold mb-2">Send Invoices</h3>
@@ -344,8 +381,8 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-blue-500 relative">
-            <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600">
+          <Card className="border-2 border-royal-red relative">
+            <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-royal-red text-royal-red-foreground">
               Most Popular
             </Badge>
             <CardHeader className="text-center">
@@ -362,7 +399,7 @@ const Index = () => {
                 <li>• Analytics dashboard</li>
                 <li>• Priority support</li>
               </ul>
-              <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-700">Start Pro Trial</Button>
+              <Button className="w-full mt-6 bg-royal-red hover:bg-royal-red-accent text-royal-red-foreground">Start Pro Trial</Button>
             </CardContent>
           </Card>
         </div>

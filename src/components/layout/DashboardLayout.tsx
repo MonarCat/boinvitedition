@@ -50,7 +50,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 px-6 py-4 border-b">
-        <Ticket className="h-8 w-8 text-blue-600" />
+        <Ticket className="h-8 w-8 text-royal-red" />
         <span className="text-2xl font-bold text-gray-900">Boinvit</span>
       </div>
       
@@ -64,7 +64,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               className={cn(
                 'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-blue-100 text-blue-700'
+                  ? 'bg-royal-red-muted text-royal-red'
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               )}
             >
@@ -79,7 +79,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <Button
           variant="outline"
           onClick={handleSignOut}
-          className="w-full flex items-center gap-2"
+          className="w-full flex items-center gap-2 border-royal-red text-royal-red hover:bg-royal-red-muted"
         >
           <LogOut className="h-4 w-4" />
           Sign Out
@@ -98,12 +98,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       {/* Mobile Header */}
       <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between w-full">
         <div className="flex items-center gap-2">
-          <Ticket className="h-6 w-6 text-blue-600" />
+          <Ticket className="h-6 w-6 text-royal-red" />
           <span className="text-xl font-bold text-gray-900">Boinvit</span>
         </div>
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="border-royal-red text-royal-red">
               <Menu className="h-4 w-4" />
             </Button>
           </SheetTrigger>

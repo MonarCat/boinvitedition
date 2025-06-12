@@ -32,10 +32,14 @@ export const ReviewsList = ({ businessId }: ReviewsListProps) => {
       if (error) throw error;
       return data || [];
     },
-    onError: (error) => {
-      handleError(error, { customMessage: 'Failed to load reviews' });
-    },
   });
+
+  // Handle error using useEffect
+  React.useEffect(() => {
+    if (error) {
+      handleError(error, { customMessage: 'Failed to load reviews' });
+    }
+  }, [error, handleError]);
 
   if (error) {
     return (

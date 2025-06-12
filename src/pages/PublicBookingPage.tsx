@@ -118,7 +118,7 @@ const PublicBookingPage = () => {
               )}
               <div className="flex items-center space-x-4 mt-2">
                 <Badge variant="outline" className="bg-green-50 text-green-700">
-                  {business.status === 'active' ? 'Open' : 'Closed'}
+                  {business.is_active ? 'Open' : 'Closed'}
                 </Badge>
                 {business.average_rating && (
                   <div className="flex items-center gap-1">

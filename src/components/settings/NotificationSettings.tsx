@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,7 +34,7 @@ export const NotificationSettings = () => {
     enabled: !!user,
   });
 
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading, error } = useQuery({
     queryKey: ['business-settings', business?.id],
     queryFn: async () => {
       if (!business) return null;
@@ -48,10 +49,14 @@ export const NotificationSettings = () => {
       return data;
     },
     enabled: !!business,
-    onError: (error) => {
-      handleError(error, { customMessage: 'Failed to load notification settings' });
-    },
   });
+
+  // Handle error using useEffect
+  React.useEffect(() => {
+    if (error) {
+      handleError(error, { customMessage: 'Failed to load notification settings' });
+    }
+  }, [error, handleError]);
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (formData: FormData) => {

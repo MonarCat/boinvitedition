@@ -2,12 +2,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import AuthPage from '@/pages/AuthPage';
 import SettingsPage from '@/pages/SettingsPage';
 import { AuthenticatedApp } from '@/pages/AuthenticatedApp';
 import AdminPage from '@/pages/AdminPage';
 import FirstAdminPage from '@/pages/FirstAdminPage';
+import NotFound from '@/pages/NotFound';
 
 // Create a client instance
 const queryClient = new QueryClient();
@@ -38,7 +40,9 @@ function App() {
             />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/setup-admin" element={<FirstAdminPage />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
+          <Toaster />
         </Router>
       </AuthProvider>
     </QueryClientProvider>

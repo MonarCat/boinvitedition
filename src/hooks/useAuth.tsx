@@ -34,13 +34,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('Setting up auth state listener...');
+    
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Handle email confirmation
+        if (event === 'SIGNED_IN' && session?.user && !session.user.email_confirmed_at) {
+          console.log('User signed in but email not confirmed yet');
+        }
+        
+        if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
+          console.log('User signed in with confirmed email:', session.user.email);
+        }
       }
     );
 
@@ -52,28 +63,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('Cleaning up auth subscription');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, profile?: UserProfile) => {
     setLoading(true);
     try {
-      console.log('Attempting sign up for:', email);
+      console.log('Attempting sign up for:', email, 'with profile:', profile);
+      
+      // Use Supabase's default email confirmation flow
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          // Let Supabase handle the default email confirmation
           data: profile ? {
             first_name: profile.firstName,
             last_name: profile.lastName,
           } : undefined,
         },
       });
+      
       console.log('Sign up result:', { data, error });
+      
+      if (error) {
+        console.error('Sign up error:', error);
+        return { data, error };
+      }
+
+      if (data.user && !data.session) {
+        console.log('User created successfully, confirmation email sent to:', email);
+      }
+
       return { data, error };
     } catch (error) {
-      console.error('Error in signUp:', error);
+      console.error('Unexpected error in signUp:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -88,10 +115,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       });
+      
       console.log('Sign in result:', { data, error });
+      
+      if (error) {
+        console.error('Sign in error:', error);
+        return { data, error };
+      }
+
+      if (data.user && data.session) {
+        console.log('Sign in successful for:', data.user.email);
+      }
+
       return { data, error };
     } catch (error) {
-      console.error('Error in signIn:', error);
+      console.error('Unexpected error in signIn:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -116,9 +154,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const resetPassword = async (email: string) => {
     try {
       console.log('Attempting password reset for:', email);
-      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email);
       console.log('Password reset result:', { data, error });
       return { data, error };
     } catch (error) {

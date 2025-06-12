@@ -35,20 +35,6 @@ export const AuthForm = () => {
   const [signUpSuccess, setSignUpSuccess] = useState(false);
   const [pendingEmail, setPendingEmail] = useState('');
 
-  // Check for email confirmation on component mount
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const accessToken = urlParams.get('access_token');
-    const refreshToken = urlParams.get('refresh_token');
-    
-    if (accessToken && refreshToken) {
-      // User is coming back from email confirmation
-      toast.success('Email confirmed successfully! You are now signed in.');
-      // Clear the URL parameters
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
-
   // Redirect authenticated users
   useEffect(() => {
     if (user) {
@@ -122,17 +108,15 @@ export const AuthForm = () => {
     }
     
     try {
-      const { error } = await signIn(email, password);
-      console.log('Sign in result:', { error });
+      const { data, error } = await signIn(email, password);
+      console.log('Sign in result:', { data, error });
       
       if (error) {
         console.error('Sign in error:', error);
         if (error.message.includes('Invalid login credentials')) {
           setAuthError('Invalid email or password. Please check your credentials and try again.');
         } else if (error.message.includes('Email not confirmed')) {
-          setAuthError('Please check your email and click the confirmation link before signing in. Check your spam folder if you don\'t see it.');
-          // Switch to sign up tab to show the resend option
-          setActiveTab('signup');
+          setAuthError('Please check your email and click the confirmation link before signing in.');
           setPendingEmail(email);
         } else if (error.message.includes('Too many requests')) {
           setAuthError('Too many sign-in attempts. Please wait a moment and try again.');
@@ -187,12 +171,14 @@ export const AuthForm = () => {
     }
     
     try {
-      const { error } = await signUp(email, password, {
+      console.log('Attempting sign up with profile data');
+      const { data, error } = await signUp(email, password, {
         firstName: firstName.trim(),
         lastName: lastName.trim()
       });
       
       if (error) {
+        console.error('Sign up error:', error);
         if (error.message.includes('User already registered')) {
           setAuthError('An account with this email already exists. Please sign in instead.');
           setActiveTab('signin');
@@ -203,6 +189,7 @@ export const AuthForm = () => {
         }
         toast.error('Sign up failed');
       } else {
+        console.log('Sign up successful, user created:', data.user?.email);
         setSignUpSuccess(true);
         setPendingEmail(email);
         toast.success('Account created! Please check your email for the confirmation link.');
@@ -214,6 +201,7 @@ export const AuthForm = () => {
         setLastName('');
       }
     } catch (error) {
+      console.error('Unexpected sign up error:', error);
       setAuthError('An unexpected error occurred. Please try again.');
       toast.error('An error occurred during sign up');
     } finally {

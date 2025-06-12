@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Eye, EyeOff, AlertCircle, CheckCircle, Mail, LogIn, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, CheckCircle, Mail, LogIn, UserPlus, Ticket } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface PasswordStrength {
@@ -36,6 +36,7 @@ export const AuthForm = () => {
   // Redirect authenticated users
   useEffect(() => {
     if (user) {
+      console.log('User authenticated, redirecting to dashboard:', user.email);
       const from = location.state?.from?.pathname || '/dashboard';
       navigate(from, { replace: true });
     }
@@ -89,29 +90,44 @@ export const AuthForm = () => {
     
     setLoading(true);
     setAuthError(null);
+    
+    console.log('Attempting sign in for:', email);
 
     if (!validateEmail(email)) {
       setAuthError('Please enter a valid email address.');
       setLoading(false);
       return;
     }
+
+    if (!password) {
+      setAuthError('Please enter your password.');
+      setLoading(false);
+      return;
+    }
     
     try {
       const { error } = await signIn(email, password);
+      console.log('Sign in result:', { error });
+      
       if (error) {
+        console.error('Sign in error:', error);
         if (error.message.includes('Invalid login credentials')) {
           setAuthError('Invalid email or password. Please check your credentials and try again.');
         } else if (error.message.includes('Email not confirmed')) {
           setAuthError('Please check your email and click the confirmation link before signing in.');
+        } else if (error.message.includes('Too many requests')) {
+          setAuthError('Too many sign-in attempts. Please wait a moment and try again.');
         } else {
           setAuthError(error.message);
         }
         toast.error('Sign in failed');
       } else {
+        console.log('Sign in successful');
         toast.success('Welcome back!');
         setAuthError(null);
       }
     } catch (error) {
+      console.error('Unexpected sign in error:', error);
       setAuthError('An unexpected error occurred. Please try again.');
       toast.error('An error occurred during sign in');
     } finally {
@@ -223,10 +239,13 @@ export const AuthForm = () => {
   const isFormDisabled = loading || authLoading;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
+    <div className="w-full max-w-md mx-auto">
+      <Card className="w-full">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-gray-900">Boinvit</CardTitle>
+          <div className="flex justify-center mb-4">
+            <Ticket className="h-12 w-12 text-royal-red" />
+          </div>
+          <CardTitle className="text-2xl font-bold text-gray-900">Welcome to Boinvit</CardTitle>
           <CardDescription>Your complete booking management solution</CardDescription>
         </CardHeader>
         <CardContent>
@@ -301,7 +320,7 @@ export const AuthForm = () => {
                     </button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={isFormDisabled}>
+                <Button type="submit" className="w-full bg-royal-red hover:bg-royal-red/90" disabled={isFormDisabled}>
                   {isFormDisabled ? 'Signing in...' : 'Sign In'}
                 </Button>
                 <p className="text-sm text-gray-600 text-center">
@@ -453,7 +472,7 @@ export const AuthForm = () => {
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full" 
+                  className="w-full bg-royal-red hover:bg-royal-red/90" 
                   disabled={isFormDisabled || password !== confirmPassword || passwordStrength.score < 3}
                 >
                   {isFormDisabled ? 'Creating account...' : 'Create Account'}
@@ -481,7 +500,7 @@ export const AuthForm = () => {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isFormDisabled}>
+                <Button type="submit" className="w-full bg-royal-red hover:bg-royal-red/90" disabled={isFormDisabled}>
                   {isFormDisabled ? 'Sending reset email...' : 'Send Reset Email'}
                 </Button>
                 <p className="text-sm text-gray-600 text-center">

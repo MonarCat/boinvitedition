@@ -13,8 +13,7 @@ import {
   Settings, 
   CreditCard,
   LogOut,
-  Menu,
-  Ticket
+  Menu
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -50,8 +49,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 px-6 py-4 border-b">
-        <Ticket className="h-8 w-8 text-royal-red" />
-        <span className="text-2xl font-bold text-gray-900">Boinvit</span>
+        <img 
+          src="/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png" 
+          alt="Boinvit Logo" 
+          className="h-8 w-auto"
+        />
       </div>
       
       <nav className="flex-1 px-4 py-6 space-y-2">
@@ -98,8 +100,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       {/* Mobile Header */}
       <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between w-full">
         <div className="flex items-center gap-2">
-          <Ticket className="h-6 w-6 text-royal-red" />
-          <span className="text-xl font-bold text-gray-900">Boinvit</span>
+          <img 
+            src="/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png" 
+            alt="Boinvit Logo" 
+            className="h-6 w-auto"
+          />
         </div>
         <Sheet>
           <SheetTrigger asChild>

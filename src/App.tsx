@@ -10,6 +10,7 @@ import { AuthenticatedApp } from '@/pages/AuthenticatedApp';
 import AdminPage from '@/pages/AdminPage';
 import FirstAdminPage from '@/pages/FirstAdminPage';
 import NotFound from '@/pages/NotFound';
+import DemoPage from '@/pages/DemoPage';
 
 // Create a client instance
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/demo" element={<DemoPage />} />
             <Route
               path="/dashboard"
               element={

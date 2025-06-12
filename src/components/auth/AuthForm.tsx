@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { LogIn, UserPlus, Ticket } from 'lucide-react';
+import { LogIn, UserPlus } from 'lucide-react';
 import { AuthAlerts } from './AuthAlerts';
 import { SignInForm } from './SignInForm';
 import { SignUpForm } from './SignUpForm';
@@ -65,7 +65,11 @@ export const AuthForm = () => {
       <Card className="w-full">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Ticket className="h-12 w-12 text-royal-red" />
+            <img 
+              src="/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png" 
+              alt="Boinvit Logo" 
+              className="h-16 w-auto"
+            />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">Welcome to Boinvit</CardTitle>
           <CardDescription>Your complete booking management solution</CardDescription>

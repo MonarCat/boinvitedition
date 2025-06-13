@@ -2,7 +2,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.02979c8d0d514131ae9527a440da9a8d',
+  appId: 'com.boinvit.booking',
   appName: 'Boinvit - Business Booking',
   webDir: 'dist',
   server: {

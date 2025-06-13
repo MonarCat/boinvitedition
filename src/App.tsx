@@ -16,6 +16,7 @@ import ServicesPage from '@/pages/ServicesPage';
 import ClientsPage from '@/pages/ClientsPage';
 import InvoicesPage from '@/pages/InvoicesPage';
 import SubscriptionPage from '@/pages/SubscriptionPage';
+import PublicBookingPage from '@/pages/PublicBookingPage';
 
 // Create a client instance
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ function App() {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/demo" element={<DemoPage />} />
+            <Route path="/book/:subdomain" element={<PublicBookingPage />} />
             <Route
               path="/dashboard"
               element={

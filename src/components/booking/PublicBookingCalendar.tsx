@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -158,121 +159,102 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
 
   const timeSlots = generateTimeSlots();
 
-  // Enhanced booking mutation with improved client creation
+  // Simplified booking mutation
   const createBookingMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedDate || !selectedTimeSlot || !customerInfo.name || !customerInfo.email) {
+      if (!selectedDate || !selectedTimeSlot || !customerInfo.name.trim() || !customerInfo.email.trim()) {
         throw new Error('Please fill in all required fields');
       }
 
-      console.log('Creating booking for customer:', customerInfo);
+      const email = customerInfo.email.toLowerCase().trim();
+      const name = customerInfo.name.trim();
 
-      // First, try to find existing client by email
-      const { data: existingClient, error: clientSearchError } = await supabase
-        .from('clients')
-        .select('id, name, email, phone')
-        .eq('business_id', businessId)
-        .eq('email', customerInfo.email.toLowerCase().trim())
-        .single();
-
-      if (clientSearchError && clientSearchError.code !== 'PGRST116') {
-        // PGRST116 is "not found" error, which is expected for new clients
-        console.error('Error searching for existing client:', clientSearchError);
-        throw new Error('Failed to check for existing client');
-      }
-
-      let clientId = existingClient?.id;
-
-      if (!clientId) {
-        console.log('Creating new client for:', customerInfo.email);
-        // Create new client
-        const { data: newClient, error: clientError } = await supabase
+      try {
+        // Step 1: Check for existing client
+        let clientId = null;
+        const { data: existingClient, error: searchError } = await supabase
           .from('clients')
-          .insert([{
-            business_id: businessId,
-            name: customerInfo.name.trim(),
-            email: customerInfo.email.toLowerCase().trim(),
-            phone: customerInfo.phone?.trim() || null,
-          }])
           .select('id')
+          .eq('business_id', businessId)
+          .eq('email', email)
+          .maybeSingle();
+
+        if (searchError) {
+          console.error('Error searching for client:', searchError);
+          throw new Error('Failed to check existing client');
+        }
+
+        // Step 2: Create or use existing client
+        if (existingClient) {
+          clientId = existingClient.id;
+          console.log('Using existing client:', clientId);
+        } else {
+          const { data: newClient, error: createError } = await supabase
+            .from('clients')
+            .insert({
+              business_id: businessId,
+              name: name,
+              email: email,
+              phone: customerInfo.phone?.trim() || null,
+            })
+            .select('id')
+            .single();
+
+          if (createError) {
+            console.error('Error creating client:', createError);
+            throw new Error('Failed to create client');
+          }
+
+          clientId = newClient.id;
+          console.log('Created new client:', clientId);
+        }
+
+        // Step 3: Create booking
+        const ticketNumber = `TKT-${format(new Date(), 'yyyyMMdd')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+
+        const { data: booking, error: bookingError } = await supabase
+          .from('bookings')
+          .insert({
+            business_id: businessId,
+            client_id: clientId,
+            service_id: selectedService.id,
+            staff_id: selectedStaff?.id || null,
+            booking_date: format(selectedDate, 'yyyy-MM-dd'),
+            booking_time: selectedTimeSlot,
+            duration_minutes: selectedService.duration_minutes,
+            total_amount: selectedService.price,
+            status: 'confirmed',
+            ticket_number: ticketNumber,
+            notes: customerInfo.notes?.trim() || null,
+          })
+          .select()
           .single();
 
-        if (clientError) {
-          console.error('Error creating new client:', clientError);
-          throw new Error('Failed to create client record');
+        if (bookingError) {
+          console.error('Error creating booking:', bookingError);
+          throw new Error('Failed to create booking');
         }
-        
-        clientId = newClient.id;
-        console.log('New client created with ID:', clientId);
-      } else {
-        console.log('Using existing client with ID:', clientId);
-        
-        // Update existing client info if needed
-        const updateData: any = {};
-        if (existingClient.name !== customerInfo.name.trim()) {
-          updateData.name = customerInfo.name.trim();
-        }
-        if (customerInfo.phone && existingClient.phone !== customerInfo.phone.trim()) {
-          updateData.phone = customerInfo.phone.trim();
-        }
-        
-        if (Object.keys(updateData).length > 0) {
-          console.log('Updating existing client info:', updateData);
-          const { error: updateError } = await supabase
-            .from('clients')
-            .update(updateData)
-            .eq('id', clientId);
-            
-          if (updateError) {
-            console.error('Error updating client:', updateError);
-            // Don't throw here, just log the error - booking can still proceed
-          }
-        }
+
+        return booking;
+      } catch (error) {
+        console.error('Booking process failed:', error);
+        throw error;
       }
-
-      // Generate ticket number
-      const ticketNumber = `TKT-${format(new Date(), 'yyyyMMdd')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
-
-      // Create booking
-      console.log('Creating booking with client ID:', clientId);
-      const { data, error } = await supabase
-        .from('bookings')
-        .insert([{
-          business_id: businessId,
-          client_id: clientId,
-          service_id: selectedService.id,
-          staff_id: selectedStaff?.id || null,
-          booking_date: format(selectedDate, 'yyyy-MM-dd'),
-          booking_time: selectedTimeSlot,
-          duration_minutes: selectedService.duration_minutes,
-          total_amount: selectedService.price,
-          status: 'confirmed',
-          ticket_number: ticketNumber,
-          notes: customerInfo.notes?.trim() || null,
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating booking:', error);
-        throw new Error('Failed to create booking');
-      }
-
-      console.log('Booking created successfully:', data);
-      return data;
     },
     onSuccess: (data) => {
-      console.log('Booking completed successfully for ticket:', data.ticket_number);
+      console.log('Booking successful:', data);
       toast.success(`Booking confirmed! Your ticket number is ${data.ticket_number}`);
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['public-services'] });
+      
+      // Reset form
       setSelectedStaff(null);
       setSelectedTimeSlot(null);
       setCustomerInfo({ name: '', email: '', phone: '', notes: '' });
       onBookingComplete?.();
     },
     onError: (error: any) => {
-      console.error('Booking error:', error);
+      console.error('Booking failed:', error);
       toast.error(error.message || 'Failed to create booking. Please try again.');
     },
   });

@@ -34,7 +34,15 @@ const App = () => (
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/cookies" element={<CookiePolicy />} />
             <Route path="/safety" element={<SafetyTips />} />
+            {/* Legacy route redirects */}
             <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+            <Route path="/services" element={<Navigate to="/app/services" replace />} />
+            <Route path="/booking-management" element={<Navigate to="/app/bookings" replace />} />
+            <Route path="/clients" element={<Navigate to="/app/clients" replace />} />
+            <Route path="/staff" element={<Navigate to="/app/staff" replace />} />
+            <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
+            <Route path="/invoices" element={<Navigate to="/app/invoices" replace />} />
+            <Route path="/subscription" element={<Navigate to="/app/subscription" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

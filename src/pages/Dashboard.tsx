@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +11,7 @@ import { format } from 'date-fns';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [realTimeStats, setRealTimeStats] = useState({
     activeBookings: 0,
     todayRevenue: 0,
@@ -115,7 +115,7 @@ const Dashboard = () => {
     return () => {
       channels.forEach(channel => supabase.removeChannel(channel));
     };
-  }, [business]);
+  }, [business, queryClient]);
 
   // Update local state when stats change
   useEffect(() => {

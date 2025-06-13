@@ -1,267 +1,292 @@
 
 import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Pause, RotateCcw } from 'lucide-react';
-import { LogoAnimation } from './LogoAnimation';
+import { Badge } from '@/components/ui/badge';
+import { Play, CheckCircle, QrCode, Calendar, Users, Smartphone, Star, Clock } from 'lucide-react';
 
-interface DemoStep {
-  id: string;
-  title: string;
-  description: string;
-  duration: number;
-  component: React.ReactNode;
-}
+const DemoVideo = () => {
+  const [activeDemo, setActiveDemo] = useState('overview');
 
-export const DemoVideo = () => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [showLogo, setShowLogo] = useState(true);
-
-  const demoSteps: DemoStep[] = [
+  const demoSections = [
     {
-      id: 'intro',
-      title: 'Welcome to Boinvit',
-      description: 'Your complete solution for Booking, Invoicing, and Ticketing',
-      duration: 4000,
-      component: (
-        <LogoAnimation 
-          onComplete={() => {
-            setShowLogo(false);
-            setCurrentStep(1);
-          }}
-        />
-      )
+      id: 'overview',
+      title: 'Platform Overview',
+      duration: '2:30',
+      description: 'See how BookFlow transforms your business',
+      icon: <Play className="h-5 w-5" />,
+      features: [
+        'Dashboard walkthrough',
+        'Key features overview',
+        'Business setup process',
+        'Mobile-first design'
+      ]
     },
     {
-      id: 'signup',
-      title: 'Easy Sign Up Process',
-      description: 'Get started in minutes with our simple registration',
-      duration: 6000,
-      component: (
-        <div className="space-y-6">
-          <div className="text-center mb-8">
-            <img 
-              src="/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png" 
-              alt="Boinvit Logo" 
-              className="h-12 w-auto mx-auto mb-4 animate-fade-in"
-            />
-            <h2 className="text-2xl font-bold animate-fade-in">Sign Up Demo</h2>
-          </div>
-          <div className="max-w-md mx-auto">
-            <Card className="animate-scale-in">
-              <CardHeader>
-                <CardTitle>Create Your Account</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Email</label>
-                  <div className="h-10 bg-gray-100 rounded-md flex items-center px-3 animate-pulse">
-                    <span className="text-gray-500">demo@example.com</span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Password</label>
-                  <div className="h-10 bg-gray-100 rounded-md flex items-center px-3 animate-pulse">
-                    <span className="text-gray-500">••••••••</span>
-                  </div>
-                </div>
-                <Button className="w-full bg-royal-red hover:bg-royal-red/90 animate-fade-in">
-                  Create Account
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      )
+      id: 'qr-booking',
+      title: 'QR Code Booking',
+      duration: '1:45',
+      description: 'Watch customers book in seconds',
+      icon: <QrCode className="h-5 w-5" />,
+      features: [
+        'Instant QR code generation',
+        'Customer booking flow',
+        'Real-time availability',
+        'Automatic client creation'
+      ]
     },
     {
-      id: 'business-setup',
-      title: 'Business Profile Setup',
-      description: 'Configure your business details and preferences',
-      duration: 8000,
-      component: (
-        <div className="space-y-6">
-          <div className="text-center mb-8">
-            <img 
-              src="/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png" 
-              alt="Boinvit Logo" 
-              className="h-12 w-auto mx-auto mb-4 animate-fade-in"
-            />
-            <h2 className="text-2xl font-bold animate-fade-in">Business Setup Demo</h2>
-          </div>
-          <div className="max-w-2xl mx-auto">
-            <Card className="animate-scale-in">
-              <CardHeader>
-                <CardTitle>Setup Your Business</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Business Name</label>
-                    <div className="h-10 bg-gray-100 rounded-md flex items-center px-3 animate-pulse">
-                      <span className="text-gray-500">Demo Salon & Spa</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Business Type</label>
-                    <div className="h-10 bg-gray-100 rounded-md flex items-center px-3 animate-pulse">
-                      <span className="text-gray-500">Beauty & Wellness</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Phone Number</label>
-                    <div className="h-10 bg-gray-100 rounded-md flex items-center px-3 animate-pulse">
-                      <span className="text-gray-500">+1 (555) 123-4567</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Location</label>
-                    <div className="h-10 bg-gray-100 rounded-md flex items-center px-3 animate-pulse">
-                      <span className="text-gray-500">New York, NY</span>
-                    </div>
-                  </div>
-                </div>
-                <Button className="w-full bg-royal-red hover:bg-royal-red/90 animate-fade-in">
-                  Complete Setup
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      )
+      id: 'management',
+      title: 'Business Management',
+      duration: '3:15',
+      description: 'Manage bookings, clients & services',
+      icon: <Calendar className="h-5 w-5" />,
+      features: [
+        'Booking management',
+        'Client tracking',
+        'Service configuration',
+        'Staff scheduling'
+      ]
     },
     {
-      id: 'clients',
-      title: 'Managing Clients',
-      description: 'Add and organize your client database',
-      duration: 6000,
-      component: (
-        <div className="space-y-6">
-          <div className="text-center mb-8">
-            <img 
-              src="/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png" 
-              alt="Boinvit Logo" 
-              className="h-12 w-auto mx-auto mb-4 animate-fade-in"
-            />
-            <h2 className="text-2xl font-bold animate-fade-in">Client Management Demo</h2>
-          </div>
-          <div className="max-w-3xl mx-auto">
-            <Card className="animate-scale-in">
-              <CardHeader>
-                <CardTitle>Add New Client</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">First Name</label>
-                    <div className="h-10 bg-gray-100 rounded-md flex items-center px-3 animate-pulse">
-                      <span className="text-gray-500">Sarah</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Last Name</label>
-                    <div className="h-10 bg-gray-100 rounded-md flex items-center px-3 animate-pulse">
-                      <span className="text-gray-500">Johnson</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Email</label>
-                    <div className="h-10 bg-gray-100 rounded-md flex items-center px-3 animate-pulse">
-                      <span className="text-gray-500">sarah@example.com</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Phone</label>
-                    <div className="h-10 bg-gray-100 rounded-md flex items-center px-3 animate-pulse">
-                      <span className="text-gray-500">+1 (555) 987-6543</span>
-                    </div>
-                  </div>
-                </div>
-                <Button className="w-full bg-royal-red hover:bg-royal-red/90 animate-fade-in">
-                  Add Client
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      )
+      id: 'mobile',
+      title: 'Mobile Experience',
+      duration: '2:00',
+      description: 'Manage your business on the go',
+      icon: <Smartphone className="h-5 w-5" />,
+      features: [
+        'Mobile-optimized interface',
+        'Push notifications',
+        'Offline capabilities',
+        'Cross-platform sync'
+      ]
     }
   ];
 
-  const handlePlay = () => {
-    setIsPlaying(true);
-    if (currentStep === 0 && !showLogo) {
-      setShowLogo(true);
-      setCurrentStep(0);
+  const testimonials = [
+    {
+      name: 'Sarah Johnson',
+      business: 'Elegant Spa & Wellness',
+      content: 'BookFlow increased our bookings by 300% in just 2 months. The QR code system is revolutionary!',
+      rating: 5
+    },
+    {
+      name: 'Mike Chen',
+      business: 'Urban Barber Shop',
+      content: 'No more phone calls or missed appointments. Our clients love how easy it is to book.',
+      rating: 5
+    },
+    {
+      name: 'Lisa Rodriguez',
+      business: 'Fitness Personal Training',
+      content: 'The real-time updates and client management features have streamlined our entire operation.',
+      rating: 5
     }
-  };
-
-  const handlePause = () => {
-    setIsPlaying(false);
-  };
-
-  const handleRestart = () => {
-    setCurrentStep(0);
-    setShowLogo(true);
-    setIsPlaying(false);
-  };
-
-  const nextStep = () => {
-    if (currentStep < demoSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      setIsPlaying(false);
-    }
-  };
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Demo Controls */}
-      <div className="fixed top-4 right-4 z-50 flex gap-2">
-        <Button onClick={isPlaying ? handlePause : handlePlay} size="sm">
-          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-          {isPlaying ? 'Pause' : 'Play'}
-        </Button>
-        <Button onClick={handleRestart} variant="outline" size="sm">
-          <RotateCcw className="h-4 w-4" />
-          Restart
-        </Button>
+    <div className="max-w-6xl mx-auto p-6 space-y-8">
+      {/* Header */}
+      <div className="text-center">
+        <Badge className="mb-4 bg-blue-100 text-blue-800">
+          Interactive Demo
+        </Badge>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          See BookFlow in Action
+        </h1>
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          Discover how thousands of businesses are transforming their booking process 
+          with our smart, QR-powered platform.
+        </p>
       </div>
 
-      {/* Demo Progress */}
-      <div className="fixed bottom-4 left-4 right-4 z-50">
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 max-w-md mx-auto">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">
-              Step {currentStep + 1} of {demoSteps.length}
-            </span>
-            <span className="text-sm text-gray-600">
-              {showLogo ? 'Introduction' : demoSteps[currentStep]?.title}
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-royal-red h-2 rounded-full transition-all duration-500"
-              style={{ width: `${((currentStep + 1) / demoSteps.length) * 100}%` }}
-            />
-          </div>
+      {/* Demo Navigation */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {demoSections.map((section) => (
+          <Card 
+            key={section.id}
+            className={`cursor-pointer transition-all hover:shadow-lg ${
+              activeDemo === section.id ? 'ring-2 ring-blue-500 border-blue-500' : ''
+            }`}
+            onClick={() => setActiveDemo(section.id)}
+          >
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2 text-blue-600">
+                {section.icon}
+                <Badge variant="outline">{section.duration}</Badge>
+              </div>
+              <CardTitle className="text-lg">{section.title}</CardTitle>
+              <CardDescription>{section.description}</CardDescription>
+            </CardHeader>
+          </Card>
+        ))}
+      </div>
+
+      {/* Main Demo Content */}
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Video Player */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardContent className="p-0">
+              <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center relative overflow-hidden">
+                {/* Simulated video player */}
+                <div className="absolute inset-0 bg-black/20"></div>
+                <div className="text-center text-white z-10">
+                  <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-4 mx-auto backdrop-blur-sm">
+                    <Play className="h-8 w-8 ml-1" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">
+                    {demoSections.find(s => s.id === activeDemo)?.title}
+                  </h3>
+                  <p className="text-white/80 mb-4">
+                    {demoSections.find(s => s.id === activeDemo)?.description}
+                  </p>
+                  <Button className="bg-white text-blue-600 hover:bg-gray-100">
+                    Watch Demo
+                  </Button>
+                </div>
+                
+                {/* Mock interface elements for demo effect */}
+                <div className="absolute bottom-4 left-4 bg-white/10 backdrop-blur-sm rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-white text-sm">
+                    <Clock className="h-4 w-4" />
+                    Live Demo Running
+                  </div>
+                </div>
+              </div>
+              
+              {/* Demo Controls */}
+              <div className="p-4 border-t">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Button size="sm">
+                      <Play className="h-4 w-4 mr-1" />
+                      Play
+                    </Button>
+                    <span className="text-sm text-gray-600">
+                      {demoSections.find(s => s.id === activeDemo)?.duration}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="outline">
+                      Full Screen
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      Download
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Demo Details */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>What You'll Learn</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                {demoSections.find(s => s.id === activeDemo)?.features.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <span className="text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Stats</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Avg. Setup Time</span>
+                <Badge variant="outline">5 minutes</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Booking Increase</span>
+                <Badge className="bg-green-100 text-green-800">+300%</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Customer Satisfaction</span>
+                <div className="flex items-center gap-1">
+                  {[1,2,3,4,5].map(i => (
+                    <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Mobile Optimized</span>
+                <Badge className="bg-blue-100 text-blue-800">100%</Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Button className="w-full" size="lg">
+            Start Your Free Trial
+          </Button>
         </div>
       </div>
 
-      {/* Demo Content */}
-      <div className="p-6">
-        {showLogo ? (
-          <LogoAnimation 
-            onComplete={() => {
-              setShowLogo(false);
-              setCurrentStep(1);
-            }}
-          />
-        ) : (
-          demoSteps[currentStep]?.component
-        )}
+      {/* Customer Testimonials */}
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Loved by 10,000+ Businesses
+          </h2>
+          <p className="text-gray-600">
+            See what our customers are saying about BookFlow
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {testimonials.map((testimonial, index) => (
+            <Card key={index}>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-1 mb-3">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-gray-600 mb-4 italic">
+                  "{testimonial.content}"
+                </p>
+                <div>
+                  <p className="font-semibold">{testimonial.name}</p>
+                  <p className="text-sm text-gray-500">{testimonial.business}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
+
+      {/* Call to Action */}
+      <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+        <CardContent className="p-8 text-center">
+          <h2 className="text-3xl font-bold mb-4">
+            Ready to Transform Your Business?
+          </h2>
+          <p className="text-xl mb-6 text-white/90">
+            Join thousands of businesses already using BookFlow to grow their revenue
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
+              Start Free Trial
+            </Button>
+            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+              Schedule Demo Call
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
+
+export default DemoVideo;

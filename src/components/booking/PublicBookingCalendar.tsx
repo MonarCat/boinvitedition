@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +18,7 @@ interface Service {
   description: string;
   price: number;
   duration_minutes: number;
+  currency?: string;
 }
 
 interface Staff {
@@ -35,6 +35,13 @@ interface PublicBookingCalendarProps {
   onBookingComplete?: () => void;
 }
 
+const formatPrice = (price: number, currency: string = 'USD') => {
+  if (currency === 'KES') {
+    return `KES ${price}`;
+  }
+  return `$${price}`;
+};
+
 export const PublicBookingCalendar = ({ businessId, selectedService, onBookingComplete }: PublicBookingCalendarProps) => {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -45,6 +52,21 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
     email: '',
     phone: '',
     notes: ''
+  });
+
+  // Fetch business info for currency
+  const { data: business } = useQuery({
+    queryKey: ['business', businessId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('currency')
+        .eq('id', businessId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
   });
 
   // Fetch staff
@@ -159,7 +181,7 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
 
   const timeSlots = generateTimeSlots();
 
-  // Simplified booking mutation
+  // Improved booking mutation with better error handling
   const createBookingMutation = useMutation({
     mutationFn: async () => {
       if (!selectedDate || !selectedTimeSlot || !customerInfo.name.trim() || !customerInfo.email.trim()) {
@@ -169,83 +191,73 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
       const email = customerInfo.email.toLowerCase().trim();
       const name = customerInfo.name.trim();
 
-      try {
-        // Step 1: Check for existing client
-        let clientId = null;
-        const { data: existingClient, error: searchError } = await supabase
+      // Step 1: Handle client creation/update with simpler logic
+      let clientId = null;
+      
+      // Check for existing client
+      const { data: existingClient } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('business_id', businessId)
+        .eq('email', email)
+        .maybeSingle();
+
+      if (existingClient) {
+        clientId = existingClient.id;
+      } else {
+        // Create new client
+        const { data: newClient, error: createError } = await supabase
           .from('clients')
-          .select('id')
-          .eq('business_id', businessId)
-          .eq('email', email)
-          .maybeSingle();
-
-        if (searchError) {
-          console.error('Error searching for client:', searchError);
-          throw new Error('Failed to check existing client');
-        }
-
-        // Step 2: Create or use existing client
-        if (existingClient) {
-          clientId = existingClient.id;
-          console.log('Using existing client:', clientId);
-        } else {
-          const { data: newClient, error: createError } = await supabase
-            .from('clients')
-            .insert({
-              business_id: businessId,
-              name: name,
-              email: email,
-              phone: customerInfo.phone?.trim() || null,
-            })
-            .select('id')
-            .single();
-
-          if (createError) {
-            console.error('Error creating client:', createError);
-            throw new Error('Failed to create client');
-          }
-
-          clientId = newClient.id;
-          console.log('Created new client:', clientId);
-        }
-
-        // Step 3: Create booking
-        const ticketNumber = `TKT-${format(new Date(), 'yyyyMMdd')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
-
-        const { data: booking, error: bookingError } = await supabase
-          .from('bookings')
           .insert({
             business_id: businessId,
-            client_id: clientId,
-            service_id: selectedService.id,
-            staff_id: selectedStaff?.id || null,
-            booking_date: format(selectedDate, 'yyyy-MM-dd'),
-            booking_time: selectedTimeSlot,
-            duration_minutes: selectedService.duration_minutes,
-            total_amount: selectedService.price,
-            status: 'confirmed',
-            ticket_number: ticketNumber,
-            notes: customerInfo.notes?.trim() || null,
+            name: name,
+            email: email,
+            phone: customerInfo.phone?.trim() || null,
           })
-          .select()
+          .select('id')
           .single();
 
-        if (bookingError) {
-          console.error('Error creating booking:', bookingError);
-          throw new Error('Failed to create booking');
+        if (createError) {
+          console.error('Error creating client:', createError);
+          throw new Error('Failed to create client profile');
         }
 
-        return booking;
-      } catch (error) {
-        console.error('Booking process failed:', error);
-        throw error;
+        clientId = newClient.id;
       }
+
+      // Step 2: Create booking
+      const ticketNumber = `TKT-${Date.now()}`;
+      const currency = business?.currency || selectedService.currency || 'USD';
+
+      const { data: booking, error: bookingError } = await supabase
+        .from('bookings')
+        .insert({
+          business_id: businessId,
+          client_id: clientId,
+          service_id: selectedService.id,
+          staff_id: selectedStaff?.id || null,
+          booking_date: format(selectedDate, 'yyyy-MM-dd'),
+          booking_time: selectedTimeSlot,
+          duration_minutes: selectedService.duration_minutes,
+          total_amount: selectedService.price,
+          status: 'confirmed',
+          ticket_number: ticketNumber,
+          notes: customerInfo.notes?.trim() || null,
+        })
+        .select()
+        .single();
+
+      if (bookingError) {
+        console.error('Error creating booking:', bookingError);
+        throw new Error('Failed to create booking');
+      }
+
+      return booking;
     },
     onSuccess: (data) => {
-      console.log('Booking successful:', data);
       toast.success(`Booking confirmed! Your ticket number is ${data.ticket_number}`);
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['public-services'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
       
       // Reset form
       setSelectedStaff(null);
@@ -260,18 +272,18 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
   });
 
   const handleBooking = () => {
-    console.log('Starting booking process...');
     createBookingMutation.mutate();
   };
 
   const isFormValid = customerInfo.name.trim() && customerInfo.email.trim() && selectedDate && selectedTimeSlot;
+  const currency = business?.currency || selectedService.currency || 'USD';
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Book {selectedService.name}</CardTitle>
         <p className="text-sm text-gray-600">
-          Duration: {selectedService.duration_minutes} minutes • Price: ${selectedService.price}
+          Duration: {selectedService.duration_minutes} minutes • Price: {formatPrice(selectedService.price, currency)}
         </p>
       </CardHeader>
       <CardContent>
@@ -426,7 +438,7 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
                   )}
                   <div className="flex justify-between font-bold border-t pt-2">
                     <span>Total:</span>
-                    <span>${selectedService.price}</span>
+                    <span>{formatPrice(selectedService.price, currency)}</span>
                   </div>
                 </div>
               </div>

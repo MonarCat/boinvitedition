@@ -241,6 +241,7 @@ export type Database = {
           city: string | null
           country: string | null
           created_at: string | null
+          currency: string | null
           description: string | null
           email: string | null
           id: string
@@ -260,6 +261,7 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string | null
+          currency?: string | null
           description?: string | null
           email?: string | null
           id?: string
@@ -279,6 +281,7 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string | null
+          currency?: string | null
           description?: string | null
           email?: string | null
           id?: string
@@ -392,9 +395,11 @@ export type Database = {
           business_id: string
           client_id: string
           created_at: string | null
+          currency: string | null
           due_date: string | null
           id: string
           invoice_number: string
+          notes: string | null
           paid_at: string | null
           status: string
           subtotal: number
@@ -407,9 +412,11 @@ export type Database = {
           business_id: string
           client_id: string
           created_at?: string | null
+          currency?: string | null
           due_date?: string | null
           id?: string
           invoice_number: string
+          notes?: string | null
           paid_at?: string | null
           status?: string
           subtotal: number
@@ -422,9 +429,11 @@ export type Database = {
           business_id?: string
           client_id?: string
           created_at?: string | null
+          currency?: string | null
           due_date?: string | null
           id?: string
           invoice_number?: string
+          notes?: string | null
           paid_at?: string | null
           status?: string
           subtotal?: number
@@ -488,6 +497,7 @@ export type Database = {
           business_id: string
           category: string | null
           created_at: string | null
+          currency: string | null
           description: string | null
           duration_minutes: number
           id: string
@@ -500,6 +510,7 @@ export type Database = {
           business_id: string
           category?: string | null
           created_at?: string | null
+          currency?: string | null
           description?: string | null
           duration_minutes: number
           id?: string
@@ -512,6 +523,7 @@ export type Database = {
           business_id?: string
           category?: string | null
           created_at?: string | null
+          currency?: string | null
           description?: string | null
           duration_minutes?: number
           id?: string

@@ -22,6 +22,13 @@ interface InvoiceFormProps {
   onCancel?: () => void;
 }
 
+const formatPrice = (price: number, currency: string = 'USD') => {
+  if (currency === 'KES') {
+    return `KES ${price}`;
+  }
+  return `$${price}`;
+};
+
 export const InvoiceForm = ({ invoice, onSuccess, onCancel }: InvoiceFormProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -54,7 +61,7 @@ export const InvoiceForm = ({ invoice, onSuccess, onCancel }: InvoiceFormProps) 
       
       const { data, error } = await supabase
         .from('businesses')
-        .select('id')
+        .select('*')
         .eq('user_id', user.id)
         .single();
       
@@ -96,6 +103,7 @@ export const InvoiceForm = ({ invoice, onSuccess, onCancel }: InvoiceFormProps) 
         throw new Error('Missing required information');
       }
 
+      const currency = business?.currency || 'USD';
       const invoiceData = {
         business_id: business.id,
         client_id: selectedClient,
@@ -106,6 +114,7 @@ export const InvoiceForm = ({ invoice, onSuccess, onCancel }: InvoiceFormProps) 
         due_date: dueDate ? format(dueDate, 'yyyy-MM-dd') : null,
         notes: data.notes,
         status: 'draft' as const,
+        currency: currency,
       };
 
       if (invoice) {
@@ -138,6 +147,8 @@ export const InvoiceForm = ({ invoice, onSuccess, onCancel }: InvoiceFormProps) 
     createInvoiceMutation.mutate(data);
   };
 
+  const currency = business?.currency || 'USD';
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-6">
       <div>
@@ -157,7 +168,7 @@ export const InvoiceForm = ({ invoice, onSuccess, onCancel }: InvoiceFormProps) 
       </div>
 
       <div>
-        <Label htmlFor="subtotal">Subtotal</Label>
+        <Label htmlFor="subtotal">Subtotal ({currency})</Label>
         <Input
           id="subtotal"
           type="number"
@@ -170,7 +181,7 @@ export const InvoiceForm = ({ invoice, onSuccess, onCancel }: InvoiceFormProps) 
       </div>
 
       <div>
-        <Label htmlFor="tax_amount">Tax Amount</Label>
+        <Label htmlFor="tax_amount">Tax Amount ({currency})</Label>
         <Input
           id="tax_amount"
           type="number"
@@ -189,6 +200,9 @@ export const InvoiceForm = ({ invoice, onSuccess, onCancel }: InvoiceFormProps) 
           readOnly
           className="bg-gray-100"
         />
+        <p className="text-sm text-gray-500 mt-1">
+          {formatPrice(watch('total_amount') || 0, currency)}
+        </p>
       </div>
 
       <div>

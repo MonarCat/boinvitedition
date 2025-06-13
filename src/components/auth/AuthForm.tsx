@@ -51,10 +51,11 @@ export const AuthForm = () => {
   };
 
   const handleError = (error: string | null) => {
+    console.log('Auth form error:', error);
     setAuthError(error);
     setLoading(false);
     if (error) {
-      toast.error('Authentication failed');
+      toast.error(error);
     }
   };
 

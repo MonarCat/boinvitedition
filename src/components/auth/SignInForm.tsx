@@ -30,6 +30,12 @@ export const SignInForm = ({ loading, authError, pendingEmail, onError }: SignIn
     
     onError(null);
     
+    // Client-side validation
+    if (!email.trim()) {
+      onError('Please enter your email address.');
+      return;
+    }
+
     if (!validateEmail(email)) {
       onError('Please enter a valid email address.');
       return;
@@ -41,20 +47,17 @@ export const SignInForm = ({ loading, authError, pendingEmail, onError }: SignIn
     }
     
     try {
+      console.log('Submitting sign in form for email:', email);
       const { error } = await signIn(email, password);
       
       if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          onError('Invalid email or password. Please check your credentials and try again.');
-        } else if (error.message.includes('Email not confirmed')) {
-          onError('Please check your email and click the confirmation link before signing in.');
-        } else if (error.message.includes('Too many requests')) {
-          onError('Too many sign-in attempts. Please wait a moment and try again.');
-        } else {
-          onError(error.message);
-        }
+        console.error('Sign in form error:', error);
+        onError(error.message);
+      } else {
+        console.log('Sign in form successful');
       }
     } catch (error) {
+      console.error('Unexpected error in sign in form:', error);
       onError('An unexpected error occurred. Please try again.');
     }
   };

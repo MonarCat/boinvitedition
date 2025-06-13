@@ -74,12 +74,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('Attempting sign up for:', email, 'with profile:', profile);
       
+      const redirectUrl = `${window.location.origin}/`;
+      
       // Use Supabase's default email confirmation flow
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          // Let Supabase handle the default email confirmation
+          emailRedirectTo: redirectUrl,
           data: profile ? {
             first_name: profile.firstName,
             last_name: profile.lastName,
@@ -120,6 +122,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (error) {
         console.error('Sign in error:', error);
+        // Enhanced error handling
+        if (error.message.includes('Invalid login credentials')) {
+          return { data, error: { ...error, message: 'Invalid email or password. Please check your credentials and try again.' } };
+        } else if (error.message.includes('Email not confirmed')) {
+          return { data, error: { ...error, message: 'Please check your email and click the confirmation link before signing in.' } };
+        } else if (error.message.includes('Too many requests')) {
+          return { data, error: { ...error, message: 'Too many sign-in attempts. Please wait a moment and try again.' } };
+        } else if (error.message.includes('User not found')) {
+          return { data, error: { ...error, message: 'No account found with this email address. Please sign up first.' } };
+        }
         return { data, error };
       }
 
@@ -154,7 +166,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const resetPassword = async (email: string) => {
     try {
       console.log('Attempting password reset for:', email);
-      const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+      const redirectUrl = `${window.location.origin}/`;
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl
+      });
       console.log('Password reset result:', { data, error });
       return { data, error };
     } catch (error) {

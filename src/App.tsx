@@ -11,6 +11,11 @@ import AdminPage from '@/pages/AdminPage';
 import FirstAdminPage from '@/pages/FirstAdminPage';
 import NotFound from '@/pages/NotFound';
 import DemoPage from '@/pages/DemoPage';
+import BookingManagementPage from '@/pages/BookingManagementPage';
+import ServicesPage from '@/pages/ServicesPage';
+import ClientsPage from '@/pages/ClientsPage';
+import InvoicesPage from '@/pages/InvoicesPage';
+import SubscriptionPage from '@/pages/SubscriptionPage';
 
 // Create a client instance
 const queryClient = new QueryClient();
@@ -29,6 +34,46 @@ function App() {
               element={
                 <RequireAuth>
                   <AuthenticatedApp />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/booking-management"
+              element={
+                <RequireAuth>
+                  <BookingManagementPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/services"
+              element={
+                <RequireAuth>
+                  <ServicesPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/clients"
+              element={
+                <RequireAuth>
+                  <ClientsPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/invoices"
+              element={
+                <RequireAuth>
+                  <InvoicesPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/subscription"
+              element={
+                <RequireAuth>
+                  <SubscriptionPage />
                 </RequireAuth>
               }
             />

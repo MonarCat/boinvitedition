@@ -31,6 +31,7 @@ function App() {
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/demo" element={<DemoPage />} />
             <Route path="/book/:subdomain" element={<PublicBookingPage />} />
+            {/* Authenticated Routes */}
             <Route
               path="/dashboard"
               element={
@@ -87,8 +88,10 @@ function App() {
                 </RequireAuth>
               }
             />
+            {/* Admin Routes */}
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/setup-admin" element={<FirstAdminPage />} />
+            {/* Catch all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />

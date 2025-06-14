@@ -1,9 +1,9 @@
+
 import React, { useCallback, useRef } from "react";
 import { GoogleMap, Marker, useJsApiLoader, InfoWindow } from "@react-google-maps/api";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 
-// Container size is controlled by parent
 const containerStyle = {
   width: "100%",
   height: "100%",
@@ -29,7 +29,7 @@ interface GoogleMapProps {
   onMapSettingsClick?: () => void;
 }
 
-const DEFAULT_CENTER = { lat: -1.2921, lng: 36.8219 }; // Nairobi fallback
+const DEFAULT_CENTER = { lat: -1.2921, lng: 36.8219 };
 
 export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
   businesses,
@@ -46,18 +46,15 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
   });
 
-  // Safeguard for google namespace
   const getSymbolPath = () => {
-    // @ts-ignore
-    return window.google?.maps?.SymbolPath?.CIRCLE || 0; // fallback value
+    return window.google?.maps?.SymbolPath?.CIRCLE || 0;
   };
+  
   const getBackwardArrow = () => {
-    // @ts-ignore
-    return window.google?.maps?.SymbolPath?.BACKWARD_CLOSED_ARROW || 0; // fallback value
+    return window.google?.maps?.SymbolPath?.BACKWARD_CLOSED_ARROW || 0;
   };
 
   const getSize = () => {
-    // @ts-ignore
     return window.google?.maps && window.google.maps.Size
       ? new window.google.maps.Size(32, 32)
       : undefined;
@@ -108,10 +105,17 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
         options={{
           clickableIcons: false,
           disableDefaultUI: false,
+          scrollwheel: true,
+          gestureHandling: 'greedy',
+          zoomControl: true,
+          mapTypeControl: true,
+          scaleControl: true,
+          streetViewControl: true,
+          rotateControl: true,
+          fullscreenControl: true,
           styles: isDark ? darkMapStyle : undefined,
         }}
       >
-        {/* User Marker */}
         {userLocation && (
           <Marker
             position={userLocation}
@@ -127,7 +131,6 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
           />
         )}
 
-        {/* Business Markers */}
         {businesses.map((business) => (
           <Marker
             key={business.id}
@@ -151,7 +154,6 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
           />
         ))}
 
-        {/* Selected business info */}
         {selectedBusiness && (
           <InfoWindow
             position={{ lat: selectedBusiness.latitude, lng: selectedBusiness.longitude }}

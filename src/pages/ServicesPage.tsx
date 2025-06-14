@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ServicesList } from '@/components/services/ServicesList';
-import { ServiceForm } from '@/components/services/ServiceForm';
+import { EnhancedServiceForm } from '@/components/services/EnhancedServiceForm';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -32,7 +32,7 @@ const ServicesPage = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Services</h1>
-            <p className="text-gray-600">Manage your business services and pricing</p>
+            <p className="text-gray-600">Manage your business services with global currency support</p>
           </div>
           <Sheet open={isFormOpen} onOpenChange={setIsFormOpen}>
             <SheetTrigger asChild>
@@ -41,14 +41,14 @@ const ServicesPage = () => {
                 Add Service
               </Button>
             </SheetTrigger>
-            <SheetContent>
+            <SheetContent className="w-[600px] sm:max-w-[600px]">
               <SheetHeader>
                 <SheetTitle>{editingService ? 'Edit Service' : 'Create New Service'}</SheetTitle>
                 <SheetDescription>
-                  {editingService ? 'Update your service details' : 'Add a new service to your business'}
+                  {editingService ? 'Update your service details' : 'Add a new service with enhanced categories and currency support'}
                 </SheetDescription>
               </SheetHeader>
-              <ServiceForm 
+              <EnhancedServiceForm 
                 service={editingService} 
                 onSuccess={handleFormClose}
                 onCancel={handleFormClose}

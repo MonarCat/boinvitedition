@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -71,6 +70,7 @@ export const EnhancedServiceForm = ({ service, onSuccess, onCancel }: EnhancedSe
   });
 
   const watchedCategory = form.watch('category');
+  const watchedCurrency = form.watch('currency');
 
   React.useEffect(() => {
     const isTransport = ['bus', 'train', 'taxi', 'flight', 'ride-sharing', 'courier', 'car-rental'].includes(watchedCategory);

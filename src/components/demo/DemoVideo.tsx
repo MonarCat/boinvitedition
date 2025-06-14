@@ -3,12 +3,10 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, CheckCircle, QrCode, Calendar, Users, Smartphone, Star, Clock, X } from 'lucide-react';
-import { toast } from 'sonner';
+import { Play, CheckCircle, QrCode, Calendar, Users, Smartphone, Star, Clock } from 'lucide-react';
 
 const DemoVideo = () => {
   const [activeDemo, setActiveDemo] = useState('overview');
-  const [showDemoModal, setShowDemoModal] = useState(false);
 
   const demoSections = [
     {
@@ -86,57 +84,8 @@ const DemoVideo = () => {
     }
   ];
 
-  // Button Interactivity handlers
-  const handlePlay = () => {
-    toast.info('Playing demo video...');
-    setShowDemoModal(true);
-  };
-  const handleFullScreen = () => {
-    toast('Full screen mode not available in demo.');
-  };
-  const handleDownload = () => {
-    toast.success('Demo video "downloaded" (this is a preview action).');
-  };
-  const handleStartTrial = () => {
-    toast('Redirecting to Free Trial signup (demo preview).');
-  };
-  const handleScheduleDemo = () => {
-    toast('Schedule demo call feature coming soon!');
-  };
-
-  const currentSection = demoSections.find(s => s.id === activeDemo);
-
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
-      {/* Demo Modal (fake video preview) */}
-      {showDemoModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
-          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full relative flex flex-col items-center p-8">
-            <button
-              title="Close"
-              className="absolute top-2 right-2 p-2 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-700"
-              onClick={() => setShowDemoModal(false)}
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <div className="mb-4 font-bold text-xl text-gray-900">{currentSection?.title} — Demo Preview</div>
-            <div className="aspect-video bg-black text-white flex items-center justify-center rounded-md relative w-full mb-4">
-              <Play className="h-10 w-10 opacity-60" />
-              <span className="absolute bottom-2 right-2 text-xs bg-black/50 px-2 py-1 rounded">
-                {currentSection?.duration}
-              </span>
-            </div>
-            <div className="text-gray-700 mb-4">
-              <p>This is a demo video placeholder for "{currentSection?.title}".</p>
-              <p className="text-gray-500 text-xs mt-2">For a real video, upgrade your plan.</p>
-            </div>
-            <Button className="bg-blue-600 text-white" onClick={() => setShowDemoModal(false)}>
-              Close
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <div className="text-center">
         <Badge className="mb-4 bg-blue-100 text-blue-800">
@@ -180,25 +129,24 @@ const DemoVideo = () => {
           <Card>
             <CardContent className="p-0">
               <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center relative overflow-hidden">
+                {/* Simulated video player */}
                 <div className="absolute inset-0 bg-black/20"></div>
                 <div className="text-center text-white z-10">
                   <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-4 mx-auto backdrop-blur-sm">
                     <Play className="h-8 w-8 ml-1" />
                   </div>
                   <h3 className="text-2xl font-bold mb-2">
-                    {currentSection?.title}
+                    {demoSections.find(s => s.id === activeDemo)?.title}
                   </h3>
                   <p className="text-white/80 mb-4">
-                    {currentSection?.description}
+                    {demoSections.find(s => s.id === activeDemo)?.description}
                   </p>
-                  <Button
-                    className="bg-white text-blue-600 hover:bg-gray-100"
-                    onClick={handlePlay}
-                  >
+                  <Button className="bg-white text-blue-600 hover:bg-gray-100">
                     Watch Demo
                   </Button>
                 </div>
                 
+                {/* Mock interface elements for demo effect */}
                 <div className="absolute bottom-4 left-4 bg-white/10 backdrop-blur-sm rounded-lg p-3">
                   <div className="flex items-center gap-2 text-white text-sm">
                     <Clock className="h-4 w-4" />
@@ -211,19 +159,19 @@ const DemoVideo = () => {
               <div className="p-4 border-t">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <Button size="sm" onClick={handlePlay}>
+                    <Button size="sm">
                       <Play className="h-4 w-4 mr-1" />
                       Play
                     </Button>
                     <span className="text-sm text-gray-600">
-                      {currentSection?.duration}
+                      {demoSections.find(s => s.id === activeDemo)?.duration}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" onClick={handleFullScreen}>
+                    <Button size="sm" variant="outline">
                       Full Screen
                     </Button>
-                    <Button size="sm" variant="outline" onClick={handleDownload}>
+                    <Button size="sm" variant="outline">
                       Download
                     </Button>
                   </div>
@@ -241,7 +189,7 @@ const DemoVideo = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">
-                {currentSection?.features.map((feature, index) => (
+                {demoSections.find(s => s.id === activeDemo)?.features.map((feature, index) => (
                   <li key={index} className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
                     <span className="text-sm">{feature}</span>
@@ -279,7 +227,7 @@ const DemoVideo = () => {
             </CardContent>
           </Card>
 
-          <Button className="w-full" size="lg" onClick={handleStartTrial}>
+          <Button className="w-full" size="lg">
             Start Your Free Trial
           </Button>
         </div>
@@ -328,10 +276,10 @@ const DemoVideo = () => {
             Join thousands of businesses already using BookFlow to grow their revenue
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" onClick={handleStartTrial}>
+            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
               Start Free Trial
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10" onClick={handleScheduleDemo}>
+            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
               Schedule Demo Call
             </Button>
           </div>
@@ -342,4 +290,3 @@ const DemoVideo = () => {
 };
 
 export default DemoVideo;
-

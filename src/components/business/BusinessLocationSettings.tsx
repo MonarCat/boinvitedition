@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,8 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MapPin, Loader2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { LocationPickerMap } from './LocationPickerMap';
 
 export const BusinessLocationSettings = () => {
   const { user } = useAuth();
@@ -157,25 +158,12 @@ export const BusinessLocationSettings = () => {
     },
   });
 
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocationData(prev => ({
-            ...prev,
-            latitude: position.coords.latitude.toString(),
-            longitude: position.coords.longitude.toString()
-          }));
-          toast.success('Current location detected');
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          toast.error('Could not get current location');
-        }
-      );
-    } else {
-      toast.error('Geolocation is not supported by this browser');
-    }
+  const handleLocationSelect = (location: { lat: number; lng: number }) => {
+    setLocationData(prev => ({
+      ...prev,
+      latitude: location.lat.toString(),
+      longitude: location.lng.toString()
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -215,6 +203,7 @@ export const BusinessLocationSettings = () => {
   }
 
   const hasLocation = business.latitude && business.longitude;
+  const initialMapLocation = hasLocation ? { lat: business.latitude, lng: business.longitude } : null;
 
   return (
     <Card>
@@ -239,42 +228,51 @@ export const BusinessLocationSettings = () => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="latitude">Latitude *</Label>
-              <Input
-                id="latitude"
-                type="number"
-                step="any"
-                value={locationData.latitude}
-                onChange={(e) => setLocationData(prev => ({ ...prev, latitude: e.target.value }))}
-                placeholder="e.g., -1.2921"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">Required to show on map</p>
-            </div>
+          <Tabs defaultValue="map" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="map">Select on Map</TabsTrigger>
+              <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+            </TabsList>
             
-            <div>
-              <Label htmlFor="longitude">Longitude *</Label>
-              <Input
-                id="longitude"
-                type="number"
-                step="any"
-                value={locationData.longitude}
-                onChange={(e) => setLocationData(prev => ({ ...prev, longitude: e.target.value }))}
-                placeholder="e.g., 36.8219"
-                required
+            <TabsContent value="map" className="space-y-4">
+              <LocationPickerMap
+                initialLocation={initialMapLocation}
+                onLocationSelect={handleLocationSelect}
               />
-              <p className="text-xs text-gray-500 mt-1">Required to show on map</p>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={getCurrentLocation}>
-              <MapPin className="h-4 w-4 mr-2" />
-              Use Current Location
-            </Button>
-          </div>
+            </TabsContent>
+            
+            <TabsContent value="manual" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="latitude">Latitude *</Label>
+                  <Input
+                    id="latitude"
+                    type="number"
+                    step="any"
+                    value={locationData.latitude}
+                    onChange={(e) => setLocationData(prev => ({ ...prev, latitude: e.target.value }))}
+                    placeholder="e.g., -1.2921"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Required to show on map</p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="longitude">Longitude *</Label>
+                  <Input
+                    id="longitude"
+                    type="number"
+                    step="any"
+                    value={locationData.longitude}
+                    onChange={(e) => setLocationData(prev => ({ ...prev, longitude: e.target.value }))}
+                    placeholder="e.g., 36.8219"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Required to show on map</p>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
 
           <div>
             <Label htmlFor="service_radius">Service Radius (km)</Label>

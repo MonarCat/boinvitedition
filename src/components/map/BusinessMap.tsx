@@ -30,14 +30,12 @@ interface Business {
   is_verified: boolean;
   service_radius_km: number;
   currency: string;
+  show_on_map: boolean;
+  map_description: string;
   service_categories: string[];
   service_names: string[];
   total_services: number;
-}
-
-// Supabase result may be data[] or { error: true }
-function isBusinessArray(arr: any): arr is Business[] {
-  return Array.isArray(arr) && arr.every(b => typeof b === 'object' && 'id' in b && 'latitude' in b && 'longitude' in b);
+  distance_km?: number;
 }
 
 export const BusinessMap = () => {
@@ -64,77 +62,51 @@ export const BusinessMap = () => {
     }
   }, []);
 
-  // Fetch businesses for map display, check result before operations
-  const { data: businessesRaw = [], isLoading } = useQuery({
-    queryKey: ['businesses-map', searchQuery],
+  // Fetch businesses using the enhanced discovery view
+  const { data: businesses = [], isLoading } = useQuery({
+    queryKey: ['businesses-map', searchQuery, userLocation],
     queryFn: async () => {
-      let query = supabase
-        .from('businesses')
-        .select(`
-          id,
-          name,
-          description,
-          address,
-          city,
-          country,
-          phone,
-          email,
-          website,
-          logo_url,
-          latitude,
-          longitude,
-          average_rating,
-          total_reviews,
-          is_verified,
-          service_radius_km,
-          currency,
-          services:services(name, category)
-        `)
-        .eq('is_active', true)
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null)
-        .order('average_rating', { ascending: false });
+      if (userLocation && searchQuery) {
+        // Use location-based search function for better results
+        const { data, error } = await supabase
+          .rpc('search_businesses_by_location', {
+            search_lat: userLocation.lat,
+            search_lng: userLocation.lng,
+            search_radius_km: 50,
+            search_query: searchQuery || null
+          });
+        
+        if (error) {
+          console.error('Error fetching businesses:', error);
+          return [];
+        }
+        return data || [];
+      } else {
+        // Fallback to regular query
+        let query = supabase
+          .from('business_discovery')
+          .select('*')
+          .order('average_rating', { ascending: false });
 
-      if (searchQuery) {
-        query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+        if (searchQuery) {
+          query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+        }
+
+        const { data, error } = await query.limit(50);
+        if (error) {
+          console.error('Error fetching businesses:', error);
+          return [];
+        }
+        return data || [];
       }
-
-      const { data, error } = await query.limit(50);
-      if (error || !data) return [];
-      // Defensive: Only map if expected shape
-      return (Array.isArray(data) ? data : []).map((business: any) => ({
-        ...business,
-        service_categories: Array.isArray(business.services) ? business.services.map((s: any) => s.category).filter(Boolean) : [],
-        service_names: Array.isArray(business.services) ? business.services.map((s: any) => s.name).filter(Boolean) : [],
-        total_services: Array.isArray(business.services) ? business.services.length : 0,
-        featured_image_url: business.featured_image_url || '',
-        business_hours: business.business_hours || {},
-      })) as Business[];
     },
     enabled: true,
   });
-
-  // Only use business records with lat/lng (defensively check)
-  const businesses: Business[] = isBusinessArray(businessesRaw)
-    ? businessesRaw.filter((b) => typeof b.latitude === "number" && typeof b.longitude === "number")
-    : [];
 
   const handleBusinessSelect = (business: Business) => setSelectedBusiness(business);
 
   const handleBookNow = (businessId: string) => {
     navigate(`/booking/${businessId}`);
-  };
-
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a =
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
   };
 
   return (
@@ -225,7 +197,7 @@ export const BusinessMap = () => {
                           )}
 
                           <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-                            {business.description}
+                            {business.map_description || business.description}
                           </p>
 
                           {business.service_categories && business.service_categories.length > 0 && (
@@ -243,14 +215,9 @@ export const BusinessMap = () => {
                             </div>
                           )}
 
-                          {userLocation && business.latitude && business.longitude && (
+                          {business.distance_km !== undefined && (
                             <p className="text-xs text-gray-500 mb-2">
-                              {calculateDistance(
-                                userLocation.lat,
-                                userLocation.lng,
-                                business.latitude,
-                                business.longitude
-                              ).toFixed(1)} km away
+                              {business.distance_km.toFixed(1)} km away
                             </p>
                           )}
 

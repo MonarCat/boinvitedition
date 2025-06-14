@@ -36,7 +36,7 @@ export const BusinessLocationSettings = () => {
         .from('businesses')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle(); // Use maybeSingle to avoid errors when no business found
+        .maybeSingle();
       
       if (error) {
         console.error('Error fetching business:', error);

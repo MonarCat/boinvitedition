@@ -62,7 +62,7 @@ export const BusinessMap = () => {
     }
   }, []);
 
-  // Fetch businesses using raw SQL for location-based search or regular query
+  // Fetch businesses using location-based search or regular query
   const { data: businesses = [], isLoading } = useQuery({
     queryKey: ['businesses-map', searchQuery, userLocation],
     queryFn: async () => {
@@ -82,19 +82,19 @@ export const BusinessMap = () => {
             // Fallback to regular query if RPC fails
             return await fetchRegularBusinesses();
           }
-          return data || [];
+          return (data || []) as Business[];
         } else {
           return await fetchRegularBusinesses();
         }
       } catch (error) {
         console.error('Error fetching businesses:', error);
-        return [];
+        return [] as Business[];
       }
     },
     enabled: true,
   });
 
-  const fetchRegularBusinesses = async () => {
+  const fetchRegularBusinesses = async (): Promise<Business[]> => {
     let query = supabase
       .from('businesses')
       .select(`

@@ -176,15 +176,18 @@ export type Database = {
           booking_buffer_minutes: number | null
           booking_slot_duration_minutes: number | null
           business_id: string
+          contact_preferences: Json | null
           created_at: string | null
           currency: string | null
           default_tax_rate: number | null
           id: string
+          map_description: string | null
           max_bookings_per_slot: number | null
           notification_preferences: Json | null
           reminder_hours_before: number | null
           require_payment: boolean | null
           send_reminders: boolean | null
+          show_on_map: boolean | null
           timezone: string | null
           updated_at: string | null
         }
@@ -194,15 +197,18 @@ export type Database = {
           booking_buffer_minutes?: number | null
           booking_slot_duration_minutes?: number | null
           business_id: string
+          contact_preferences?: Json | null
           created_at?: string | null
           currency?: string | null
           default_tax_rate?: number | null
           id?: string
+          map_description?: string | null
           max_bookings_per_slot?: number | null
           notification_preferences?: Json | null
           reminder_hours_before?: number | null
           require_payment?: boolean | null
           send_reminders?: boolean | null
+          show_on_map?: boolean | null
           timezone?: string | null
           updated_at?: string | null
         }
@@ -212,15 +218,18 @@ export type Database = {
           booking_buffer_minutes?: number | null
           booking_slot_duration_minutes?: number | null
           business_id?: string
+          contact_preferences?: Json | null
           created_at?: string | null
           currency?: string | null
           default_tax_rate?: number | null
           id?: string
+          map_description?: string | null
           max_bookings_per_slot?: number | null
           notification_preferences?: Json | null
           reminder_hours_before?: number | null
           require_payment?: boolean | null
           send_reminders?: boolean | null
+          show_on_map?: boolean | null
           timezone?: string | null
           updated_at?: string | null
         }
@@ -238,17 +247,23 @@ export type Database = {
         Row: {
           address: string | null
           average_rating: number | null
+          business_hours: Json | null
           city: string | null
           country: string | null
           created_at: string | null
           currency: string | null
           description: string | null
           email: string | null
+          featured_image_url: string | null
           id: string
           is_active: boolean | null
+          is_verified: boolean | null
+          latitude: number | null
           logo_url: string | null
+          longitude: number | null
           name: string
           phone: string | null
+          service_radius_km: number | null
           subdomain: string | null
           total_reviews: number | null
           updated_at: string | null
@@ -258,17 +273,23 @@ export type Database = {
         Insert: {
           address?: string | null
           average_rating?: number | null
+          business_hours?: Json | null
           city?: string | null
           country?: string | null
           created_at?: string | null
           currency?: string | null
           description?: string | null
           email?: string | null
+          featured_image_url?: string | null
           id?: string
           is_active?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           name: string
           phone?: string | null
+          service_radius_km?: number | null
           subdomain?: string | null
           total_reviews?: number | null
           updated_at?: string | null
@@ -278,17 +299,23 @@ export type Database = {
         Update: {
           address?: string | null
           average_rating?: number | null
+          business_hours?: Json | null
           city?: string | null
           country?: string | null
           created_at?: string | null
           currency?: string | null
           description?: string | null
           email?: string | null
+          featured_image_url?: string | null
           id?: string
           is_active?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           name?: string
           phone?: string | null
+          service_radius_km?: number | null
           subdomain?: string | null
           total_reviews?: number | null
           updated_at?: string | null
@@ -616,6 +643,10 @@ export type Database = {
         Args: { _user_email: string }
         Returns: undefined
       }
+      calculate_distance: {
+        Args: { lat1: number; lon1: number; lat2: number; lon2: number }
+        Returns: number
+      }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: {
@@ -628,6 +659,41 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      search_businesses_by_location: {
+        Args: {
+          search_lat: number
+          search_lng: number
+          search_radius_km?: number
+          search_query?: string
+        }
+        Returns: {
+          id: string
+          name: string
+          description: string
+          address: string
+          city: string
+          country: string
+          phone: string
+          email: string
+          website: string
+          logo_url: string
+          featured_image_url: string
+          latitude: number
+          longitude: number
+          average_rating: number
+          total_reviews: number
+          business_hours: Json
+          is_verified: boolean
+          service_radius_km: number
+          currency: string
+          show_on_map: boolean
+          map_description: string
+          service_categories: string[]
+          service_names: string[]
+          total_services: number
+          distance_km: number
+        }[]
       }
     }
     Enums: {

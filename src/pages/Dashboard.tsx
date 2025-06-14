@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowUp, ArrowDown, Ticket, Youtube, Download, Plus } from "lucide-react";
 import { format } from 'date-fns';
+import { Edit, RefreshCcw } from "lucide-react";
+import { toast } from 'sonner';
+import { ThemeProvider, useTheme } from "@/lib/ThemeProvider";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -159,219 +161,295 @@ const Dashboard = () => {
     navigate('/app/subscription');
   };
 
+  // 1. Theme toggle
+  const { theme, setTheme } = useTheme();
+
+  // 2. Edit modal state
+  const [showEditBusiness, setShowEditBusiness] = useState(false);
+
+  // 3. Realtime subscriptions for KPIs (already present, but fine-tuned)
+  useEffect(() => {
+    if (!business) return;
+    const kpiChannel = supabase.channel('dashboard-kpis')
+      .on("postgres_changes", { schema: "public", table: "bookings", event: "*" }, () =>
+        queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] })
+      )
+      .on("postgres_changes", { schema: "public", table: "clients", event: "*" }, () =>
+        queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] })
+      )
+      .on("postgres_changes", { schema: "public", table: "services", event: "*" }, () =>
+        queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] })
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(kpiChannel);
+    };
+  }, [business, queryClient]);
+
+  // 4. Handler for KPI manual refresh
+  const handleKpiRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    toast.info("Refreshing KPIs...");
+  };
+
+  // 5. Business info edit
+  const handleEditBusiness = () => setShowEditBusiness(true);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Business Dashboard</h1>
-            <p className="text-gray-600">
-              {business ? `Welcome back to ${business.name}` : 'Manage your bookings, invoices, and clients'}
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              Pro Plan
-            </Badge>
-            <Button onClick={handleNewBooking}>+ New Booking</Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Stats Overview */}
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Today's Bookings</CardTitle>
-              <ArrowDown className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{realTimeStats.activeBookings}</div>
-              <p className="text-xs text-muted-foreground">Active appointments</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
-              <ArrowUp className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatPrice(realTimeStats.todayRevenue)}</div>
-              <p className="text-xs text-muted-foreground">From confirmed bookings</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Monthly Bookings</CardTitle>
-              <Ticket className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{realTimeStats.monthlyBookings}</div>
-              <p className="text-xs text-muted-foreground">This month</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
-              <Youtube className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{realTimeStats.totalClients}</div>
-              <p className="text-xs text-muted-foreground">Registered clients</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Mobile Apps Download Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Download Mobile Apps</CardTitle>
-            <CardDescription>
-              Manage your business on the go with our mobile applications
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Download for iOS
-              </Button>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Download for Android
-              </Button>
+    <ThemeProvider>
+      <div className="min-h-screen bg-background">
+        {/* Header with Theme Toggle */}
+        <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Business Dashboard</h1>
+              <p className="text-gray-600 dark:text-gray-300">
+                {business ? `Welcome back to ${business.name}` : 'Manage your bookings, invoices, and clients'}
+              </p>
             </div>
-            <p className="text-sm text-gray-600 mt-2">
-              Native mobile apps coming soon! Get notified when they're available.
-            </p>
-          </CardContent>
-        </Card>
+            <div className="flex items-center space-x-4">
+              {/* Theme toggle */}
+              <select
+                value={theme}
+                onChange={e => setTheme(e.target.value as any)}
+                className="p-2 rounded border bg-white dark:bg-gray-800 text-sm"
+              >
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                Pro Plan
+              </Badge>
+              <Button onClick={handleNewBooking}>+ New Booking</Button>
+            </div>
+          </div>
+        </header>
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="bookings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="invoices">Invoices</TabsTrigger>
-            <TabsTrigger value="clients">Clients</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="bookings" className="space-y-6">
+        {/* Stats Overview with Realtime and Edit Buttons */}
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card>
-              <CardHeader>
-                <CardTitle>Recent Bookings</CardTitle>
-                <CardDescription>Manage your upcoming and past appointments</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Today's Bookings</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon" onClick={handleKpiRefresh}><RefreshCcw size={16} /></Button>
+                  <Edit size={16} onClick={handleEditBusiness} className="cursor-pointer" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {[1, 2, 3, 4].map((booking) => (
-                    <div key={booking} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-blue-600">JD</span>
+                <div className="text-2xl font-bold">{realTimeStats.activeBookings}</div>
+                <p className="text-xs text-muted-foreground">Active appointments</p>
+              </CardContent>
+            </Card>
+            {/* ... repeat for other KPI Cards, adding <Edit />/Quick Actions */}
+            {/* Revenue */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
+                <Button variant="ghost" size="icon" onClick={handleKpiRefresh}><RefreshCcw size={16} /></Button>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatPrice(realTimeStats.todayRevenue)}</div>
+                <p className="text-xs text-muted-foreground">From confirmed bookings</p>
+              </CardContent>
+            </Card>
+            {/* Monthly Bookings */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Monthly Bookings</CardTitle>
+                <Button variant="ghost" size="icon" onClick={handleKpiRefresh}><RefreshCcw size={16} /></Button>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{realTimeStats.monthlyBookings}</div>
+                <p className="text-xs text-muted-foreground">This month</p>
+              </CardContent>
+            </Card>
+            {/* Total Clients */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
+                <Button variant="ghost" size="icon" onClick={handleKpiRefresh}><RefreshCcw size={16} /></Button>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{realTimeStats.totalClients}</div>
+                <p className="text-xs text-muted-foreground">Registered clients</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* "Quick Actions" Example */}
+          <div className="flex flex-wrap gap-4 mb-8">
+            <Button variant="outline" onClick={handleNewBooking}>+ New Booking</Button>
+            <Button variant="outline" onClick={handleCreateInvoice}>Create Invoice</Button>
+            <Button variant="outline" onClick={handleViewClients}>View Clients</Button>
+            <Button variant="outline" onClick={handleManageServices}>Manage Services</Button>
+            <Button variant="outline" onClick={handleSubscription}>Subscription</Button>
+            <Button variant="outline" onClick={handleUpdateSettings}>Settings</Button>
+          </div>
+
+          {/* Header */}
+          
+
+          {/* Stats Overview */}
+          
+
+          {/* Mobile Apps Download Section */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Download Mobile Apps</CardTitle>
+              <CardDescription>
+                Manage your business on the go with our mobile applications
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Download for iOS
+                </Button>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Download for Android
+                </Button>
+              </div>
+              <p className="text-sm text-gray-600 mt-2">
+                Native mobile apps coming soon! Get notified when they're available.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Main Content Tabs */}
+          <Tabs defaultValue="bookings" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="bookings">Bookings</TabsTrigger>
+              <TabsTrigger value="invoices">Invoices</TabsTrigger>
+              <TabsTrigger value="clients">Clients</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="bookings" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Bookings</CardTitle>
+                  <CardDescription>Manage your upcoming and past appointments</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[1, 2, 3, 4].map((booking) => (
+                      <div key={booking} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-medium text-blue-600">JD</span>
+                          </div>
+                          <div>
+                            <p className="font-medium">John Doe</p>
+                            <p className="text-sm text-gray-600">Haircut & Styling</p>
+                            <p className="text-xs text-gray-500">Today, 2:30 PM</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">John Doe</p>
-                          <p className="text-sm text-gray-600">Haircut & Styling</p>
-                          <p className="text-xs text-gray-500">Today, 2:30 PM</p>
+                        <div className="flex items-center space-x-2">
+                          <Badge className="bg-green-100 text-green-800">Confirmed</Badge>
+                          <Button size="sm" variant="outline" onClick={() => navigate('/app/bookings')}>
+                            View
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge className="bg-green-100 text-green-800">Confirmed</Badge>
-                        <Button size="sm" variant="outline" onClick={() => navigate('/app/bookings')}>
-                          View
-                        </Button>
-                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4">
+                    <Button onClick={() => navigate('/app/bookings')} className="w-full">
+                      View All Bookings
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="invoices" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Invoice Management</CardTitle>
+                  <CardDescription>Create and track your invoices</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <ArrowUp className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices yet</h3>
+                    <p className="text-gray-600 mb-4">Start creating professional invoices for your services</p>
+                    <Button onClick={handleCreateInvoice}>Create First Invoice</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="clients" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Client Directory</CardTitle>
+                  <CardDescription>Manage your customer relationships</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <div className="mx-auto h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                      <span className="text-gray-400">👥</span>
                     </div>
-                  ))}
-                </div>
-                <div className="mt-4">
-                  <Button onClick={() => navigate('/app/bookings')} className="w-full">
-                    View All Bookings
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Building your client base</h3>
+                    <p className="text-gray-600 mb-4">Clients will appear here as they book through your QR codes</p>
+                    <Button variant="outline" onClick={handleViewClients}>View All Clients</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          <TabsContent value="invoices" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Invoice Management</CardTitle>
-                <CardDescription>Create and track your invoices</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <ArrowUp className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices yet</h3>
-                  <p className="text-gray-600 mb-4">Start creating professional invoices for your services</p>
-                  <Button onClick={handleCreateInvoice}>Create First Invoice</Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="clients" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Client Directory</CardTitle>
-                <CardDescription>Manage your customer relationships</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <div className="mx-auto h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <span className="text-gray-400">👥</span>
+            <TabsContent value="settings" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Business Settings</CardTitle>
+                  <CardDescription>Configure your business profile and preferences</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-medium mb-2">Business Information</h4>
+                      <Button variant="outline" onClick={handleUpdateSettings}>Edit Profile</Button>
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-2">Services & Pricing</h4>
+                      <Button variant="outline" onClick={handleManageServices}>Manage Services</Button>
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-2">Currency Settings</h4>
+                      <p className="text-sm text-gray-600 mb-2">Current: {currency}</p>
+                      <Button variant="outline" onClick={handleUpdateSettings}>Update Currency</Button>
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-2">Custom Subdomain</h4>
+                      <p className="text-sm text-gray-600 mb-2">your-business.bookflow.com</p>
+                      <Button variant="outline" onClick={handleUpdateSettings}>Update Subdomain</Button>
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-2">Subscription</h4>
+                      <Button variant="outline" onClick={handleSubscription}>Manage Subscription</Button>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Building your client base</h3>
-                  <p className="text-gray-600 mb-4">Clients will appear here as they book through your QR codes</p>
-                  <Button variant="outline" onClick={handleViewClients}>View All Clients</Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="settings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Business Settings</CardTitle>
-                <CardDescription>Configure your business profile and preferences</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Business Information</h4>
-                    <Button variant="outline" onClick={handleUpdateSettings}>Edit Profile</Button>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Services & Pricing</h4>
-                    <Button variant="outline" onClick={handleManageServices}>Manage Services</Button>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Currency Settings</h4>
-                    <p className="text-sm text-gray-600 mb-2">Current: {currency}</p>
-                    <Button variant="outline" onClick={handleUpdateSettings}>Update Currency</Button>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Custom Subdomain</h4>
-                    <p className="text-sm text-gray-600 mb-2">your-business.bookflow.com</p>
-                    <Button variant="outline" onClick={handleUpdateSettings}>Update Subdomain</Button>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Subscription</h4>
-                    <Button variant="outline" onClick={handleSubscription}>Manage Subscription</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+          {/* If showEditBusiness: render a modal or inline editor */}
+          {showEditBusiness && (
+            <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-40">
+              <div className="bg-white dark:bg-gray-900 rounded-lg p-8 w-full max-w-lg shadow-lg">
+                <h2 className="text-xl font-bold mb-4">Edit Business Info</h2>
+                {/* TODO: Form to edit business info goes here */}
+                <Button onClick={() => setShowEditBusiness(false)}>Close</Button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </ThemeProvider>
   );
 };
 

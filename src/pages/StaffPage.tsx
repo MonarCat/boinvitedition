@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { StaffList } from '@/components/staff/StaffList';
-import { StaffForm } from '@/components/staff/StaffForm';
+import { EnhancedStaffList } from '@/components/staff/EnhancedStaffList';
+import { EnhancedStaffForm } from '@/components/staff/EnhancedStaffForm';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import {
@@ -36,7 +36,7 @@ const StaffPage = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Staff Management</h1>
-            <p className="text-gray-600">Manage your team members and their information</p>
+            <p className="text-gray-600">Manage your team members with gender preferences for client selection</p>
           </div>
           <Button onClick={() => setIsAddingStaff(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -44,7 +44,7 @@ const StaffPage = () => {
           </Button>
         </div>
 
-        <StaffList onEditStaff={handleEditStaff} />
+        <EnhancedStaffList onEditStaff={handleEditStaff} />
 
         <Dialog open={isAddingStaff || !!editingStaff} onOpenChange={() => handleFormCancel()}>
           <DialogContent className="max-w-md">
@@ -53,7 +53,7 @@ const StaffPage = () => {
                 {editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'}
               </DialogTitle>
             </DialogHeader>
-            <StaffForm 
+            <EnhancedStaffForm 
               staff={editingStaff}
               onSuccess={handleFormSuccess}
               onCancel={handleFormCancel}

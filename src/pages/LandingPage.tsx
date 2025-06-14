@@ -16,6 +16,7 @@ import {
   MapPin,
   LogIn
 } from 'lucide-react';
+import { PartnersSlider } from '@/components/landing/PartnersSlider';
 
 const LandingPage = () => {
   return (
@@ -64,7 +65,7 @@ const LandingPage = () => {
             <span className="text-royal-red block">Bookings & Payments</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            From salons to fitness studios, manage appointments, accept payments, and grow your business with our all-in-one booking platform.
+            From salons to hotels, transport to medical services - manage appointments, accept payments, and grow your business with our all-in-one booking platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/auth">
@@ -83,6 +84,9 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Partners Slider */}
+      <PartnersSlider />
+
       {/* Map Discovery Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -91,20 +95,20 @@ const LandingPage = () => {
               Discover Local Services
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Find barbershops, salons, massage parlors, gyms, medical services, and more in your area. 
+              Find barbershops, salons, hotels, transport services, medical care, and more in your area. 
               Book appointments directly and see ratings from other customers.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {[
+              { name: 'Hotels & Hospitality', icon: '🏨', count: '200+' },
+              { name: 'Transport Services', icon: '🚌', count: '300+' },
               { name: 'Barbershops & Salons', icon: '✂️', count: '150+' },
               { name: 'Medical & Dental', icon: '🏥', count: '95+' },
               { name: 'Massage & Spa', icon: '💆‍♀️', count: '80+' },
               { name: 'Fitness & Gyms', icon: '💪', count: '120+' },
-              { name: 'Mental Health', icon: '🧠', count: '65+' },
-              { name: 'Veterinary Care', icon: '🐕', count: '40+' },
-              { name: 'Transport Services', icon: '🚗', count: '200+' },
+              { name: 'Event Planning', icon: '🎉', count: '45+' },
               { name: 'Beauty & Wellness', icon: '✨', count: '110+' }
             ].map((category, index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-shadow">

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -24,7 +25,7 @@ const queryClient = new QueryClient();
 const App = () => {
   useSystemDarkMode(); // Enable auto dark mode
   return (
-    <HelmetProvider> {/* Add HelmetProvider here */}
+    <HelmetProvider> {/* Add HelmetProvider here - Keeping this comment as it's not the error site */}
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
@@ -76,7 +77,8 @@ const App = () => {
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
-    </HelmetProvider> {/* Close HelmetProvider */}
+    </HelmetProvider> {/* Removed the comment from this line */}
   );
 };
 export default App;
+

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { MapPin, Loader2 } from 'lucide-react';
+import { MapPin, Loader2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const BusinessLocationSettings = () => {
@@ -199,11 +199,22 @@ export const BusinessLocationSettings = () => {
     return (
       <Card>
         <CardContent className="p-6">
-          <p className="text-center text-gray-600">Please set up your business first.</p>
+          <div className="text-center space-y-4">
+            <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto" />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Business Setup Required</h3>
+              <p className="text-gray-600">You need to set up your business profile before configuring location settings.</p>
+            </div>
+            <Button onClick={() => window.location.href = '/app/settings'}>
+              Go to Business Settings
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
   }
+
+  const hasLocation = business.latitude && business.longitude;
 
   return (
     <Card>
@@ -212,12 +223,25 @@ export const BusinessLocationSettings = () => {
           <MapPin className="h-5 w-5" />
           Location & Map Settings
         </CardTitle>
+        {!hasLocation && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-medium text-yellow-800">Location Not Set</h4>
+                <p className="text-sm text-yellow-700 mt-1">
+                  Your business won't appear on the public map until you add location coordinates below.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="latitude">Latitude</Label>
+              <Label htmlFor="latitude">Latitude *</Label>
               <Input
                 id="latitude"
                 type="number"
@@ -225,11 +249,13 @@ export const BusinessLocationSettings = () => {
                 value={locationData.latitude}
                 onChange={(e) => setLocationData(prev => ({ ...prev, latitude: e.target.value }))}
                 placeholder="e.g., -1.2921"
+                required
               />
+              <p className="text-xs text-gray-500 mt-1">Required to show on map</p>
             </div>
             
             <div>
-              <Label htmlFor="longitude">Longitude</Label>
+              <Label htmlFor="longitude">Longitude *</Label>
               <Input
                 id="longitude"
                 type="number"
@@ -237,7 +263,9 @@ export const BusinessLocationSettings = () => {
                 value={locationData.longitude}
                 onChange={(e) => setLocationData(prev => ({ ...prev, longitude: e.target.value }))}
                 placeholder="e.g., 36.8219"
+                required
               />
+              <p className="text-xs text-gray-500 mt-1">Required to show on map</p>
             </div>
           </div>
 
@@ -282,13 +310,13 @@ export const BusinessLocationSettings = () => {
 
           <Button 
             type="submit" 
-            disabled={updateLocationMutation.isPending}
+            disabled={updateLocationMutation.isPending || !locationData.latitude || !locationData.longitude}
             className="w-full md:w-auto"
           >
             {updateLocationMutation.isPending && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
-            Save Location Settings
+            {hasLocation ? 'Update Location Settings' : 'Save Location & Enable Map Visibility'}
           </Button>
         </form>
       </CardContent>

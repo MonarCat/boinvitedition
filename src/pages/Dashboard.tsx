@@ -1,16 +1,19 @@
+
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowUp, ArrowDown, Ticket, Youtube, Download } from "lucide-react";
+import { ArrowUp, ArrowDown, Ticket, Youtube, Download, Plus } from "lucide-react";
 import { format } from 'date-fns';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [realTimeStats, setRealTimeStats] = useState({
     activeBookings: 0,
@@ -132,6 +135,30 @@ const Dashboard = () => {
     return `$${amount}`;
   };
 
+  const handleNewBooking = () => {
+    navigate('/app/bookings');
+  };
+
+  const handleCreateInvoice = () => {
+    navigate('/app/invoices');
+  };
+
+  const handleViewClients = () => {
+    navigate('/app/clients');
+  };
+
+  const handleManageServices = () => {
+    navigate('/app/services');
+  };
+
+  const handleUpdateSettings = () => {
+    navigate('/app/settings');
+  };
+
+  const handleSubscription = () => {
+    navigate('/app/subscription');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -147,7 +174,7 @@ const Dashboard = () => {
             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
               Pro Plan
             </Badge>
-            <Button>+ New Booking</Button>
+            <Button onClick={handleNewBooking}>+ New Booking</Button>
           </div>
         </div>
       </header>
@@ -256,10 +283,17 @@ const Dashboard = () => {
                       </div>
                       <div className="flex items-center space-x-2">
                         <Badge className="bg-green-100 text-green-800">Confirmed</Badge>
-                        <Button size="sm" variant="outline">View</Button>
+                        <Button size="sm" variant="outline" onClick={() => navigate('/app/bookings')}>
+                          View
+                        </Button>
                       </div>
                     </div>
                   ))}
+                </div>
+                <div className="mt-4">
+                  <Button onClick={() => navigate('/app/bookings')} className="w-full">
+                    View All Bookings
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -276,7 +310,7 @@ const Dashboard = () => {
                   <ArrowUp className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices yet</h3>
                   <p className="text-gray-600 mb-4">Start creating professional invoices for your services</p>
-                  <Button>Create First Invoice</Button>
+                  <Button onClick={handleCreateInvoice}>Create First Invoice</Button>
                 </div>
               </CardContent>
             </Card>
@@ -295,7 +329,7 @@ const Dashboard = () => {
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Building your client base</h3>
                   <p className="text-gray-600 mb-4">Clients will appear here as they book through your QR codes</p>
-                  <Button variant="outline">View All Clients</Button>
+                  <Button variant="outline" onClick={handleViewClients}>View All Clients</Button>
                 </div>
               </CardContent>
             </Card>
@@ -311,21 +345,25 @@ const Dashboard = () => {
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-medium mb-2">Business Information</h4>
-                    <Button variant="outline">Edit Profile</Button>
+                    <Button variant="outline" onClick={handleUpdateSettings}>Edit Profile</Button>
                   </div>
                   <div>
                     <h4 className="font-medium mb-2">Services & Pricing</h4>
-                    <Button variant="outline">Manage Services</Button>
+                    <Button variant="outline" onClick={handleManageServices}>Manage Services</Button>
                   </div>
                   <div>
                     <h4 className="font-medium mb-2">Currency Settings</h4>
                     <p className="text-sm text-gray-600 mb-2">Current: {currency}</p>
-                    <Button variant="outline">Update Currency</Button>
+                    <Button variant="outline" onClick={handleUpdateSettings}>Update Currency</Button>
                   </div>
                   <div>
                     <h4 className="font-medium mb-2">Custom Subdomain</h4>
                     <p className="text-sm text-gray-600 mb-2">your-business.bookflow.com</p>
-                    <Button variant="outline">Update Subdomain</Button>
+                    <Button variant="outline" onClick={handleUpdateSettings}>Update Subdomain</Button>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Subscription</h4>
+                    <Button variant="outline" onClick={handleSubscription}>Manage Subscription</Button>
                   </div>
                 </div>
               </CardContent>

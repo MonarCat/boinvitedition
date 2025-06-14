@@ -32,13 +32,13 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigationItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Bookings', href: '/booking-management', icon: Calendar },
-    { name: 'Services', href: '/services', icon: Settings },
-    { name: 'Clients', href: '/clients', icon: Users },
-    { name: 'Invoices', href: '/invoices', icon: FileText },
-    { name: 'Subscription', href: '/subscription', icon: CreditCard },
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
+    { name: 'Bookings', href: '/app/bookings', icon: Calendar },
+    { name: 'Services', href: '/app/services', icon: Settings },
+    { name: 'Clients', href: '/app/clients', icon: Users },
+    { name: 'Invoices', href: '/app/invoices', icon: FileText },
+    { name: 'Subscription', href: '/app/subscription', icon: CreditCard },
+    { name: 'Settings', href: '/app/settings', icon: Settings },
   ];
 
   const handleSignOut = async () => {
@@ -53,7 +53,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white">
       <div className="flex items-center justify-between px-6 py-4 border-b">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
           <img 
             src="/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png" 
             alt="Boinvit Logo" 
@@ -116,7 +116,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
       {/* Mobile Header */}
       <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between w-full sticky top-0 z-40">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
           <img 
             src="/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png" 
             alt="Boinvit Logo" 

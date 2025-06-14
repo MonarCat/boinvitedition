@@ -8,7 +8,6 @@ import { AuthenticatedApp } from "@/pages/AuthenticatedApp";
 import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
 import DemoPage from "@/pages/DemoPage";
-import Index from "@/pages/Index";
 import PublicBookingPage from "@/pages/PublicBookingPage";
 import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
@@ -28,16 +27,24 @@ const App = () => (
         <AuthProvider>
           <div className="relative">
             <Routes>
+              {/* Landing page as default */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/demo" element={<DemoPage />} />
+              
+              {/* Authenticated app routes */}
               <Route path="/app/*" element={<AuthenticatedApp />} />
+              
+              {/* Public booking */}
               <Route path="/booking/:businessId" element={<PublicBookingPage />} />
+              
+              {/* Legal pages */}
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/cookies" element={<CookiePolicy />} />
               <Route path="/safety" element={<SafetyTips />} />
-              {/* Legacy route redirects */}
+              
+              {/* Legacy route redirects - redirect to app paths */}
               <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
               <Route path="/services" element={<Navigate to="/app/services" replace />} />
               <Route path="/booking-management" element={<Navigate to="/app/bookings" replace />} />
@@ -46,6 +53,8 @@ const App = () => (
               <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
               <Route path="/invoices" element={<Navigate to="/app/invoices" replace />} />
               <Route path="/subscription" element={<Navigate to="/app/subscription" replace />} />
+              
+              {/* Catch all - redirect to landing page */}
               <Route path="*" element={<NotFound />} />
             </Routes>
             

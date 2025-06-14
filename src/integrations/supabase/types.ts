@@ -529,8 +529,10 @@ export type Database = {
           duration_minutes: number
           id: string
           is_active: boolean | null
+          is_transport_service: boolean | null
           name: string
           price: number
+          transport_details: Json | null
           updated_at: string | null
         }
         Insert: {
@@ -542,8 +544,10 @@ export type Database = {
           duration_minutes: number
           id?: string
           is_active?: boolean | null
+          is_transport_service?: boolean | null
           name: string
           price: number
+          transport_details?: Json | null
           updated_at?: string | null
         }
         Update: {
@@ -555,8 +559,10 @@ export type Database = {
           duration_minutes?: number
           id?: string
           is_active?: boolean | null
+          is_transport_service?: boolean | null
           name?: string
           price?: number
+          transport_details?: Json | null
           updated_at?: string | null
         }
         Relationships: [

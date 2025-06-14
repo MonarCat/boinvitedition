@@ -41,18 +41,20 @@ const ServicesPage = () => {
                 Add Service
               </Button>
             </SheetTrigger>
-            <SheetContent className="w-[600px] sm:max-w-[600px]">
+            <SheetContent className="w-[700px] sm:max-w-[700px] overflow-hidden">
               <SheetHeader>
                 <SheetTitle>{editingService ? 'Edit Service' : 'Create New Service'}</SheetTitle>
                 <SheetDescription>
                   {editingService ? 'Update your service details' : 'Add a new service with enhanced categories and currency support'}
                 </SheetDescription>
               </SheetHeader>
-              <EnhancedServiceForm 
-                service={editingService} 
-                onSuccess={handleFormClose}
-                onCancel={handleFormClose}
-              />
+              <div className="mt-4 h-full">
+                <EnhancedServiceForm 
+                  service={editingService} 
+                  onSuccess={handleFormClose}
+                  onCancel={handleFormClose}
+                />
+              </div>
             </SheetContent>
           </Sheet>
         </div>

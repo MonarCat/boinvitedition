@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 
 interface TimeSectionProps {
   register: UseFormRegister<any>;
+  readOnly?: boolean;
 }
 
-export const TimeSection = ({ register }: TimeSectionProps) => {
+export const TimeSection = ({ register, readOnly = false }: TimeSectionProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
@@ -17,6 +18,8 @@ export const TimeSection = ({ register }: TimeSectionProps) => {
           id="departure_time"
           type="time"
           {...register('departure_time', { required: 'Departure time is required' })}
+          readOnly={readOnly}
+          className={readOnly ? "bg-gray-50" : ""}
         />
       </div>
 
@@ -26,6 +29,8 @@ export const TimeSection = ({ register }: TimeSectionProps) => {
           id="arrival_time"
           type="time"
           {...register('arrival_time', { required: 'Arrival time is required' })}
+          readOnly={readOnly}
+          className={readOnly ? "bg-gray-50" : ""}
         />
       </div>
     </div>

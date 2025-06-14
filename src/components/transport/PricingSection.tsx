@@ -8,9 +8,10 @@ interface PricingSectionProps {
   register: UseFormRegister<any>;
   watch: UseFormWatch<any>;
   currencySymbol: string;
+  readOnly?: boolean;
 }
 
-export const PricingSection = ({ register, watch, currencySymbol }: PricingSectionProps) => {
+export const PricingSection = ({ register, watch, currencySymbol, readOnly = false }: PricingSectionProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
@@ -20,6 +21,8 @@ export const PricingSection = ({ register, watch, currencySymbol }: PricingSecti
           type="number"
           min="1"
           {...register('available_seats', { required: 'Available seats is required' })}
+          readOnly={readOnly}
+          className={readOnly ? "bg-gray-50" : ""}
         />
       </div>
 
@@ -32,6 +35,8 @@ export const PricingSection = ({ register, watch, currencySymbol }: PricingSecti
           min="0"
           {...register('price_per_seat', { required: 'Price per seat is required' })}
           placeholder="0.00"
+          readOnly={readOnly}
+          className={readOnly ? "bg-gray-50" : ""}
         />
       </div>
     </div>

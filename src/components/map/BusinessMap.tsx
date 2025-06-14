@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Star, MapPin, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { InteractiveMap } from './InteractiveMap';
+import { BusinessDiscoveryGoogleMap } from './GoogleMap';
 
 interface Business {
   id: string;
@@ -113,6 +112,11 @@ export const BusinessMap = () => {
     enabled: true,
   });
 
+  // Fix: Add defensive checks for possible missing fields (latitude, services, etc.)
+  const businessesForMap = (businesses ?? []).filter(
+    (b) => typeof b.latitude === "number" && typeof b.longitude === "number"
+  );
+
   const handleBusinessSelect = (business: Business) => {
     setSelectedBusiness(business);
   };
@@ -136,7 +140,7 @@ export const BusinessMap = () => {
   return (
     <div className="h-screen flex flex-col">
       {/* Search Header */}
-      <div className="bg-white border-b p-4">
+      <div className="bg-white dark:bg-gray-900 border-b p-4">
         <div className="max-w-md mx-auto">
           <Input
             type="text"
@@ -148,14 +152,18 @@ export const BusinessMap = () => {
         </div>
       </div>
 
-      <div className="flex-1 flex">
-        {/* Interactive Map Container */}
+      <div className="flex-1 flex bg-gray-100 dark:bg-gray-900">
+        {/* Interactive Google Map */}
         <div className="flex-1 relative">
-          <InteractiveMap
-            businesses={businesses}
+          <BusinessDiscoveryGoogleMap
+            businesses={businessesForMap}
             userLocation={userLocation}
             onBusinessSelect={handleBusinessSelect}
             selectedBusiness={selectedBusiness}
+            onMapSettingsClick={() => {
+              // Provide a stub here for settings modal if desired
+              window.alert("Map settings coming soon!");
+            }}
           />
         </div>
 

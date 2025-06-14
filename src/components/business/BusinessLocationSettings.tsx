@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,20 +23,49 @@ export const BusinessLocationSettings = () => {
     map_description: ''
   });
 
+  // Extend business/settings return types to avoid type errors
+  // NOTE: Type declarations should be updated based on the database schema!
+  type BusinessData = {
+    id: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    service_radius_km?: number | null;
+    user_id: string;
+    name: string;
+    description: string;
+    address: string;
+    city: string;
+    country: string;
+    phone: string;
+    email: string;
+    website: string;
+    logo_url: string;
+    featured_image_url: string;
+    average_rating: number;
+    total_reviews: number;
+    business_hours: any;
+    is_verified: boolean;
+    currency: string;
+  };
+  
+  type SettingsData = {
+    show_on_map?: boolean | null;
+    map_description?: string | null;
+    business_id: string;
+  };
+
   // Fetch business data
   const { data: business, isLoading } = useQuery({
     queryKey: ['user-business', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      
       const { data, error } = await supabase
         .from('businesses')
-        .select('*')
+        .select('id, latitude, longitude, service_radius_km')
         .eq('user_id', user.id)
         .single();
-      
       if (error) throw error;
-      return data;
+      return data as BusinessData;
     },
     enabled: !!user,
   });
@@ -47,15 +75,13 @@ export const BusinessLocationSettings = () => {
     queryKey: ['business-settings', business?.id],
     queryFn: async () => {
       if (!business) return null;
-      
       const { data, error } = await supabase
         .from('business_settings')
-        .select('*')
+        .select('show_on_map, map_description')
         .eq('business_id', business.id)
         .single();
-      
       if (error) throw error;
-      return data;
+      return data as SettingsData;
     },
     enabled: !!business,
   });

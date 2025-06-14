@@ -1,6 +1,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import React from "react";
 
 type Props = {
@@ -16,7 +17,7 @@ export const DashboardHeader: React.FC<Props> = ({
   setTheme,
   onNewBooking
 }) => (
-  <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
+  <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4 rounded-lg">
     <div className="flex justify-between items-center">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Business Dashboard</h1>
@@ -26,21 +27,21 @@ export const DashboardHeader: React.FC<Props> = ({
       </div>
       <div className="flex items-center space-x-4">
         {/* Theme toggle */}
-        <select
-          value={theme}
-          onChange={e => setTheme(e.target.value as string)}
-          className="p-2 rounded border bg-white dark:bg-gray-800 text-sm"
-          aria-label="Theme selection"
-        >
-          <option value="system">System</option>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-        </select>
+        <Select value={theme} onValueChange={setTheme}>
+          <SelectTrigger className="w-32">
+            <SelectValue placeholder="Theme" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="system">System</SelectItem>
+            <SelectItem value="light">Light</SelectItem>
+            <SelectItem value="dark">Dark</SelectItem>
+          </SelectContent>
+        </Select>
         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
           Pro Plan
         </Badge>
         <Button onClick={onNewBooking}>+ New Booking</Button>
       </div>
     </div>
-  </header>
+  </div>
 );

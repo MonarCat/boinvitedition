@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, Calendar, Users, MapPin, CreditCard } from 'lucide-react';
-import { DemoVideo } from '@/components/demo/DemoVideo';
+import DemoVideo from '@/components/demo/DemoVideo';
 
 const DemoPage = () => {
   // Sample demo data for demonstration

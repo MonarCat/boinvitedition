@@ -74,7 +74,7 @@ export const EnhancedNotificationSettings = () => {
     mutationFn: async (formData: FormData) => {
       if (!business) throw new Error('No business found');
 
-      const notificationPrefs: NotificationPreferences = {
+      const notificationPrefs = {
         email_bookings: formData.get('email_bookings') === 'on',
         email_cancellations: formData.get('email_cancellations') === 'on',
         email_reminders: formData.get('email_reminders') === 'on',
@@ -86,7 +86,7 @@ export const EnhancedNotificationSettings = () => {
       };
 
       const updates = {
-        notification_preferences: notificationPrefs,
+        notification_preferences: notificationPrefs as any,
       };
 
       if (settings) {

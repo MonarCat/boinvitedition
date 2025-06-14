@@ -574,6 +574,7 @@ export type Database = {
           business_id: string
           created_at: string | null
           email: string
+          gender: string | null
           id: string
           is_active: boolean | null
           name: string
@@ -585,6 +586,7 @@ export type Database = {
           business_id: string
           created_at?: string | null
           email: string
+          gender?: string | null
           id?: string
           is_active?: boolean | null
           name: string
@@ -596,6 +598,7 @@ export type Database = {
           business_id?: string
           created_at?: string | null
           email?: string
+          gender?: string | null
           id?: string
           is_active?: boolean | null
           name?: string

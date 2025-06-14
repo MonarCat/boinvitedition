@@ -1,4 +1,3 @@
-
 import React, { useCallback, useRef } from "react";
 import { GoogleMap, Marker, useJsApiLoader, InfoWindow } from "@react-google-maps/api";
 import { Button } from "@/components/ui/button";
@@ -39,17 +38,32 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
   selectedBusiness,
   onMapSettingsClick,
 }) => {
-  const mapRef = useRef<google.maps.Map | null>(null);
+  const mapRef = React.useRef<google.maps.Map | null>(null);
   const center = userLocation || DEFAULT_CENTER;
-
-  // API key injected as requested:
   const GOOGLE_MAPS_API_KEY = "AIzaSyA4F9QAPbmF2NfMAh82RqPDtrrMceit1Oc";
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
   });
 
-  const handleOnLoad = useCallback((map: google.maps.Map) => {
+  // Safeguard for google namespace
+  const getSymbolPath = () => {
+    // @ts-ignore
+    return window.google?.maps?.SymbolPath?.CIRCLE || 0; // fallback value
+  };
+  const getBackwardArrow = () => {
+    // @ts-ignore
+    return window.google?.maps?.SymbolPath?.BACKWARD_CLOSED_ARROW || 0; // fallback value
+  };
+
+  const getSize = () => {
+    // @ts-ignore
+    return window.google?.maps && window.google.maps.Size
+      ? new window.google.maps.Size(32, 32)
+      : undefined;
+  };
+
+  const handleOnLoad = React.useCallback((map: google.maps.Map) => {
     mapRef.current = map;
     if (userLocation) {
       map.panTo(userLocation);
@@ -74,10 +88,7 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
     );
   }
 
-  // Get dark mode status from document
   const isDark = document.documentElement.classList.contains("dark");
-
-  // Adapted map style for dark mode
   const darkMapStyle = [
     { elementType: "geometry", stylers: [{ color: "#212121" }] },
     { elementType: "labels.text.stroke", stylers: [{ color: "#212121" }] },
@@ -85,7 +96,6 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
     { featureType: "road", elementType: "geometry", stylers: [{ color: "#383838" }] },
     { featureType: "water", elementType: "geometry", stylers: [{ color: "#232f3e" }] },
     { featureType: "poi", elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-    // More rules as needed
   ];
 
   return (
@@ -106,13 +116,13 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
           <Marker
             position={userLocation}
             icon={{
-              path: window.google?.maps.SymbolPath.CIRCLE,
+              path: getSymbolPath(),
               fillColor: "#3B82F6",
               fillOpacity: 1,
               strokeColor: "#fff",
               strokeWeight: 2,
               scale: 9,
-            }}
+            } as google.maps.Symbol}
             title="Your Location"
           />
         )}
@@ -127,10 +137,10 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
               business.logo_url
                 ? {
                     url: business.logo_url,
-                    scaledSize: new window.google.maps.Size(32, 32),
+                    scaledSize: getSize(),
                   }
                 : {
-                    path: window.google?.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+                    path: getBackwardArrow(),
                     fillColor: selectedBusiness?.id === business.id ? "#10B981" : "#EF4444",
                     fillOpacity: 1,
                     strokeColor: "#fff",

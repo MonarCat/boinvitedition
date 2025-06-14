@@ -32,7 +32,7 @@ export const EnhancedTransportForm = ({
 }: EnhancedTransportFormProps) => {
   const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
 
-  // Fetch business currency
+  // Fetch business currency and logo
   const { data: business } = useQuery({
     queryKey: ['business', businessId],
     queryFn: async () => {

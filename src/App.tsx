@@ -17,66 +17,63 @@ import InstallPrompt from "@/components/pwa/InstallPrompt";
 import PWAStatus from "@/components/pwa/PWAStatus";
 import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
 import { useSystemDarkMode } from "@/lib/useSystemDarkMode";
-import { HelmetProvider } from 'react-helmet-async'; // Import HelmetProvider
 
 const queryClient = new QueryClient();
 
 const App = () => {
   useSystemDarkMode(); // Enable auto dark mode
   return (
-    <HelmetProvider> {/* Add HelmetProvider here */}
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <BrowserRouter>
-            <AuthProvider>
-              <div className="relative">
-                <Routes>
-                  {/* Landing page as default */}
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/demo" element={<DemoPage />} />
-                  
-                  {/* Business Discovery Map */}
-                  <Route path="/discover" element={<BusinessDiscoveryPage />} />
-                  
-                  {/* Authenticated app routes */}
-                  <Route path="/app/*" element={<AuthenticatedApp />} />
-                  
-                  {/* Public booking */}
-                  <Route path="/booking/:businessId" element={<PublicBookingPage />} />
-                  
-                  {/* Legal pages */}
-                  <Route path="/terms" element={<TermsOfService />} />
-                  <Route path="/privacy" element={<PrivacyPolicy />} />
-                  <Route path="/cookies" element={<CookiePolicy />} />
-                  <Route path="/safety" element={<SafetyTips />} />
-                  
-                  {/* Legacy route redirects - redirect to app paths */}
-                  <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
-                  <Route path="/services" element={<Navigate to="/app/services" replace />} />
-                  <Route path="/booking-management" element={<Navigate to="/app/bookings" replace />} />
-                  <Route path="/clients" element={<Navigate to="/app/clients" replace />} />
-                  <Route path="/staff" element={<Navigate to="/app/staff" replace />} />
-                  <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
-                  <Route path="/invoices" element={<Navigate to="/app/invoices" replace />} />
-                  <Route path="/subscription" element={<Navigate to="/app/subscription" replace />} />
-                  
-                  {/* Catch all - redirect to landing page */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <BrowserRouter>
+          <AuthProvider>
+            <div className="relative">
+              <Routes>
+                {/* Landing page as default */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/demo" element={<DemoPage />} />
                 
-                {/* PWA Components */}
-                <InstallPrompt />
-                <div className="fixed top-4 right-4 z-40">
-                  <PWAStatus />
-                </div>
+                {/* Business Discovery Map */}
+                <Route path="/discover" element={<BusinessDiscoveryPage />} />
+                
+                {/* Authenticated app routes */}
+                <Route path="/app/*" element={<AuthenticatedApp />} />
+                
+                {/* Public booking */}
+                <Route path="/booking/:businessId" element={<PublicBookingPage />} />
+                
+                {/* Legal pages */}
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/cookies" element={<CookiePolicy />} />
+                <Route path="/safety" element={<SafetyTips />} />
+                
+                {/* Legacy route redirects - redirect to app paths */}
+                <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+                <Route path="/services" element={<Navigate to="/app/services" replace />} />
+                <Route path="/booking-management" element={<Navigate to="/app/bookings" replace />} />
+                <Route path="/clients" element={<Navigate to="/app/clients" replace />} />
+                <Route path="/staff" element={<Navigate to="/app/staff" replace />} />
+                <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
+                <Route path="/invoices" element={<Navigate to="/app/invoices" replace />} />
+                <Route path="/subscription" element={<Navigate to="/app/subscription" replace />} />
+                
+                {/* Catch all - redirect to landing page */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              
+              {/* PWA Components */}
+              <InstallPrompt />
+              <div className="fixed top-4 right-4 z-40">
+                <PWAStatus />
               </div>
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </HelmetProvider> {/* Close HelmetProvider */}
+            </div>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
 export default App;

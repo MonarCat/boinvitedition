@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, DollarSign, User, Calendar as CalendarIcon, Users, Lock } from 'lucide-react';
-import { format, addMinutes, setHours, setMinutes, isSameDay, isAfter, isBefore } from 'date-fns';
+import { format, addMinutes, setHours, setMinutes } from 'date-fns';
 import { toast } from 'sonner';
 
 interface Service {
@@ -18,6 +18,7 @@ interface Service {
   price: number;
   duration_minutes: number;
   category: string;
+  currency: string;
   is_active: boolean;
 }
 
@@ -55,6 +56,21 @@ export const BookingCalendar = ({ businessId, onBookingComplete }: BookingCalend
       
       if (error) throw error;
       return data as Service[];
+    },
+  });
+
+  // Fetch business for currency
+  const { data: business } = useQuery({
+    queryKey: ['business', businessId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('currency')
+        .eq('id', businessId)
+        .single();
+      
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -185,7 +201,7 @@ export const BookingCalendar = ({ businessId, onBookingComplete }: BookingCalend
         .select('id')
         .eq('business_id', businessId)
         .eq('email', user.email)
-        .single();
+        .maybeSingle();
 
       let clientId = existingClient?.id;
 
@@ -246,6 +262,13 @@ export const BookingCalendar = ({ businessId, onBookingComplete }: BookingCalend
     createBookingMutation.mutate();
   };
 
+  const formatPrice = (price: number, currency: string) => {
+    if (currency === 'KES') {
+      return `KES ${price}`;
+    }
+    return `$${price}`;
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Service Selection */}
@@ -271,7 +294,7 @@ export const BookingCalendar = ({ businessId, onBookingComplete }: BookingCalend
                 <h3 className="font-medium">{service.name}</h3>
                 <Badge variant="outline">
                   <DollarSign className="h-3 w-3 mr-1" />
-                  {service.price}
+                  {formatPrice(service.price, service.currency || business?.currency || 'USD')}
                 </Badge>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -388,7 +411,7 @@ export const BookingCalendar = ({ businessId, onBookingComplete }: BookingCalend
                 )}
                 <div className="flex justify-between font-bold border-t pt-2">
                   <span>Total:</span>
-                  <span>${selectedService.price}</span>
+                  <span>{formatPrice(selectedService.price, selectedService.currency || business?.currency || 'USD')}</span>
                 </div>
               </div>
 

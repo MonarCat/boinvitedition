@@ -1,6 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,10 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { ExternalLink, MapPin, Users, Plane } from 'lucide-react';
+import { SeatSelectionMap } from './SeatSelectionMap';
+import { DurationSelector } from './DurationSelector';
+import { CURRENCIES } from '@/components/business/GlobalBusinessSettings';
 
 interface EnhancedTransportFormProps {
   onSubmit: (data: any) => void;
   defaultValues?: any;
+  businessId?: string;
 }
 
 const COUNTRIES = [
@@ -21,12 +27,40 @@ const COUNTRIES = [
 
 const SERVICE_CLASSES = {
   bus: ['Economy', 'VIP', 'Premium'],
-  shuttle: ['Standard', 'Premium', 'VIP'],
+  shuttle: ['Standard', 'Premium'],
   flight: ['Economy', 'Business', 'First Class'],
   train: ['Economy', 'Business', 'First Class']
 };
 
-export const EnhancedTransportForm = ({ onSubmit, defaultValues }: EnhancedTransportFormProps) => {
+const DEFAULT_SEATS = {
+  bus: 50,
+  shuttle: 14,
+  flight: 180,
+  train: 120
+};
+
+export const EnhancedTransportForm = ({ onSubmit, defaultValues, businessId }: EnhancedTransportFormProps) => {
+  const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
+  const [durationHours, setDurationHours] = useState(defaultValues?.duration_hours || 0);
+  const [durationMinutes, setDurationMinutes] = useState(defaultValues?.duration_minutes || 0);
+
+  // Fetch business currency
+  const { data: business } = useQuery({
+    queryKey: ['business', businessId],
+    queryFn: async () => {
+      if (!businessId) return null;
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('currency')
+        .eq('id', businessId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!businessId,
+  });
+
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     defaultValues: {
       service_type: 'bus',
@@ -50,6 +84,17 @@ export const EnhancedTransportForm = ({ onSubmit, defaultValues }: EnhancedTrans
 
   const isExternalBooking = watch('is_external_booking');
   const serviceType = watch('service_type');
+  const adults = watch('adults');
+  const children = watch('children');
+  const totalPassengers = adults + children;
+
+  const getCurrencySymbol = (currency: string) => {
+    const currencyData = CURRENCIES.find(c => c.code === currency);
+    return currencyData?.symbol || '$';
+  };
+
+  const businessCurrency = business?.currency || 'USD';
+  const currencySymbol = getCurrencySymbol(businessCurrency);
 
   const getExternalUrl = (type: string) => {
     switch (type) {
@@ -71,6 +116,8 @@ export const EnhancedTransportForm = ({ onSubmit, defaultValues }: EnhancedTrans
       arrival_location: `${data.arrival_city}, ${data.arrival_country}`,
       departure_time: data.departure_time,
       arrival_time: data.arrival_time,
+      duration_hours: durationHours,
+      duration_minutes: durationMinutes,
       passenger_info: {
         adults: data.adults,
         children: data.children,
@@ -80,7 +127,9 @@ export const EnhancedTransportForm = ({ onSubmit, defaultValues }: EnhancedTrans
       available_seats: data.available_seats,
       price_per_seat: data.price_per_seat,
       external_booking_url: data.external_booking_url,
-      is_external_booking: data.is_external_booking
+      is_external_booking: data.is_external_booking,
+      selected_seats: selectedSeats,
+      currency: businessCurrency
     };
     
     onSubmit(transportDetails);
@@ -101,7 +150,10 @@ export const EnhancedTransportForm = ({ onSubmit, defaultValues }: EnhancedTrans
               <Label htmlFor="service_type">Service Type</Label>
               <Select
                 value={watch('service_type')}
-                onValueChange={(value) => setValue('service_type', value)}
+                onValueChange={(value) => {
+                  setValue('service_type', value);
+                  setValue('available_seats', DEFAULT_SEATS[value as keyof typeof DEFAULT_SEATS]);
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select service type" />
@@ -110,7 +162,7 @@ export const EnhancedTransportForm = ({ onSubmit, defaultValues }: EnhancedTrans
                   <SelectItem value="bus">Bus Service</SelectItem>
                   <SelectItem value="train">Train Service</SelectItem>
                   <SelectItem value="flight">Flight Service</SelectItem>
-                  <SelectItem value="shuttle">Shuttle Service</SelectItem>
+                  <SelectItem value="shuttle">Shuttle Service (14-seater)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -137,7 +189,7 @@ export const EnhancedTransportForm = ({ onSubmit, defaultValues }: EnhancedTrans
             <h3 className="text-lg font-semibold">Travel Route</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <Label htmlFor="departure_country">Travelling From (Country)</Label>
+                <Label htmlFor="departure_country">From (Country)</Label>
                 <Select
                   value={watch('departure_country')}
                   onValueChange={(value) => setValue('departure_country', value)}
@@ -163,7 +215,7 @@ export const EnhancedTransportForm = ({ onSubmit, defaultValues }: EnhancedTrans
               </div>
 
               <div>
-                <Label htmlFor="arrival_country">Going To (Country)</Label>
+                <Label htmlFor="arrival_country">To (Country)</Label>
                 <Select
                   value={watch('arrival_country')}
                   onValueChange={(value) => setValue('arrival_country', value)}
@@ -228,7 +280,7 @@ export const EnhancedTransportForm = ({ onSubmit, defaultValues }: EnhancedTrans
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="departure_time">Departure Time</Label>
               <Input
@@ -246,7 +298,16 @@ export const EnhancedTransportForm = ({ onSubmit, defaultValues }: EnhancedTrans
                 {...register('arrival_time', { required: 'Arrival time is required' })}
               />
             </div>
+          </div>
 
+          <DurationSelector
+            hours={durationHours}
+            minutes={durationMinutes}
+            onHoursChange={setDurationHours}
+            onMinutesChange={setDurationMinutes}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="available_seats">Available Seats</Label>
               <Input
@@ -256,19 +317,29 @@ export const EnhancedTransportForm = ({ onSubmit, defaultValues }: EnhancedTrans
                 {...register('available_seats', { required: 'Available seats is required' })}
               />
             </div>
+
+            <div>
+              <Label htmlFor="price_per_seat">Price per Seat ({currencySymbol})</Label>
+              <Input
+                id="price_per_seat"
+                type="number"
+                step="0.01"
+                min="0"
+                {...register('price_per_seat', { required: 'Price per seat is required' })}
+                placeholder="0.00"
+              />
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="price_per_seat">Price per Seat</Label>
-            <Input
-              id="price_per_seat"
-              type="number"
-              step="0.01"
-              min="0"
-              {...register('price_per_seat', { required: 'Price per seat is required' })}
-              placeholder="0.00"
+          {!isExternalBooking && totalPassengers > 0 && (
+            <SeatSelectionMap
+              serviceType={serviceType}
+              totalSeats={watch('available_seats')}
+              occupiedSeats={[]} // This would come from existing bookings
+              onSeatSelect={setSelectedSeats}
+              passengerCount={totalPassengers}
             />
-          </div>
+          )}
 
           <div className="space-y-4">
             <div className="flex items-center space-x-2">

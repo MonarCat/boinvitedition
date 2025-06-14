@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,34 +7,6 @@ import { Play, Calendar, Users, MapPin, CreditCard } from 'lucide-react';
 import DemoVideo from '@/components/demo/DemoVideo';
 
 const DemoPage = () => {
-  // Sample demo data for demonstration
-  const demoBookings = [
-    {
-      id: '1',
-      clientName: 'John Doe (Demo)',
-      service: 'Premium Haircut',
-      date: '2024-01-15',
-      time: '10:00 AM',
-      status: 'confirmed'
-    },
-    {
-      id: '2',
-      clientName: 'Jane Smith (Demo)',
-      service: 'Business Class Flight - NYC to London',
-      date: '2024-01-20',
-      time: '2:30 PM',
-      status: 'pending'
-    },
-    {
-      id: '3',
-      clientName: 'Mike Johnson (Demo)',
-      service: 'Hotel Suite Booking',
-      date: '2024-01-18',
-      time: '3:00 PM',
-      status: 'completed'
-    }
-  ];
-
   const demoFeatures = [
     {
       icon: <Calendar className="h-6 w-6" />,
@@ -86,27 +59,22 @@ const DemoPage = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Demo Bookings Dashboard</CardTitle>
+              <CardTitle>Key Features</CardTitle>
               <CardDescription>
-                Sample bookings showing real-world usage (Demo Data Only)
+                Discover what makes Boinvit the perfect solution for your business
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {demoBookings.map((booking) => (
-                  <div key={booking.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{booking.clientName}</p>
-                      <p className="text-sm text-gray-600">{booking.service}</p>
-                      <p className="text-xs text-gray-500">{booking.date} at {booking.time}</p>
+                {demoFeatures.map((feature, index) => (
+                  <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
+                    <div className="flex-shrink-0 text-blue-600">
+                      {feature.icon}
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                      booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
-                      {booking.status}
-                    </span>
+                    <div>
+                      <h3 className="font-medium mb-1">{feature.title}</h3>
+                      <p className="text-sm text-gray-600">{feature.description}</p>
+                    </div>
                   </div>
                 ))}
               </div>

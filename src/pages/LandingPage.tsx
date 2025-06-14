@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,12 +13,10 @@ import {
   MapPin,
   Phone,
   Mail,
-  Clock,
-  CreditCard,
   Shield,
-  Smartphone
+  Globe
 } from 'lucide-react';
-import { PartnersSlider } from '@/components/landing/PartnersSlider';
+import { GlobalPartnersSlider } from '@/components/landing/GlobalPartnersSlider';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -38,7 +35,7 @@ const LandingPage = () => {
     {
       icon: Receipt,
       title: "Invoice & Payments",
-      description: "Professional invoicing with integrated payment processing"
+      description: "Professional invoicing with integrated international payment processing"
     },
     {
       icon: Star,
@@ -46,9 +43,9 @@ const LandingPage = () => {
       description: "Build trust with customer feedback and testimonials"
     },
     {
-      icon: MapPin,
-      title: "Location Discovery",
-      description: "Help customers find your business with integrated maps"
+      icon: Globe,
+      title: "Global Reach",
+      description: "Support for multiple currencies and international businesses"
     },
     {
       icon: Shield,
@@ -59,23 +56,23 @@ const LandingPage = () => {
 
   const testimonials = [
     {
-      name: "Sarah Wanjiku",
-      business: "Elegant Salon",
-      location: "Nairobi",
+      name: "Sarah Johnson",
+      business: "Elegant Beauty Spa",
+      location: "New York, USA",
       text: "Boinvit transformed how we manage bookings. Our efficiency increased by 60%!",
       rating: 5
     },
     {
-      name: "James Ochieng",
+      name: "James Smith",
       business: "FitLife Gym",
-      location: "Mombasa",
+      location: "London, UK",
       text: "The automated reminders reduced no-shows significantly. Highly recommended!",
       rating: 5
     },
     {
-      name: "Grace Kimani",
-      business: "DrCare Clinic",
-      location: "Kisumu",
+      name: "Maria Rodriguez",
+      business: "HealthCare Plus",
+      location: "Toronto, Canada",
       text: "Professional invoicing made our billing process seamless and transparent.",
       rating: 5
     }
@@ -84,7 +81,7 @@ const LandingPage = () => {
   const pricingPlans = [
     {
       name: "Starter",
-      price: "KES 2,500",
+      price: "$25",
       period: "/month",
       features: [
         "Up to 100 bookings/month",
@@ -97,7 +94,7 @@ const LandingPage = () => {
     },
     {
       name: "Professional",
-      price: "KES 5,000",
+      price: "$50",
       period: "/month",
       features: [
         "Unlimited bookings",
@@ -184,15 +181,15 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Badge className="mb-4 bg-royal-red/10 text-royal-red">
-              🚀 Kenya's Leading Business Management Platform
+              🚀 Global Business Management Platform
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
               Streamline Your Business with 
               <span className="text-royal-red"> Boinvit</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Complete booking and invoice management solution for salons, gyms, clinics, 
-              transport services, and hospitality businesses across Kenya.
+              Complete booking and invoice management solution for businesses worldwide. 
+              Manage salons, gyms, clinics, transport services, and hospitality businesses globally.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -216,8 +213,8 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Partners Slider */}
-      <PartnersSlider />
+      {/* Global Partners Slider */}
+      <GlobalPartnersSlider />
 
       {/* Features Section */}
       <section className="py-20 bg-white">
@@ -227,8 +224,8 @@ const LandingPage = () => {
               Everything You Need to Manage Your Business
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              From appointment scheduling to payment processing, 
-              we've got all your business needs covered.
+              From appointment scheduling to international payment processing, 
+              we've got all your business needs covered worldwide.
             </p>
           </div>
 
@@ -253,7 +250,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Trusted by Businesses Across Kenya
+              Trusted by Businesses Worldwide
             </h2>
             <p className="text-lg text-gray-600">
               See what our customers have to say about their experience with Boinvit
@@ -374,7 +371,7 @@ const LandingPage = () => {
                 <span className="text-xl font-bold">Boinvit</span>
               </div>
               <p className="text-gray-400">
-                Kenya's leading business management platform for modern entrepreneurs.
+                Global business management platform for modern entrepreneurs worldwide.
               </p>
             </div>
             

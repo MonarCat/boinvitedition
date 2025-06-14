@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -12,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { SERVICE_CATEGORIES } from './ServiceCategories';
 import { CURRENCIES } from '@/components/business/GlobalBusinessSettings';
-import { TransportServiceForm } from '@/components/transport/TransportServiceForm';
+import { EnhancedTransportForm } from '@/components/transport/EnhancedTransportForm';
 
 interface ServiceFormData {
   name: string;
@@ -36,8 +37,9 @@ export const EnhancedServiceForm = ({ service, onSuccess, onCancel }: EnhancedSe
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isTransportService, setIsTransportService] = useState(
-    service?.category?.includes('transport') || service?.category === 'bus' || service?.category === 'train' || false
+    service?.category?.includes('transport') || service?.category === 'bus' || service?.category === 'train' || service?.category === 'flight' || false
   );
+  const [transportDetails, setTransportDetails] = useState(service?.transport_details || null);
 
   const { data: business } = useQuery({
     queryKey: ['user-business', user?.id],
@@ -69,10 +71,9 @@ export const EnhancedServiceForm = ({ service, onSuccess, onCancel }: EnhancedSe
   });
 
   const watchedCategory = form.watch('category');
-  const watchedCurrency = form.watch('currency');
 
   React.useEffect(() => {
-    const isTransport = ['bus', 'train', 'taxi', 'ride-sharing', 'courier', 'car-rental'].includes(watchedCategory);
+    const isTransport = ['bus', 'train', 'taxi', 'flight', 'ride-sharing', 'courier', 'car-rental'].includes(watchedCategory);
     setIsTransportService(isTransport);
     form.setValue('is_transport_service', isTransport);
   }, [watchedCategory, form]);
@@ -92,6 +93,7 @@ export const EnhancedServiceForm = ({ service, onSuccess, onCancel }: EnhancedSe
       const serviceData = {
         ...data,
         business_id: business.id,
+        transport_details: isTransportService ? transportDetails : null,
       };
 
       if (service) {
@@ -100,14 +102,20 @@ export const EnhancedServiceForm = ({ service, onSuccess, onCancel }: EnhancedSe
           .update(serviceData)
           .eq('id', service.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Service update error:', error);
+          throw error;
+        }
         toast.success('Service updated successfully');
       } else {
         const { error } = await supabase
           .from('services')
           .insert([serviceData]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Service creation error:', error);
+          throw error;
+        }
         toast.success('Service created successfully');
       }
 
@@ -115,8 +123,13 @@ export const EnhancedServiceForm = ({ service, onSuccess, onCancel }: EnhancedSe
       onSuccess();
     } catch (error) {
       console.error('Error saving service:', error);
-      toast.error('Failed to save service');
+      toast.error(`Failed to save service: ${error.message || 'Unknown error'}`);
     }
+  };
+
+  const handleTransportDetailsSubmit = (details: any) => {
+    setTransportDetails(details);
+    toast.success('Transport details saved');
   };
 
   return (
@@ -130,7 +143,7 @@ export const EnhancedServiceForm = ({ service, onSuccess, onCancel }: EnhancedSe
               <FormItem>
                 <FormLabel>Service Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Haircut, Bus to Mombasa, Hotel Room" {...field} />
+                  <Input placeholder="e.g., Haircut, Bus to Destination, Hotel Room" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -289,13 +302,9 @@ export const EnhancedServiceForm = ({ service, onSuccess, onCancel }: EnhancedSe
 
       {isTransportService && (
         <div className="mt-6">
-          <TransportServiceForm
-            onSubmit={(transportData) => {
-              form.setValue('transport_details', transportData);
-              console.log('Transport details saved:', transportData);
-              toast.success('Transport details saved');
-            }}
-            defaultValues={service?.transport_details}
+          <EnhancedTransportForm
+            onSubmit={handleTransportDetailsSubmit}
+            defaultValues={transportDetails}
           />
         </div>
       )}

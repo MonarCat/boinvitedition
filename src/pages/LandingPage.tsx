@@ -1,310 +1,365 @@
-
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Users, Smartphone, QrCode, Star, CheckCircle, Download } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { 
+  Calendar, 
+  Clock, 
+  Users, 
+  Star, 
+  CheckCircle, 
+  ArrowRight, 
+  Smartphone,
+  Globe,
+  CreditCard,
+  MapPin
+} from 'lucide-react';
 
 const LandingPage = () => {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-      {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Navigation */}
+      <nav className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
             <div className="flex items-center gap-2">
               <img 
                 src="/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png" 
                 alt="Boinvit Logo" 
                 className="h-8 w-auto"
               />
-              <span className="text-2xl font-bold text-gray-900">Boinvit</span>
+              <span className="text-xl font-bold text-gray-900">Boinvit</span>
             </div>
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={() => navigate('/auth')}>
-                Sign In
-              </Button>
-              <Button onClick={() => navigate('/auth')} className="bg-royal-red hover:bg-royal-red-accent">
-                Get Started Free
-              </Button>
+              <Link to="/discover">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Find Services
+                </Button>
+              </Link>
+              <Link to="/demo">
+                <Button variant="outline">Try Demo</Button>
+              </Link>
+              <Link to="/auth">
+                <Button>Get Started</Button>
+              </Link>
             </div>
           </div>
         </div>
-      </header>
+      </nav>
 
       {/* Hero Section */}
-      <section className="py-20 px-6">
-        <div className="container mx-auto text-center">
-          <Badge className="mb-4 bg-royal-red-muted text-royal-red hover:bg-royal-red-muted">
-            🚀 Launch Your Business Online in Minutes
-          </Badge>
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Smart Booking System for
-            <span className="text-royal-red"> Modern Businesses</span>
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6">
+            Streamline Your Business
+            <span className="text-royal-red block">Bookings & Payments</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Streamline your appointments, manage clients, and grow your business with our all-in-one booking platform. 
-            Perfect for salons, spas, consultants, and service providers.
+            From salons to fitness studios, manage appointments, accept payments, and grow your business with our all-in-one booking platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="text-lg px-8 py-3 bg-royal-red hover:bg-royal-red-accent" onClick={() => navigate('/auth')}>
-              Start Free Trial
-            </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-royal-red text-royal-red hover:bg-royal-red hover:text-white" onClick={() => navigate('/demo')}>
-              Watch Demo
-            </Button>
+            <Link to="/auth">
+              <Button size="lg" className="w-full sm:w-auto">
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            <Link to="/discover">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                <MapPin className="mr-2 h-5 w-5" />
+                Discover Local Services
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Map Discovery Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Discover Local Services
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Find barbershops, salons, massage parlors, gyms, and more in your area. 
+              Book appointments directly and see ratings from other customers.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {[
+              { name: 'Barbershops & Salons', icon: '✂️', count: '150+' },
+              { name: 'Massage & Spa', icon: '💆‍♀️', count: '80+' },
+              { name: 'Fitness & Gyms', icon: '💪', count: '120+' },
+              { name: 'Transport Services', icon: '🚗', count: '200+' }
+            ].map((category, index) => (
+              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="text-4xl mb-4">{category.icon}</div>
+                  <h3 className="font-semibold mb-2">{category.name}</h3>
+                  <Badge variant="secondary">{category.count} businesses</Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          <div className="text-center">
+            <Link to="/discover">
+              <Button size="lg" className="bg-royal-red hover:bg-royal-red/90">
+                <MapPin className="mr-2 h-5 w-5" />
+                Explore Map
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-16 px-6 bg-gray-50">
-        <div className="container mx-auto">
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Everything You Need to Succeed</h2>
-            <p className="text-gray-600">Powerful features designed for growing businesses</p>
+            <h2 className="text-3xl font-bold text-gray-900">
+              Key Features
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Empower your business with our comprehensive suite of features designed to streamline operations and enhance customer experiences.
+            </p>
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="hover:shadow-lg transition-shadow">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <Card className="flex flex-col justify-between h-full">
               <CardHeader>
-                <QrCode className="h-12 w-12 text-royal-red mb-4" />
-                <CardTitle>QR Code Booking</CardTitle>
-                <CardDescription>
-                  Let customers book instantly by scanning QR codes. No app downloads required.
-                </CardDescription>
+                <CardTitle className="flex items-center gap-3 text-lg">
+                  <Calendar className="h-5 w-5 text-royal-red" />
+                  Online Booking
+                </CardTitle>
               </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Let clients book appointments 24/7 from any device.
+                </CardDescription>
+              </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow">
+            {/* Feature 2 */}
+            <Card className="flex flex-col justify-between h-full">
               <CardHeader>
-                <Calendar className="h-12 w-12 text-green-600 mb-4" />
-                <CardTitle>Smart Scheduling</CardTitle>
-                <CardDescription>
-                  AI-powered booking system that prevents conflicts and maximizes your availability.
-                </CardDescription>
+                <CardTitle className="flex items-center gap-3 text-lg">
+                  <Clock className="h-5 w-5 text-royal-red" />
+                  Automated Reminders
+                </CardTitle>
               </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Reduce no-shows with automated SMS and email reminders.
+                </CardDescription>
+              </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow">
+            {/* Feature 3 */}
+            <Card className="flex flex-col justify-between h-full">
               <CardHeader>
-                <Users className="h-12 w-12 text-purple-600 mb-4" />
-                <CardTitle>Client Management</CardTitle>
-                <CardDescription>
-                  Keep track of all your clients, their preferences, and booking history in one place.
-                </CardDescription>
+                <CardTitle className="flex items-center gap-3 text-lg">
+                  <Users className="h-5 w-5 text-royal-red" />
+                  Client Management
+                </CardTitle>
               </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Keep track of client history, preferences, and contact information.
+                </CardDescription>
+              </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow">
+            {/* Feature 4 */}
+            <Card className="flex flex-col justify-between h-full">
               <CardHeader>
-                <Smartphone className="h-12 w-12 text-orange-600 mb-4" />
-                <CardTitle>Mobile Ready</CardTitle>
-                <CardDescription>
-                  Works perfectly on all devices. Native mobile apps coming soon for iOS and Android.
-                </CardDescription>
+                <CardTitle className="flex items-center gap-3 text-lg">
+                  <Star className="h-5 w-5 text-royal-red" />
+                  Reviews and Ratings
+                </CardTitle>
               </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Collect and showcase client reviews to build trust.
+                </CardDescription>
+              </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow">
+            {/* Feature 5 */}
+            <Card className="flex flex-col justify-between h-full">
               <CardHeader>
-                <Clock className="h-12 w-12 text-red-600 mb-4" />
-                <CardTitle>Real-time Updates</CardTitle>
-                <CardDescription>
-                  Get instant notifications for new bookings, cancellations, and important updates.
-                </CardDescription>
+                <CardTitle className="flex items-center gap-3 text-lg">
+                  <CheckCircle className="h-5 w-5 text-royal-red" />
+                  Business Verification
+                </CardTitle>
               </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Get verified to show customers you're a trusted business.
+                </CardDescription>
+              </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow">
+            {/* Feature 6 */}
+            <Card className="flex flex-col justify-between h-full">
               <CardHeader>
-                <Star className="h-12 w-12 text-yellow-600 mb-4" />
-                <CardTitle>Customer Reviews</CardTitle>
-                <CardDescription>
-                  Build trust with integrated review system and showcase your excellent service.
-                </CardDescription>
+                <CardTitle className="flex items-center gap-3 text-lg">
+                  <Smartphone className="h-5 w-5 text-royal-red" />
+                  Mobile App
+                </CardTitle>
               </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Manage your business on the go with our mobile app.
+                </CardDescription>
+              </CardContent>
             </Card>
           </div>
-        </div>
-      </section>
-
-      {/* Mobile Apps Section */}
-      <section className="py-16 px-6">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Native Mobile Apps Coming Soon</h2>
-          <p className="text-gray-600 mb-8">Manage your business on the go with our upcoming native mobile applications</p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="outline" className="flex items-center gap-2 border-royal-red text-royal-red hover:bg-royal-red hover:text-white">
-              <Download className="h-5 w-5" />
-              Coming Soon for iOS
-            </Button>
-            <Button size="lg" variant="outline" className="flex items-center gap-2 border-royal-red text-royal-red hover:bg-royal-red hover:text-white">
-              <Download className="h-5 w-5" />
-              Coming Soon for Android
-            </Button>
-          </div>
-          <p className="text-sm text-gray-600 mt-4">
-            Get notified when our native mobile apps become available.
-          </p>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section className="py-16 px-6 bg-gray-50">
-        <div className="container mx-auto">
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-gray-600">Choose the plan that fits your business needs</p>
+            <h2 className="text-3xl font-bold text-gray-900">
+              Simple Pricing
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Choose the plan that fits your business needs. Start with a free trial and upgrade as you grow.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <Card className="hover:shadow-lg transition-shadow">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Free Plan */}
+            <Card className="border-2 border-gray-200">
               <CardHeader className="text-center">
-                <CardTitle>Starter</CardTitle>
-                <div className="text-3xl font-bold">Free</div>
+                <CardTitle className="text-2xl font-bold">Free</CardTitle>
                 <CardDescription>Perfect for getting started</CardDescription>
               </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Up to 50 bookings/month
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Basic QR code booking
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Client management
-                  </li>
+              <CardContent className="space-y-4">
+                <div className="text-center text-gray-900 font-bold text-4xl">$0<span className="text-sm text-gray-500">/month</span></div>
+                <ul className="list-disc list-inside space-y-2">
+                  <li>Up to 50 bookings per month</li>
+                  <li>Basic online booking features</li>
+                  <li>Limited customer support</li>
                 </ul>
-                <Button className="w-full mt-6 bg-royal-red hover:bg-royal-red-accent" onClick={() => navigate('/auth')}>
-                  Get Started
-                </Button>
+                <Button className="w-full">Get Started</Button>
               </CardContent>
             </Card>
 
-            <Card className="border-royal-red relative hover:shadow-lg transition-shadow">
-              <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-royal-red">
-                Most Popular
-              </Badge>
+            {/* Pro Plan */}
+            <Card className="border-2 border-royal-red border-solid shadow-lg">
               <CardHeader className="text-center">
-                <CardTitle>Professional</CardTitle>
-                <div className="text-3xl font-bold">$29/mo</div>
+                <CardTitle className="text-2xl font-bold">Pro</CardTitle>
                 <CardDescription>For growing businesses</CardDescription>
               </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Unlimited bookings
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Advanced analytics
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Custom branding
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Priority support
-                  </li>
+              <CardContent className="space-y-4">
+                <div className="text-center text-gray-900 font-bold text-4xl">$29<span className="text-sm text-gray-500">/month</span></div>
+                <ul className="list-disc list-inside space-y-2">
+                  <li>Unlimited bookings</li>
+                  <li>Advanced features & integrations</li>
+                  <li>Priority customer support</li>
                 </ul>
-                <Button className="w-full mt-6 bg-royal-red hover:bg-royal-red-accent" onClick={() => navigate('/auth')}>
-                  Start Free Trial
-                </Button>
+                <Button className="w-full bg-royal-red hover:bg-royal-red/90 text-white">Upgrade to Pro</Button>
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow">
+            {/* Enterprise Plan */}
+            <Card className="border-2 border-gray-200">
               <CardHeader className="text-center">
-                <CardTitle>Enterprise</CardTitle>
-                <div className="text-3xl font-bold">Custom</div>
-                <CardDescription>For large organizations</CardDescription>
+                <CardTitle className="text-2xl font-bold">Enterprise</CardTitle>
+                <CardDescription>Custom solutions for large teams</CardDescription>
               </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Everything in Professional
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    API access
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    White-label solution
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Dedicated support
-                  </li>
+              <CardContent className="space-y-4">
+                <div className="text-center text-gray-900 font-bold text-4xl">Contact Us</div>
+                <ul className="list-disc list-inside space-y-2">
+                  <li>Customized features</li>
+                  <li>Dedicated account manager</li>
+                  <li>24/7 premium support</li>
                 </ul>
-                <Button variant="outline" className="w-full mt-6 border-royal-red text-royal-red hover:bg-royal-red hover:text-white">
-                  Contact Sales
-                </Button>
+                <Button className="w-full">Contact Sales</Button>
               </CardContent>
             </Card>
           </div>
         </div>
       </section>
 
+      {/* CTA Section */}
+      <section className="py-20 bg-royal-red">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-white mb-6">
+            Ready to Transform Your Business?
+          </h2>
+          <p className="text-xl text-white opacity-80 mb-8 max-w-3xl mx-auto">
+            Join thousands of businesses already using Boinvit to streamline their bookings, manage clients, and grow their revenue.
+          </p>
+          <Link to="/auth">
+            <Button size="lg" className="bg-white text-royal-red hover:bg-gray-100">
+              Start Your Free Trial
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-6">
-        <div className="container mx-auto">
-          <div className="grid md:grid-cols-4 gap-8">
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Column 1 */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <img 
-                  src="/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png" 
-                  alt="Boinvit Logo" 
-                  className="h-6 w-auto"
-                />
-                <span className="text-xl font-bold">Boinvit</span>
-              </div>
+              <h4 className="text-lg font-semibold mb-4">Boinvit</h4>
               <p className="text-gray-400">
-                The smart booking system for modern businesses.
+                Boinvit is the all-in-one solution for managing your business, from bookings to payments.
               </p>
             </div>
+
+            {/* Column 2 */}
             <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><button onClick={() => navigate('/demo')}>Demo</button></li>
-                <li>Pricing</li>
-                <li>Features</li>
-                <li>Mobile Apps</li>
+              <h4 className="text-lg font-semibold mb-4">Company</h4>
+              <ul className="space-y-2">
+                <li><Link to="/terms" className="hover:text-gray-300">Terms of Service</Link></li>
+                <li><Link to="/privacy" className="hover:text-gray-300">Privacy Policy</Link></li>
+                <li><Link to="/cookies" className="hover:text-gray-300">Cookie Policy</Link></li>
+                <li><Link to="/safety" className="hover:text-gray-300">Safety Tips</Link></li>
               </ul>
             </div>
+
+            {/* Column 3 */}
             <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>Help Center</li>
-                <li>Documentation</li>
-                <li>Contact Us</li>
-                <li>Status</li>
+              <h4 className="text-lg font-semibold mb-4">Features</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="hover:text-gray-300">Online Booking</a></li>
+                <li><a href="#" className="hover:text-gray-300">Client Management</a></li>
+                <li><a href="#" className="hover:text-gray-300">Payment Processing</a></li>
+                <li><a href="#" className="hover:text-gray-300">Automated Reminders</a></li>
               </ul>
             </div>
+
+            {/* Column 4 */}
             <div>
-              <h3 className="font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><button onClick={() => navigate('/terms')}>Terms of Service</button></li>
-                <li><button onClick={() => navigate('/privacy')}>Privacy Policy</button></li>
-                <li><button onClick={() => navigate('/cookies')}>Cookie Policy</button></li>
-                <li><button onClick={() => navigate('/safety')}>Safety Tips</button></li>
-              </ul>
+              <h4 className="text-lg font-semibold mb-4">Contact</h4>
+              <p className="text-gray-400">
+                Email: support@boinvit.com<br />
+                Phone: +1 (555) 123-4567
+              </p>
+              <div className="mt-4 flex gap-4">
+                <a href="#" className="hover:text-gray-300"><Globe className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-gray-300"><CreditCard className="h-5 w-5" /></a>
+              </div>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Boinvit. All rights reserved.</p>
+
+          <div className="mt-12 pt-8 border-t border-gray-800 text-center">
+            <p className="text-gray-500">
+              &copy; {new Date().getFullYear()} Boinvit. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>

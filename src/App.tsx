@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -16,6 +15,7 @@ import SafetyTips from "@/pages/SafetyTips";
 import NotFound from "@/pages/NotFound";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 import PWAStatus from "@/components/pwa/PWAStatus";
+import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +31,9 @@ const App = () => (
               <Route path="/" element={<LandingPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/demo" element={<DemoPage />} />
+              
+              {/* Business Discovery Map */}
+              <Route path="/discover" element={<BusinessDiscoveryPage />} />
               
               {/* Authenticated app routes */}
               <Route path="/app/*" element={<AuthenticatedApp />} />

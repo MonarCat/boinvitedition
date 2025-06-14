@@ -1,17 +1,16 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+import { ThemeProvider, useTheme } from "@/lib/ThemeProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowUp, ArrowDown, Ticket, Youtube, Download, Plus } from "lucide-react";
+import { ArrowUp, ArrowDown, Ticket, Youtube, Download, Plus, Edit, RefreshCcw } from "lucide-react";
 import { format } from 'date-fns';
-import { Edit, RefreshCcw } from "lucide-react";
-import { toast } from 'sonner';
-import { ThemeProvider, useTheme } from "@/lib/ThemeProvider";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -242,7 +241,6 @@ const Dashboard = () => {
                 <p className="text-xs text-muted-foreground">Active appointments</p>
               </CardContent>
             </Card>
-            {/* ... repeat for other KPI Cards, adding <Edit />/Quick Actions */}
             {/* Revenue */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -287,12 +285,6 @@ const Dashboard = () => {
             <Button variant="outline" onClick={handleSubscription}>Subscription</Button>
             <Button variant="outline" onClick={handleUpdateSettings}>Settings</Button>
           </div>
-
-          {/* Header */}
-          
-
-          {/* Stats Overview */}
-          
 
           {/* Mobile Apps Download Section */}
           <Card className="mb-8">

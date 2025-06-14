@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,6 +55,20 @@ export const BusinessLocationSettings = () => {
     business_id: string;
   };
 
+  // Defensive: avoid casting supabase errors as real data
+  function isValidBusiness(obj: any): obj is BusinessData {
+    return obj
+      && typeof obj === 'object'
+      && typeof obj.id === 'string'
+      && ('latitude' in obj)
+      && ('longitude' in obj);
+  }
+  function isValidSettings(obj: any): obj is SettingsData {
+    return obj
+      && typeof obj === 'object'
+      && typeof obj.business_id === 'string';
+  }
+
   // Fetch business data
   const { data: business, isLoading } = useQuery({
     queryKey: ['user-business', user?.id],
@@ -61,11 +76,11 @@ export const BusinessLocationSettings = () => {
       if (!user) return null;
       const { data, error } = await supabase
         .from('businesses')
-        .select('id, latitude, longitude, service_radius_km')
+        .select('id, latitude, longitude, service_radius_km, user_id, name, description, address, city, country, phone, email, website, logo_url, featured_image_url, average_rating, total_reviews, business_hours, is_verified, currency')
         .eq('user_id', user.id)
         .single();
-      if (error || !data) return null; // Don't cast error as BusinessData
-      return data as BusinessData;
+      if (error || !data || !isValidBusiness(data)) return null;
+      return data;
     },
     enabled: !!user,
   });
@@ -77,11 +92,11 @@ export const BusinessLocationSettings = () => {
       if (!business) return null;
       const { data, error } = await supabase
         .from('business_settings')
-        .select('show_on_map, map_description')
+        .select('show_on_map, map_description, business_id')
         .eq('business_id', business.id)
         .single();
-      if (error || !data) return null; // Don't cast error as SettingsData
-      return data as SettingsData;
+      if (error || !data || !isValidSettings(data)) return null;
+      return data;
     },
     enabled: !!business,
   });

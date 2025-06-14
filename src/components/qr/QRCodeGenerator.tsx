@@ -21,7 +21,7 @@ export const QRCodeGenerator = () => {
       
       const { data, error } = await supabase
         .from('businesses')
-        .select('*')
+        .select('id, name, subdomain') // Ensure 'id' is selected
         .eq('user_id', user.id)
         .single();
       
@@ -43,7 +43,8 @@ export const QRCodeGenerator = () => {
     );
   }
 
-  const bookingUrl = `${window.location.origin}/book/${business.subdomain}`;
+  // Use business.id for the booking URL to match the /booking/:businessId route
+  const bookingUrl = `${window.location.origin}/booking/${business.id}`;
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(bookingUrl)}`;
 
   const copyToClipboard = (text: string) => {
@@ -54,7 +55,9 @@ export const QRCodeGenerator = () => {
   const downloadQR = () => {
     const link = document.createElement('a');
     link.href = qrApiUrl;
-    link.download = `${business.name.replace(/\s+/g, '-').toLowerCase()}-booking-qr.png`;
+    // Use business name for the downloaded file, ensuring it's filesystem-friendly
+    const fileName = business.name ? `${business.name.replace(/\s+/g, '-').toLowerCase()}-booking-qr.png` : 'booking-qr.png';
+    link.download = fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -65,15 +68,20 @@ export const QRCodeGenerator = () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Book with ${business.name}`,
-          text: `Scan this QR code to book an appointment with ${business.name}`,
+          title: `Book with ${business.name || 'us'}`,
+          text: `Scan this QR code or click the link to book an appointment with ${business.name || 'us'}.`,
           url: bookingUrl,
         });
       } catch (error) {
+        // If share fails, fall back to copying the URL
+        console.error('Share API error:', error);
         copyToClipboard(bookingUrl);
+        toast.info('Link copied. You can share it manually.');
       }
     } else {
+      // If share API is not supported, fall back to copying the URL
       copyToClipboard(bookingUrl);
+      toast.info('Share not supported, link copied instead.');
     }
   };
 
@@ -100,23 +108,25 @@ export const QRCodeGenerator = () => {
               max="500"
               step="50"
               value={qrSize}
-              onChange={(e) => setQrSize(Number(e.target.value))}
+              onChange={(e) => setQrSize(Math.max(100, Math.min(500, Number(e.target.value))))} // Added min/max validation
               className="mt-1"
             />
           </div>
 
           <div>
-            <Label>Booking URL</Label>
+            <Label>Booking URL (Share this link)</Label>
             <div className="flex gap-2 mt-1">
               <Input
                 value={bookingUrl}
                 readOnly
                 className="bg-gray-50"
+                aria-label="Booking URL"
               />
               <Button
                 variant="outline"
-                size="sm"
+                size="icon" // Changed to icon for consistency
                 onClick={() => copyToClipboard(bookingUrl)}
+                aria-label="Copy booking URL"
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -124,7 +134,7 @@ export const QRCodeGenerator = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <Button onClick={downloadQR} variant="outline">
+            <Button onClick={downloadQR} variant="outline" disabled={!business.name}>
               <Download className="h-4 w-4 mr-2" />
               Download QR
             </Button>
@@ -147,20 +157,26 @@ export const QRCodeGenerator = () => {
         </CardHeader>
         <CardContent className="text-center">
           <div className="inline-block p-4 bg-white border-2 border-dashed border-gray-300 rounded-lg">
-            <img
-              src={qrApiUrl}
-              alt="QR Code for booking"
-              className="mx-auto"
-              width={qrSize}
-              height={qrSize}
-            />
+            {qrApiUrl ? (
+              <img
+                src={qrApiUrl}
+                alt={`QR Code for booking with ${business.name || 'this business'}`}
+                className="mx-auto"
+                width={qrSize}
+                height={qrSize}
+              />
+            ) : (
+              <p>Generating QR Code...</p> // Fallback if URL isn't ready
+            )}
           </div>
           <p className="text-sm text-gray-600 mt-4">
             Customers can scan this QR code to book appointments directly
           </p>
-          <div className="text-xs text-gray-500 mt-2 break-all">
-            {business.name} • {bookingUrl}
-          </div>
+          {business.name && (
+            <div className="text-xs text-gray-500 mt-2 break-all" aria-label="Business name and booking URL for QR code">
+              {business.name} • {bookingUrl}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -1,4 +1,5 @@
 
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -18,14 +19,14 @@ import InstallPrompt from "@/components/pwa/InstallPrompt";
 import PWAStatus from "@/components/pwa/PWAStatus";
 import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
 import { useSystemDarkMode } from "@/lib/useSystemDarkMode";
-import { HelmetProvider } from 'react-helmet-async'; // Import HelmetProvider
+import { HelmetProvider } from 'react-helmet-async';
 
 const queryClient = new QueryClient();
 
 const App = () => {
   useSystemDarkMode(); // Enable auto dark mode
   return (
-    <HelmetProvider> {/* Add HelmetProvider here - Keeping this comment as it's not the error site */}
+    <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
@@ -77,7 +78,7 @@ const App = () => {
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
-    </HelmetProvider> {/* Removed the comment from this line */}
+    </HelmetProvider>
   );
 };
 export default App;

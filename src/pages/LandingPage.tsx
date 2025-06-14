@@ -13,7 +13,8 @@ import {
   Smartphone,
   Globe,
   CreditCard,
-  MapPin
+  MapPin,
+  LogIn
 } from 'lucide-react';
 
 const LandingPage = () => {
@@ -40,6 +41,12 @@ const LandingPage = () => {
               </Link>
               <Link to="/demo">
                 <Button variant="outline">Try Demo</Button>
+              </Link>
+              <Link to="/auth">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <LogIn className="h-4 w-4" />
+                  Sign In
+                </Button>
               </Link>
               <Link to="/auth">
                 <Button>Get Started</Button>
@@ -84,7 +91,7 @@ const LandingPage = () => {
               Discover Local Services
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Find barbershops, salons, massage parlors, gyms, and more in your area. 
+              Find barbershops, salons, massage parlors, gyms, medical services, and more in your area. 
               Book appointments directly and see ratings from other customers.
             </p>
           </div>
@@ -92,9 +99,13 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {[
               { name: 'Barbershops & Salons', icon: '✂️', count: '150+' },
+              { name: 'Medical & Dental', icon: '🏥', count: '95+' },
               { name: 'Massage & Spa', icon: '💆‍♀️', count: '80+' },
               { name: 'Fitness & Gyms', icon: '💪', count: '120+' },
-              { name: 'Transport Services', icon: '🚗', count: '200+' }
+              { name: 'Mental Health', icon: '🧠', count: '65+' },
+              { name: 'Veterinary Care', icon: '🐕', count: '40+' },
+              { name: 'Transport Services', icon: '🚗', count: '200+' },
+              { name: 'Beauty & Wellness', icon: '✨', count: '110+' }
             ].map((category, index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,62 +26,22 @@ export const BusinessLocationSettings = () => {
     map_description: ''
   });
 
-  // Extend business/settings return types to avoid type errors
-  // NOTE: Type declarations should be updated based on the database schema!
-  type BusinessData = {
-    id: string;
-    latitude?: number | null;
-    longitude?: number | null;
-    service_radius_km?: number | null;
-    user_id: string;
-    name: string;
-    description: string;
-    address: string;
-    city: string;
-    country: string;
-    phone: string;
-    email: string;
-    website: string;
-    logo_url: string;
-    featured_image_url: string;
-    average_rating: number;
-    total_reviews: number;
-    business_hours: any;
-    is_verified: boolean;
-    currency: string;
-  };
-  
-  type SettingsData = {
-    show_on_map?: boolean | null;
-    map_description?: string | null;
-    business_id: string;
-  };
-
-  // Defensive: avoid casting supabase errors as real data
-  function isValidBusiness(obj: any): obj is BusinessData {
-    return obj
-      && typeof obj === 'object'
-      && typeof obj.id === 'string'
-      && ('latitude' in obj)
-      && ('longitude' in obj);
-  }
-  function isValidSettings(obj: any): obj is SettingsData {
-    return obj
-      && typeof obj === 'object'
-      && typeof obj.business_id === 'string';
-  }
-
-  // Fetch business data
-  const { data: business, isLoading } = useQuery({
+  // Fetch business data with proper error handling
+  const { data: business, isLoading, error } = useQuery({
     queryKey: ['user-business', user?.id],
     queryFn: async () => {
       if (!user) return null;
+      
       const { data, error } = await supabase
         .from('businesses')
-        .select('id, latitude, longitude, service_radius_km, user_id, name, description, address, city, country, phone, email, website, logo_url, featured_image_url, average_rating, total_reviews, business_hours, is_verified, currency')
+        .select('*')
         .eq('user_id', user.id)
-        .single();
-      if (error || !data || !isValidBusiness(data)) return null;
+        .maybeSingle(); // Use maybeSingle to avoid errors when no business found
+      
+      if (error) {
+        console.error('Error fetching business:', error);
+        return null;
+      }
       return data;
     },
     enabled: !!user,
@@ -95,8 +56,12 @@ export const BusinessLocationSettings = () => {
         .from('business_settings')
         .select('show_on_map, map_description, business_id')
         .eq('business_id', business.id)
-        .single();
-      if (error || !data || !isValidSettings(data)) return null;
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching settings:', error);
+        return null;
+      }
       return data;
     },
     enabled: !!business,
@@ -190,11 +155,11 @@ export const BusinessLocationSettings = () => {
           <div className="text-center space-y-4">
             <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto" />
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Business Setup Required</h3>
-              <p className="text-gray-600">You need to set up your business profile before configuring location settings.</p>
+              <h3 className="text-lg font-semibold text-gray-900">Business Profile Not Found</h3>
+              <p className="text-gray-600">Please complete your business setup first.</p>
             </div>
-            <Button onClick={() => window.location.href = '/app/settings'}>
-              Go to Business Settings
+            <Button onClick={() => window.location.href = '/app'}>
+              Complete Business Setup
             </Button>
           </div>
         </CardContent>

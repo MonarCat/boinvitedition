@@ -62,46 +62,71 @@ export const BusinessMap = () => {
     }
   }, []);
 
-  // Fetch businesses using the enhanced discovery view
+  // Fetch businesses using raw SQL for location-based search or regular query
   const { data: businesses = [], isLoading } = useQuery({
     queryKey: ['businesses-map', searchQuery, userLocation],
     queryFn: async () => {
-      if (userLocation && searchQuery) {
-        // Use location-based search function for better results
-        const { data, error } = await supabase
-          .rpc('search_businesses_by_location', {
-            search_lat: userLocation.lat,
-            search_lng: userLocation.lng,
-            search_radius_km: 50,
-            search_query: searchQuery || null
-          });
-        
-        if (error) {
-          console.error('Error fetching businesses:', error);
-          return [];
+      try {
+        if (userLocation && searchQuery) {
+          // Use RPC function for location-based search
+          const { data, error } = await supabase
+            .rpc('search_businesses_by_location', {
+              search_lat: userLocation.lat,
+              search_lng: userLocation.lng,
+              search_radius_km: 50,
+              search_query: searchQuery || null
+            });
+          
+          if (error) {
+            console.error('RPC Error:', error);
+            // Fallback to regular query if RPC fails
+            return await fetchRegularBusinesses();
+          }
+          return data || [];
+        } else {
+          return await fetchRegularBusinesses();
         }
-        return data || [];
-      } else {
-        // Fallback to regular query
-        let query = supabase
-          .from('business_discovery')
-          .select('*')
-          .order('average_rating', { ascending: false });
-
-        if (searchQuery) {
-          query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-        }
-
-        const { data, error } = await query.limit(50);
-        if (error) {
-          console.error('Error fetching businesses:', error);
-          return [];
-        }
-        return data || [];
+      } catch (error) {
+        console.error('Error fetching businesses:', error);
+        return [];
       }
     },
     enabled: true,
   });
+
+  const fetchRegularBusinesses = async () => {
+    let query = supabase
+      .from('businesses')
+      .select(`
+        id, name, description, address, city, country, phone, email, website,
+        logo_url, featured_image_url, latitude, longitude, average_rating,
+        total_reviews, business_hours, is_verified, service_radius_km, currency
+      `)
+      .eq('is_active', true)
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
+      .order('average_rating', { ascending: false });
+
+    if (searchQuery) {
+      query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+    }
+
+    const { data, error } = await query.limit(50);
+    if (error) {
+      console.error('Error fetching businesses:', error);
+      return [];
+    }
+    
+    // Transform to match expected interface
+    return (data || []).map((business: any) => ({
+      ...business,
+      show_on_map: true,
+      map_description: business.description,
+      service_categories: [],
+      service_names: [],
+      total_services: 0
+    }));
+  };
 
   const handleBusinessSelect = (business: Business) => setSelectedBusiness(business);
 

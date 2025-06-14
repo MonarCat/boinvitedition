@@ -13,6 +13,17 @@ import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { toast } from 'sonner';
 import { Loader2, MessageCircle, Phone, Mail } from 'lucide-react';
 
+interface NotificationPreferences {
+  email_bookings?: boolean;
+  email_cancellations?: boolean;
+  email_reminders?: boolean;
+  sms_bookings?: boolean;
+  sms_reminders?: boolean;
+  whatsapp_bookings?: boolean;
+  whatsapp_reminders?: boolean;
+  whatsapp_number?: string;
+}
+
 export const EnhancedNotificationSettings = () => {
   const { user } = useAuth();
   const { handleError } = useErrorHandler();
@@ -63,7 +74,7 @@ export const EnhancedNotificationSettings = () => {
     mutationFn: async (formData: FormData) => {
       if (!business) throw new Error('No business found');
 
-      const notificationPrefs = {
+      const notificationPrefs: NotificationPreferences = {
         email_bookings: formData.get('email_bookings') === 'on',
         email_cancellations: formData.get('email_cancellations') === 'on',
         email_reminders: formData.get('email_reminders') === 'on',
@@ -119,7 +130,7 @@ export const EnhancedNotificationSettings = () => {
     );
   }
 
-  const notificationPrefs = settings?.notification_preferences || {
+  const notificationPrefs: NotificationPreferences = (settings?.notification_preferences as NotificationPreferences) || {
     email_bookings: true,
     email_cancellations: true,
     email_reminders: false,

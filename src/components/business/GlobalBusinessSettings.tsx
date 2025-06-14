@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Globe, DollarSign, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
-const GLOBAL_CURRENCIES = [
+export const CURRENCIES = [
   { code: 'USD', symbol: '$', name: 'US Dollar', country: 'United States' },
   { code: 'EUR', symbol: '€', name: 'Euro', country: 'European Union' },
   { code: 'GBP', symbol: '£', name: 'British Pound', country: 'United Kingdom' },
@@ -154,7 +153,7 @@ export const GlobalBusinessSettings = () => {
     updateSettingsMutation.mutate(formData);
   };
 
-  const selectedCurrency = GLOBAL_CURRENCIES.find(c => c.code === formData.currency);
+  const selectedCurrency = CURRENCIES.find(c => c.code === formData.currency);
 
   return (
     <Card>
@@ -177,7 +176,7 @@ export const GlobalBusinessSettings = () => {
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
-                  {GLOBAL_CURRENCIES.map((currency) => (
+                  {CURRENCIES.map((currency) => (
                     <SelectItem key={currency.code} value={currency.code}>
                       <div className="flex items-center gap-2">
                         <span className="font-mono">{currency.symbol}</span>

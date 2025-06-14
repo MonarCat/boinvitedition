@@ -11,8 +11,21 @@ import { User, Mail, Phone, Edit, Trash2 } from 'lucide-react';
 import { CardSkeleton } from '@/components/ui/loading-skeleton';
 import { toast } from 'sonner';
 
+interface StaffMember {
+  id: string;
+  business_id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  gender: string | null;
+  is_active: boolean;
+  specialties: string[];
+  created_at: string;
+  updated_at: string;
+}
+
 interface EnhancedStaffListProps {
-  onEditStaff?: (staff: any) => void;
+  onEditStaff?: (staff: StaffMember) => void;
 }
 
 export const EnhancedStaffList = ({ onEditStaff }: EnhancedStaffListProps) => {
@@ -49,7 +62,7 @@ export const EnhancedStaffList = ({ onEditStaff }: EnhancedStaffListProps) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as StaffMember[];
     },
     enabled: !!business,
   });
@@ -72,7 +85,7 @@ export const EnhancedStaffList = ({ onEditStaff }: EnhancedStaffListProps) => {
     },
   });
 
-  const getGenderIcon = (gender: string) => {
+  const getGenderIcon = (gender: string | null) => {
     switch (gender) {
       case 'male': return '👨';
       case 'female': return '👩';
@@ -81,7 +94,7 @@ export const EnhancedStaffList = ({ onEditStaff }: EnhancedStaffListProps) => {
     }
   };
 
-  const getGenderColor = (gender: string) => {
+  const getGenderColor = (gender: string | null) => {
     switch (gender) {
       case 'male': return 'bg-blue-100 text-blue-800';
       case 'female': return 'bg-pink-100 text-pink-800';

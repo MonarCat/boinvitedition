@@ -2,8 +2,7 @@
 import React, { useCallback, useRef } from "react";
 import { GoogleMap, Marker, useJsApiLoader, InfoWindow } from "@react-google-maps/api";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 
 // Container size is controlled by parent
 const containerStyle = {
@@ -26,7 +25,7 @@ interface Business {
 interface GoogleMapProps {
   businesses: Business[];
   userLocation: { lat: number; lng: number } | null;
-  onBusinessSelect: (business: Business) => void;
+  onBusinessSelect: (business: Business | null) => void;
   selectedBusiness: Business | null;
   onMapSettingsClick?: () => void;
 }
@@ -40,13 +39,12 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
   selectedBusiness,
   onMapSettingsClick,
 }) => {
-  // Store the map instance to enable flyTo
   const mapRef = useRef<google.maps.Map | null>(null);
   const center = userLocation || DEFAULT_CENTER;
-  // NOTE: Use your actual Google Maps API key here or require user input
-  const GOOGLE_MAPS_API_KEY = ""; // TODO: set a valid API key or require from env/input
 
-  // Requires Google Maps API key.
+  // API key injected as requested:
+  const GOOGLE_MAPS_API_KEY = "AIzaSyA4F9QAPbmF2NfMAh82RqPDtrrMceit1Oc";
+
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
   });
@@ -76,6 +74,20 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
     );
   }
 
+  // Get dark mode status from document
+  const isDark = document.documentElement.classList.contains("dark");
+
+  // Adapted map style for dark mode
+  const darkMapStyle = [
+    { elementType: "geometry", stylers: [{ color: "#212121" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#212121" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#383838" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#232f3e" }] },
+    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+    // More rules as needed
+  ];
+
   return (
     <div className="relative h-full w-full">
       <GoogleMap
@@ -86,16 +98,7 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
         options={{
           clickableIcons: false,
           disableDefaultUI: false,
-          styles: [ // dark mode support
-            ...(document.documentElement.classList.contains("dark")
-              ? [
-                { elementType: "geometry", stylers: [{ color: "#212121" }] },
-                { elementType: "labels.text.stroke", stylers: [{ color: "#212121" }] },
-                { elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
-              ]
-              : []
-            ),
-          ],
+          styles: isDark ? darkMapStyle : undefined,
         }}
       >
         {/* User Marker */}
@@ -103,7 +106,7 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
           <Marker
             position={userLocation}
             icon={{
-              path: google.maps.SymbolPath.CIRCLE,
+              path: window.google?.maps.SymbolPath.CIRCLE,
               fillColor: "#3B82F6",
               fillOpacity: 1,
               strokeColor: "#fff",
@@ -120,19 +123,21 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
             key={business.id}
             position={{ lat: business.latitude, lng: business.longitude }}
             onClick={() => onBusinessSelect(business)}
-            icon={{
-              url: business.logo_url || undefined,
-              scaledSize: business.logo_url
-                ? new google.maps.Size(32, 32)
-                : undefined,
-              // fallback if no logo:
-              path: business.logo_url ? undefined : google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-              fillColor: selectedBusiness?.id === business.id ? "#10B981" : "#EF4444",
-              fillOpacity: 1,
-              strokeColor: "#fff",
-              strokeWeight: 2,
-              scale: selectedBusiness?.id === business.id ? 6 : 5,
-            }}
+            icon={
+              business.logo_url
+                ? {
+                    url: business.logo_url,
+                    scaledSize: new window.google.maps.Size(32, 32),
+                  }
+                : {
+                    path: window.google?.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+                    fillColor: selectedBusiness?.id === business.id ? "#10B981" : "#EF4444",
+                    fillOpacity: 1,
+                    strokeColor: "#fff",
+                    strokeWeight: 2,
+                    scale: selectedBusiness?.id === business.id ? 6 : 5,
+                  }
+            }
           />
         ))}
 
@@ -144,11 +149,11 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
           >
             <div className="max-w-xs p-2">
               <h3 className="font-semibold text-base mb-1">{selectedBusiness.name}</h3>
-              {selectedBusiness.average_rating && (
+              {selectedBusiness.average_rating !== undefined && (
                 <div className="flex items-center gap-1 mb-1 text-sm">
                   <span className="text-yellow-400">★</span>
                   {selectedBusiness.average_rating.toFixed(1)}
-                  {selectedBusiness.total_reviews && (
+                  {selectedBusiness.total_reviews !== undefined && (
                     <span className="ml-1 text-xs text-gray-500">
                       ({selectedBusiness.total_reviews} reviews)
                     </span>

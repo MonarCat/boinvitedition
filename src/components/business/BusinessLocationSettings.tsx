@@ -64,7 +64,7 @@ export const BusinessLocationSettings = () => {
         .select('id, latitude, longitude, service_radius_km')
         .eq('user_id', user.id)
         .single();
-      if (error) throw error;
+      if (error || !data) return null;
       return data as BusinessData;
     },
     enabled: !!user,
@@ -80,7 +80,7 @@ export const BusinessLocationSettings = () => {
         .select('show_on_map, map_description')
         .eq('business_id', business.id)
         .single();
-      if (error) throw error;
+      if (error || !data) return null;
       return data as SettingsData;
     },
     enabled: !!business,

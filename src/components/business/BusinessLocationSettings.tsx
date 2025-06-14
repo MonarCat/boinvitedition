@@ -35,7 +35,7 @@ export const BusinessLocationSettings = () => {
     return <BusinessNotFound />;
   }
 
-  const hasLocation = business.latitude && business.longitude;
+  const hasLocation = Boolean(business.latitude && business.longitude);
   const initialMapLocation = hasLocation ? { lat: business.latitude, lng: business.longitude } : null;
 
   return (

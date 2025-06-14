@@ -56,9 +56,9 @@ export const PartnersSlider = () => {
           </div>
         </div>
       </div>
-
-      <style>
-        {`
+      
+      <style dangerouslySetInnerHTML={{
+        __html: `
           @keyframes scroll {
             0% {
               transform: translateX(0);
@@ -75,8 +75,8 @@ export const PartnersSlider = () => {
           .animate-scroll:hover {
             animation-play-state: paused;
           }
-        `}
-      </style>
+        `
+      }} />
     </section>
   );
 };

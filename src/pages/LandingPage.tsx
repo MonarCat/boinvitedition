@@ -1,30 +1,137 @@
+
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
-  Clock, 
   Users, 
+  Receipt, 
   Star, 
   CheckCircle, 
-  ArrowRight, 
-  Smartphone,
-  Globe,
-  CreditCard,
+  ArrowRight,
   MapPin,
-  LogIn
+  Phone,
+  Mail,
+  Clock,
+  CreditCard,
+  Shield,
+  Smartphone
 } from 'lucide-react';
 import { PartnersSlider } from '@/components/landing/PartnersSlider';
 
 const LandingPage = () => {
+  const navigate = useNavigate();
+
+  const features = [
+    {
+      icon: Calendar,
+      title: "Smart Booking System",
+      description: "Advanced scheduling with automated reminders and capacity management"
+    },
+    {
+      icon: Users,
+      title: "Client Management",
+      description: "Comprehensive customer profiles with booking history and preferences"
+    },
+    {
+      icon: Receipt,
+      title: "Invoice & Payments",
+      description: "Professional invoicing with integrated payment processing"
+    },
+    {
+      icon: Star,
+      title: "Reviews & Ratings",
+      description: "Build trust with customer feedback and testimonials"
+    },
+    {
+      icon: MapPin,
+      title: "Location Discovery",
+      description: "Help customers find your business with integrated maps"
+    },
+    {
+      icon: Shield,
+      title: "Secure & Reliable",
+      description: "Enterprise-grade security with 99.9% uptime guarantee"
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: "Sarah Wanjiku",
+      business: "Elegant Salon",
+      location: "Nairobi",
+      text: "Boinvit transformed how we manage bookings. Our efficiency increased by 60%!",
+      rating: 5
+    },
+    {
+      name: "James Ochieng",
+      business: "FitLife Gym",
+      location: "Mombasa",
+      text: "The automated reminders reduced no-shows significantly. Highly recommended!",
+      rating: 5
+    },
+    {
+      name: "Grace Kimani",
+      business: "DrCare Clinic",
+      location: "Kisumu",
+      text: "Professional invoicing made our billing process seamless and transparent.",
+      rating: 5
+    }
+  ];
+
+  const pricingPlans = [
+    {
+      name: "Starter",
+      price: "KES 2,500",
+      period: "/month",
+      features: [
+        "Up to 100 bookings/month",
+        "Basic calendar management",
+        "Client database",
+        "Email notifications",
+        "Mobile app access"
+      ],
+      popular: false
+    },
+    {
+      name: "Professional",
+      price: "KES 5,000",
+      period: "/month",
+      features: [
+        "Unlimited bookings",
+        "Advanced scheduling",
+        "Invoice generation",
+        "SMS & WhatsApp alerts",
+        "Reviews & ratings",
+        "Staff management",
+        "Analytics dashboard"
+      ],
+      popular: true
+    },
+    {
+      name: "Enterprise",
+      price: "Custom",
+      period: "",
+      features: [
+        "Everything in Professional",
+        "Multiple locations",
+        "Advanced reporting",
+        "API access",
+        "Priority support",
+        "Custom integrations"
+      ],
+      popular: false
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
               <img 
                 src="/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png" 
@@ -33,53 +140,78 @@ const LandingPage = () => {
               />
               <span className="text-xl font-bold text-gray-900">Boinvit</span>
             </div>
-            <div className="flex items-center gap-4">
-              <Link to="/discover">
-                <Button variant="outline" className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  Find Services
-                </Button>
+            
+            <div className="hidden md:flex items-center space-x-8">
+              <Link to="/discover" className="text-gray-600 hover:text-royal-red transition-colors">
+                Discover Businesses
               </Link>
-              <Link to="/demo">
-                <Button variant="outline">Try Demo</Button>
+              <Link to="/demo" className="text-gray-600 hover:text-royal-red transition-colors">
+                Demo
               </Link>
-              <Link to="/auth">
-                <Button variant="outline" className="flex items-center gap-2">
-                  <LogIn className="h-4 w-4" />
-                  Sign In
-                </Button>
+              <Link to="/safety" className="text-gray-600 hover:text-royal-red transition-colors">
+                Safety
               </Link>
-              <Link to="/auth">
-                <Button>Get Started</Button>
-              </Link>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/auth')}
+                className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white"
+              >
+                Sign In
+              </Button>
+              <Button 
+                onClick={() => navigate('/auth')}
+                className="bg-royal-red hover:bg-royal-red/90 text-white"
+              >
+                Get Started
+              </Button>
+            </div>
+
+            <div className="md:hidden">
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/auth')}
+                className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white"
+              >
+                Sign In
+              </Button>
             </div>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6">
-            Streamline Your Business
-            <span className="text-royal-red block">Bookings & Payments</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            From salons to hotels, transport to medical services - manage appointments, accept payments, and grow your business with our all-in-one booking platform.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/auth">
-              <Button size="lg" className="w-full sm:w-auto">
+      <section className="bg-gradient-to-br from-royal-red/5 to-royal-red/10 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <Badge className="mb-4 bg-royal-red/10 text-royal-red">
+              🚀 Kenya's Leading Business Management Platform
+            </Badge>
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+              Streamline Your Business with 
+              <span className="text-royal-red"> Boinvit</span>
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+              Complete booking and invoice management solution for salons, gyms, clinics, 
+              transport services, and hospitality businesses across Kenya.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg" 
+                onClick={() => navigate('/auth')}
+                className="bg-royal-red hover:bg-royal-red/90 text-white px-8 py-3 text-lg"
+              >
                 Start Free Trial
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-            </Link>
-            <Link to="/discover">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                <MapPin className="mr-2 h-5 w-5" />
-                Discover Local Services
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={() => navigate('/demo')}
+                className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white px-8 py-3 text-lg"
+              >
+                Watch Demo
               </Button>
-            </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -87,220 +219,114 @@ const LandingPage = () => {
       {/* Partners Slider */}
       <PartnersSlider />
 
-      {/* Map Discovery Section */}
-      <section className="py-16 bg-white">
+      {/* Features Section */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Discover Local Services
+              Everything You Need to Manage Your Business
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Find barbershops, salons, hotels, transport services, medical care, and more in your area. 
-              Book appointments directly and see ratings from other customers.
+              From appointment scheduling to payment processing, 
+              we've got all your business needs covered.
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {[
-              { name: 'Hotels & Hospitality', icon: '🏨', count: '200+' },
-              { name: 'Transport Services', icon: '🚌', count: '300+' },
-              { name: 'Barbershops & Salons', icon: '✂️', count: '150+' },
-              { name: 'Medical & Dental', icon: '🏥', count: '95+' },
-              { name: 'Massage & Spa', icon: '💆‍♀️', count: '80+' },
-              { name: 'Fitness & Gyms', icon: '💪', count: '120+' },
-              { name: 'Event Planning', icon: '🎉', count: '45+' },
-              { name: 'Beauty & Wellness', icon: '✨', count: '110+' }
-            ].map((category, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="text-4xl mb-4">{category.icon}</div>
-                  <h3 className="font-semibold mb-2">{category.name}</h3>
-                  <Badge variant="secondary">{category.count} businesses</Badge>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <feature.icon className="h-10 w-10 text-royal-red mb-4" />
+                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
-          
-          <div className="text-center">
-            <Link to="/discover">
-              <Button size="lg" className="bg-royal-red hover:bg-royal-red/90">
-                <MapPin className="mr-2 h-5 w-5" />
-                Explore Map
-              </Button>
-            </Link>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Trusted by Businesses Across Kenya
+            </h2>
+            <p className="text-lg text-gray-600">
+              See what our customers have to say about their experience with Boinvit
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-gray-600 mb-4">"{testimonial.text}"</p>
+                  <div>
+                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
+                    <p className="text-sm text-gray-500">{testimonial.business}, {testimonial.location}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 bg-gray-50">
+      {/* Pricing */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">
-              Key Features
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Simple, Transparent Pricing
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Empower your business with our comprehensive suite of features designed to streamline operations and enhance customer experiences.
+            <p className="text-lg text-gray-600">
+              Choose the plan that fits your business needs
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <Card className="flex flex-col justify-between h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-lg">
-                  <Calendar className="h-5 w-5 text-royal-red" />
-                  Online Booking
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Let clients book appointments 24/7 from any device.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            {/* Feature 2 */}
-            <Card className="flex flex-col justify-between h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-lg">
-                  <Clock className="h-5 w-5 text-royal-red" />
-                  Automated Reminders
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Reduce no-shows with automated SMS and email reminders.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            {/* Feature 3 */}
-            <Card className="flex flex-col justify-between h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-lg">
-                  <Users className="h-5 w-5 text-royal-red" />
-                  Client Management
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Keep track of client history, preferences, and contact information.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            {/* Feature 4 */}
-            <Card className="flex flex-col justify-between h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-lg">
-                  <Star className="h-5 w-5 text-royal-red" />
-                  Reviews and Ratings
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Collect and showcase client reviews to build trust.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            {/* Feature 5 */}
-            <Card className="flex flex-col justify-between h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-lg">
-                  <CheckCircle className="h-5 w-5 text-royal-red" />
-                  Business Verification
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Get verified to show customers you're a trusted business.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            {/* Feature 6 */}
-            <Card className="flex flex-col justify-between h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-lg">
-                  <Smartphone className="h-5 w-5 text-royal-red" />
-                  Mobile App
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Manage your business on the go with our mobile app.
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">
-              Simple Pricing
-            </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Choose the plan that fits your business needs. Start with a free trial and upgrade as you grow.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Free Plan */}
-            <Card className="border-2 border-gray-200">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-bold">Free</CardTitle>
-                <CardDescription>Perfect for getting started</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center text-gray-900 font-bold text-4xl">$0<span className="text-sm text-gray-500">/month</span></div>
-                <ul className="list-disc list-inside space-y-2">
-                  <li>Up to 50 bookings per month</li>
-                  <li>Basic online booking features</li>
-                  <li>Limited customer support</li>
-                </ul>
-                <Button className="w-full">Get Started</Button>
-              </CardContent>
-            </Card>
-
-            {/* Pro Plan */}
-            <Card className="border-2 border-royal-red border-solid shadow-lg">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-bold">Pro</CardTitle>
-                <CardDescription>For growing businesses</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center text-gray-900 font-bold text-4xl">$29<span className="text-sm text-gray-500">/month</span></div>
-                <ul className="list-disc list-inside space-y-2">
-                  <li>Unlimited bookings</li>
-                  <li>Advanced features & integrations</li>
-                  <li>Priority customer support</li>
-                </ul>
-                <Button className="w-full bg-royal-red hover:bg-royal-red/90 text-white">Upgrade to Pro</Button>
-              </CardContent>
-            </Card>
-
-            {/* Enterprise Plan */}
-            <Card className="border-2 border-gray-200">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-bold">Enterprise</CardTitle>
-                <CardDescription>Custom solutions for large teams</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center text-gray-900 font-bold text-4xl">Contact Us</div>
-                <ul className="list-disc list-inside space-y-2">
-                  <li>Customized features</li>
-                  <li>Dedicated account manager</li>
-                  <li>24/7 premium support</li>
-                </ul>
-                <Button className="w-full">Contact Sales</Button>
-              </CardContent>
-            </Card>
+          <div className="grid md:grid-cols-3 gap-8">
+            {pricingPlans.map((plan, index) => (
+              <Card key={index} className={`relative hover:shadow-lg transition-shadow ${plan.popular ? 'border-royal-red' : ''}`}>
+                {plan.popular && (
+                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-royal-red text-white">
+                    Most Popular
+                  </Badge>
+                )}
+                <CardHeader className="text-center">
+                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                  <div className="mt-4">
+                    <span className="text-3xl font-bold text-royal-red">{plan.price}</span>
+                    <span className="text-gray-600">{plan.period}</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3">
+                    {plan.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-center">
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                        <span className="text-gray-600">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button 
+                    className={`w-full mt-6 ${plan.popular ? 'bg-royal-red hover:bg-royal-red/90 text-white' : 'border-royal-red text-royal-red hover:bg-royal-red hover:text-white'}`}
+                    variant={plan.popular ? 'default' : 'outline'}
+                    onClick={() => navigate('/auth')}
+                  >
+                    Get Started
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -308,73 +334,89 @@ const LandingPage = () => {
       {/* CTA Section */}
       <section className="py-20 bg-royal-red">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">
+          <h2 className="text-3xl font-bold text-white mb-4">
             Ready to Transform Your Business?
           </h2>
-          <p className="text-xl text-white opacity-80 mb-8 max-w-3xl mx-auto">
-            Join thousands of businesses already using Boinvit to streamline their bookings, manage clients, and grow their revenue.
+          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+            Join thousands of businesses already using Boinvit to streamline their operations
           </p>
-          <Link to="/auth">
-            <Button size="lg" className="bg-white text-royal-red hover:bg-gray-100">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              size="lg" 
+              onClick={() => navigate('/auth')}
+              className="bg-white text-royal-red hover:bg-gray-50 px-8 py-3 text-lg"
+            >
               Start Your Free Trial
-              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-          </Link>
+            <Button 
+              size="lg" 
+              variant="outline"
+              onClick={() => navigate('/discover')}
+              className="border-white text-white hover:bg-white hover:text-royal-red px-8 py-3 text-lg"
+            >
+              Discover Businesses
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Column 1 */}
+          <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h4 className="text-lg font-semibold mb-4">Boinvit</h4>
-              <p className="text-gray-400">
-                Boinvit is the all-in-one solution for managing your business, from bookings to payments.
-              </p>
-            </div>
-
-            {/* Column 2 */}
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Company</h4>
-              <ul className="space-y-2">
-                <li><Link to="/terms" className="hover:text-gray-300">Terms of Service</Link></li>
-                <li><Link to="/privacy" className="hover:text-gray-300">Privacy Policy</Link></li>
-                <li><Link to="/cookies" className="hover:text-gray-300">Cookie Policy</Link></li>
-                <li><Link to="/safety" className="hover:text-gray-300">Safety Tips</Link></li>
-              </ul>
-            </div>
-
-            {/* Column 3 */}
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Features</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-gray-300">Online Booking</a></li>
-                <li><a href="#" className="hover:text-gray-300">Client Management</a></li>
-                <li><a href="#" className="hover:text-gray-300">Payment Processing</a></li>
-                <li><a href="#" className="hover:text-gray-300">Automated Reminders</a></li>
-              </ul>
-            </div>
-
-            {/* Column 4 */}
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Contact</h4>
-              <p className="text-gray-400">
-                Email: support@boinvit.com<br />
-                Phone: +1 (555) 123-4567
-              </p>
-              <div className="mt-4 flex gap-4">
-                <a href="#" className="hover:text-gray-300"><Globe className="h-5 w-5" /></a>
-                <a href="#" className="hover:text-gray-300"><CreditCard className="h-5 w-5" /></a>
+              <div className="flex items-center gap-2 mb-4">
+                <img 
+                  src="/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png" 
+                  alt="Boinvit Logo" 
+                  className="h-8 w-auto"
+                />
+                <span className="text-xl font-bold">Boinvit</span>
               </div>
+              <p className="text-gray-400">
+                Kenya's leading business management platform for modern entrepreneurs.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Product</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link to="/demo" className="hover:text-white">Demo</Link></li>
+                <li><Link to="/discover" className="hover:text-white">Discover</Link></li>
+                <li><Link to="/safety" className="hover:text-white">Safety</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link to="/privacy" className="hover:text-white">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-white">Terms of Service</Link></li>
+                <li><Link to="/cookies" className="hover:text-white">Cookie Policy</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Contact</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  support@boinvit.com
+                </li>
+                <li className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  +254 700 000 000
+                </li>
+                <li className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Nairobi, Kenya
+                </li>
+              </ul>
             </div>
           </div>
-
-          <div className="mt-12 pt-8 border-t border-gray-800 text-center">
-            <p className="text-gray-500">
-              &copy; {new Date().getFullYear()} Boinvit. All rights reserved.
-            </p>
+          
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 Boinvit. All rights reserved.</p>
           </div>
         </div>
       </footer>

@@ -78,13 +78,16 @@ export const BusinessLocationSettings = () => {
       if (!business) throw new Error('No business found');
 
       // Update business location
+      const businessUpdate: any = {
+        service_radius_km: parseInt(data.service_radius_km)
+      };
+      
+      if (data.latitude) businessUpdate.latitude = parseFloat(data.latitude);
+      if (data.longitude) businessUpdate.longitude = parseFloat(data.longitude);
+
       const { error: businessError } = await supabase
         .from('businesses')
-        .update({
-          latitude: data.latitude ? parseFloat(data.latitude) : null,
-          longitude: data.longitude ? parseFloat(data.longitude) : null,
-          service_radius_km: parseInt(data.service_radius_km)
-        })
+        .update(businessUpdate)
         .eq('id', business.id);
 
       if (businessError) throw businessError;

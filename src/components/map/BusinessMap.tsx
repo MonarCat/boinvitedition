@@ -1,13 +1,14 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Star, MapPin, Phone, Clock, ExternalLink } from 'lucide-react';
+import { Star, MapPin, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { InteractiveMap } from './InteractiveMap';
 
 interface Business {
   id: string;
@@ -36,12 +37,9 @@ interface Business {
 
 export const BusinessMap = () => {
   const navigate = useNavigate();
-  const mapRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [map, setMap] = useState<any>(null);
-  const [markers, setMarkers] = useState<any[]>([]);
 
   // Get user's current location
   useEffect(() => {
@@ -69,41 +67,51 @@ export const BusinessMap = () => {
     queryKey: ['businesses-map', searchQuery],
     queryFn: async () => {
       let query = supabase
-        .from('business_discovery')
-        .select('*')
-        .order('average_rating', { ascending: false, nullsLast: true });
+        .from('businesses')
+        .select(`
+          id,
+          name,
+          description,
+          address,
+          city,
+          country,
+          phone,
+          email,
+          website,
+          logo_url,
+          latitude,
+          longitude,
+          average_rating,
+          total_reviews,
+          is_verified,
+          service_radius_km,
+          currency,
+          services:services(name, category)
+        `)
+        .eq('is_active', true)
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null)
+        .order('average_rating', { ascending: false });
 
       if (searchQuery) {
-        query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,service_categories.cs.{${searchQuery}},service_names.cs.{${searchQuery}}`);
+        query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
       }
 
       const { data, error } = await query.limit(50);
       if (error) throw error;
-      return data || [];
+
+      // Transform the data to match our Business interface
+      return (data || []).map(business => ({
+        ...business,
+        service_categories: business.services?.map((s: any) => s.category).filter(Boolean) || [],
+        service_names: business.services?.map((s: any) => s.name).filter(Boolean) || [],
+        total_services: business.services?.length || 0,
+        featured_image_url: '',
+        business_hours: {},
+      })) as Business[];
     },
     enabled: true,
   });
-
-  // Initialize map when user location is available
-  useEffect(() => {
-    if (!userLocation || !mapRef.current || map) return;
-
-    // Simple map implementation without external dependencies
-    // This is a placeholder - in production you'd use Google Maps, Mapbox, or OpenStreetMap
-    const mapElement = mapRef.current;
-    mapElement.innerHTML = `
-      <div class="w-full h-full bg-gray-100 flex items-center justify-center rounded-lg border">
-        <div class="text-center p-8">
-          <MapPin class="mx-auto mb-4 h-12 w-12 text-gray-400" />
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Interactive Map</h3>
-          <p class="text-gray-600 mb-4">Map integration coming soon</p>
-          <p class="text-sm text-gray-500">Your location: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}</p>
-        </div>
-      </div>
-    `;
-    
-    setMap(true); // Mark map as initialized
-  }, [userLocation, map]);
 
   const handleBusinessSelect = (business: Business) => {
     setSelectedBusiness(business);
@@ -141,9 +149,14 @@ export const BusinessMap = () => {
       </div>
 
       <div className="flex-1 flex">
-        {/* Map Container */}
+        {/* Interactive Map Container */}
         <div className="flex-1 relative">
-          <div ref={mapRef} className="absolute inset-0" />
+          <InteractiveMap
+            businesses={businesses}
+            userLocation={userLocation}
+            onBusinessSelect={handleBusinessSelect}
+            selectedBusiness={selectedBusiness}
+          />
         </div>
 
         {/* Business List Sidebar */}
@@ -172,7 +185,7 @@ export const BusinessMap = () => {
                   <Card 
                     key={business.id} 
                     className={`cursor-pointer transition-colors hover:bg-gray-50 ${
-                      selectedBusiness?.id === business.id ? 'ring-2 ring-royal-red' : ''
+                      selectedBusiness?.id === business.id ? 'ring-2 ring-blue-500' : ''
                     }`}
                     onClick={() => handleBusinessSelect(business)}
                   >

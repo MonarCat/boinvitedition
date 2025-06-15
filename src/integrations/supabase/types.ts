@@ -622,6 +622,63 @@ export type Database = {
           },
         ]
       }
+      staff_attendance: {
+        Row: {
+          attendance_date: string
+          business_id: string
+          created_at: string
+          id: string
+          location_info: Json | null
+          notes: string | null
+          sign_in_time: string
+          sign_out_time: string | null
+          staff_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attendance_date?: string
+          business_id: string
+          created_at?: string
+          id?: string
+          location_info?: Json | null
+          notes?: string | null
+          sign_in_time?: string
+          sign_out_time?: string | null
+          staff_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attendance_date?: string
+          business_id?: string
+          created_at?: string
+          id?: string
+          location_info?: Json | null
+          notes?: string | null
+          sign_in_time?: string
+          sign_out_time?: string | null
+          staff_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_attendance_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_attendance_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null

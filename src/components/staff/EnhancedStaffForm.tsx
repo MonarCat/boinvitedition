@@ -33,8 +33,8 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
       phone: staff?.phone || '',
       gender: staff?.gender || '',
       is_active: staff?.is_active ?? true,
-      workload: staff?.workload || null,
-      shift: staff?.shift || null,
+      workload: staff?.workload || '',
+      shift: staff?.shift || '',
     }
   });
 
@@ -196,31 +196,33 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
         )}
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="workload">Max Weekly Workload (hours)</Label>
+          <Input
+            id="workload"
+            {...register('workload')}
+            placeholder="40"
+            type="number"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="shift">Usual Shift</Label>
+          <Input
+            id="shift"
+            {...register('shift')}
+            placeholder="e.g. 9am - 5pm"
+          />
+        </div>
+      </div>
+
       <div className="flex items-center space-x-2">
         <Switch
           id="is_active"
           {...register('is_active')}
         />
         <Label htmlFor="is_active">Active</Label>
-      </div>
-      <div>
-        <label htmlFor="workload" className="block font-medium mb-1">Max Weekly Workload (hours)</label>
-        <input
-          id="workload"
-          type="number"
-          {...register('workload')}
-          placeholder="40"
-          className="w-full border-gray-300 rounded px-2 py-2"
-        />
-      </div>
-      <div>
-        <label htmlFor="shift" className="block font-medium mb-1">Usual Shift</label>
-        <input
-          id="shift"
-          {...register('shift')}
-          placeholder="e.g. 9am - 5pm"
-          className="w-full border-gray-300 rounded px-2 py-2"
-        />
       </div>
 
       <div className="flex gap-2 pt-4">

@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +17,7 @@ interface BookingListProps {
 export const BookingList = ({ businessId, clientView = false }: BookingListProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
   const { data: business } = useQuery({
     queryKey: ['user-business', user?.id],
@@ -94,6 +94,28 @@ export const BookingList = ({ businessId, clientView = false }: BookingListProps
     onError: () => {
       toast.error('Failed to cancel booking');
     },
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ bookingId, status }: { bookingId: string; status: string }) => {
+      setUpdatingStatusId(bookingId);
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, { status }) => {
+      toast.success(`Booking marked as ${status}`);
+      queryClient.invalidateQueries({ queryKey: ['bookings-list'] });
+    },
+    onError: () => {
+      toast.error('Failed to update status');
+    },
+    onSettled: () => {
+      setUpdatingStatusId(null);
+    }
   });
 
   const getStatusColor = (status: string) => {
@@ -185,6 +207,30 @@ export const BookingList = ({ businessId, clientView = false }: BookingListProps
                 {booking.notes && (
                   <div className="text-sm text-gray-600">
                     Notes: {booking.notes}
+                  </div>
+                )}
+
+                {/* Booking status management dropdown - admin/staff only */}
+                {!clientView && (
+                  <div className="pt-3">
+                    <label htmlFor={`status-${booking.id}`} className="text-sm font-medium">
+                      Change Status:
+                    </label>
+                    <select
+                      id={`status-${booking.id}`}
+                      value={booking.status}
+                      disabled={updatingStatusId === booking.id}
+                      onChange={e => updateStatusMutation.mutate({
+                        bookingId: booking.id,
+                        status: e.target.value
+                      })}
+                      className="ml-2 border-gray-300 rounded px-2 py-1 text-sm"
+                    >
+                      <option value="confirmed">Confirmed</option>
+                      <option value="pending">Pending</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
                   </div>
                 )}
               </div>

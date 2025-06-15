@@ -585,8 +585,10 @@ export type Database = {
           is_active: boolean | null
           name: string
           phone: string | null
+          shift: string | null
           specialties: string[] | null
           updated_at: string | null
+          workload: string | null
         }
         Insert: {
           business_id: string
@@ -597,8 +599,10 @@ export type Database = {
           is_active?: boolean | null
           name: string
           phone?: string | null
+          shift?: string | null
           specialties?: string[] | null
           updated_at?: string | null
+          workload?: string | null
         }
         Update: {
           business_id?: string
@@ -609,8 +613,10 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           phone?: string | null
+          shift?: string | null
           specialties?: string[] | null
           updated_at?: string | null
+          workload?: string | null
         }
         Relationships: [
           {

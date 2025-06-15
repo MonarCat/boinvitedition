@@ -1,13 +1,25 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PublicBookingCalendar } from '@/components/booking/PublicBookingCalendar';
 import { BusinessHeader } from '@/components/booking/BusinessHeader';
+import { ServicesList } from '@/components/booking/ServicesList';
+import { EmptyServiceSelection } from '@/components/booking/EmptyServiceSelection';
+
+interface Service {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  duration_minutes: number;
+  currency?: string;
+}
 
 const PublicBookingPage = () => {
   const { businessId } = useParams<{ businessId: string }>();
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const { data: business, isLoading: businessLoading, error: businessError } = useQuery({
     queryKey: ['public-business', businessId],
@@ -92,15 +104,48 @@ const PublicBookingPage = () => {
     );
   }
 
+  const handleServiceSelect = (service: Service) => {
+    setSelectedService(service);
+  };
+
+  const handleBackToServices = () => {
+    setSelectedService(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto py-8 px-4">
         <BusinessHeader business={business} />
+        
         <div className="mt-8">
-          <PublicBookingCalendar 
-            businessId={businessId} 
-            services={services || []} 
-          />
+          {!selectedService ? (
+            // Show service selection
+            <>
+              {!services || services.length === 0 ? (
+                <EmptyServiceSelection />
+              ) : (
+                <ServicesList 
+                  services={services} 
+                  onServiceSelect={handleServiceSelect}
+                />
+              )}
+            </>
+          ) : (
+            // Show booking calendar for selected service
+            <div className="space-y-4">
+              <button
+                onClick={handleBackToServices}
+                className="text-blue-600 hover:text-blue-800 flex items-center gap-2"
+              >
+                ← Back to Services
+              </button>
+              <PublicBookingCalendar 
+                businessId={businessId} 
+                selectedService={selectedService}
+                onBookingComplete={handleBackToServices}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

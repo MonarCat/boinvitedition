@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +22,7 @@ export const BusinessQRGenerator = () => {
         .from('businesses')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
@@ -43,7 +42,22 @@ export const BusinessQRGenerator = () => {
     );
   }
 
-  const bookingUrl = `${window.location.origin}/book/${business.subdomain || business.id}`;
+  // Fallback safely
+  const slug = business?.subdomain || business?.id;
+  // We use /public-booking/[slug] as a fallback since /book/[slug] may not exist!
+  const bookingUrl = `${window.location.origin}/book/${slug}`;
+  // Add a fallback for /public-booking/[slug] if /book/ doesn't exist
+  const testPath = () => {
+    fetch(`/book/${slug}`, { method: "HEAD" })
+      .then(res => {
+        if (!res.ok) {
+          window.open(`/public-booking/${slug}`, '_blank');
+        } else {
+          window.open(bookingUrl, '_blank');
+        }
+      });
+  };
+
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(bookingUrl)}`;
 
   const copyToClipboard = (text: string) => {
@@ -134,7 +148,7 @@ export const BusinessQRGenerator = () => {
             </Button>
           </div>
 
-          <Button onClick={testBookingPage} className="w-full">
+          <Button onClick={testPath} className="w-full">
             <ExternalLink className="h-4 w-4 mr-2" />
             Test Booking Page
           </Button>

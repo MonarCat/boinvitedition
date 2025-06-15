@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -70,6 +69,8 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
         gender: data.gender || null,
         is_active: data.is_active,
         specialties: specialties,
+        workload: data.workload || null,
+        shift: data.shift || null,
       };
 
       if (staff) {
@@ -199,6 +200,25 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
           {...register('is_active')}
         />
         <Label htmlFor="is_active">Active</Label>
+      </div>
+      <div>
+        <label htmlFor="workload" className="block font-medium mb-1">Max Weekly Workload (hours)</label>
+        <input
+          id="workload"
+          type="number"
+          {...register('workload')}
+          placeholder="40"
+          className="w-full border-gray-300 rounded px-2 py-2"
+        />
+      </div>
+      <div>
+        <label htmlFor="shift" className="block font-medium mb-1">Usual Shift</label>
+        <input
+          id="shift"
+          {...register('shift')}
+          placeholder="e.g. 9am - 5pm"
+          className="w-full border-gray-300 rounded px-2 py-2"
+        />
       </div>
 
       <div className="flex gap-2 pt-4">

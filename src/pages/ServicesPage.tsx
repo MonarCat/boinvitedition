@@ -6,6 +6,7 @@ import { EnhancedServiceForm } from '@/components/services/EnhancedServiceForm';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { QRCodeGenerator } from '@/components/qr/QRCodeGenerator';
 
 const ServicesPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -60,9 +61,19 @@ const ServicesPage = () => {
         </div>
 
         <ServicesList onEditService={handleEditService} />
+
+        {/* QR Code generator section for in-shop booking */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Walk-In / Direct Booking QR Code</h2>
+          <p className="text-gray-600 mb-4">
+            Display this QR code at your shop. When customers scan it, they will be taken to your services booking page for easy reservations.
+          </p>
+          <QRCodeGenerator />
+        </div>
       </div>
     </DashboardLayout>
   );
 };
 
 export default ServicesPage;
+

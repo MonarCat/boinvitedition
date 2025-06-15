@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -40,18 +41,19 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
 
   const watchedGender = watch('gender');
 
-  const { data: business } = useQuery({
+  const { data: business, isLoading: businessLoading, error: businessError } = useQuery({
     queryKey: ['user-business', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      
       const { data, error } = await supabase
         .from('businesses')
-        .select('id')
+        .select('id, name')
         .eq('user_id', user.id)
-        .single();
-      
-      if (error) throw error;
+        .maybeSingle();
+      if (error) {
+        console.error('Error fetching business for EnhancedStaffForm:', error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user,
@@ -59,8 +61,12 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
 
   const createStaffMutation = useMutation({
     mutationFn: async (data: any) => {
+      if (businessLoading) throw new Error('Business is still loading...');
+      if (!user) {
+        throw new Error('You must be logged in to add staff.');
+      }
       if (!business) {
-        throw new Error('No business found to add staff to.');
+        throw new Error('No business found for your account. Please complete your business setup before adding staff. (Staff entries are not permitted without this).');
       }
       if (!data.name || !data.email) {
         throw new Error('Name and email are required.');
@@ -79,23 +85,21 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
         workload: data.workload || null,
         shift: data.shift || null,
       };
+
+      let response;
       if (staff) {
-        const { error } = await supabase
-          .from('staff')
-          .update(staffData)
-          .eq('id', staff.id);
-        if (error) {
-          console.error('Supabase staff update error:', error);
-          throw error;
-        }
+        response = await supabase.from('staff').update(staffData).eq('id', staff.id);
       } else {
-        const { error } = await supabase
-          .from('staff')
-          .insert([staffData]);
-        if (error) {
-          console.error('Supabase staff insert error:', error);
-          throw error;
-        }
+        response = await supabase.from('staff').insert([staffData]);
+      }
+      console.log('Staff mutation response:', response);
+      if (response.error) {
+        // Surfaces raw supabase database error for transparency
+        throw new Error(response.error.message || 'Failed to save staff member (Supabase error)');
+      }
+      // If inserting, confirm at least one row inserted
+      if (response.data && !staff && (!Array.isArray(response.data) || response.data.length === 0)) {
+        throw new Error('Failed to create staff member. No rows inserted.');
       }
     },
     onSuccess: () => {
@@ -103,8 +107,8 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
       queryClient.invalidateQueries({ queryKey: ['staff'] });
       onSuccess?.();
     },
-    onError: (error) => {
-      handleError(error, { customMessage: 'Failed to save staff member' });
+    onError: (error: any) => {
+      handleError(error, { customMessage: error?.message || 'Failed to save staff member' });
     },
   });
 
@@ -125,6 +129,23 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-6">
+      {businessLoading && (
+        <div className="text-blue-600">Loading business details…</div>
+      )}
+      {!businessLoading && !business && (
+        <div className="text-red-500 border border-red-300 rounded p-2">
+          <strong>Set up required:</strong> You have no business profile set up.<br />
+          <span>
+            Please complete your business registration before adding staff members.
+          </span>
+        </div>
+      )}
+      {businessError && (
+        <div className="text-red-600">
+          Error loading business: {businessError.message}
+        </div>
+      )}
+
       <div>
         <Label htmlFor="name">Full Name *</Label>
         <Input
@@ -236,7 +257,7 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
       <div className="flex gap-2 pt-4">
         <Button
           type="submit"
-          disabled={createStaffMutation.isPending}
+          disabled={createStaffMutation.isPending || !business}
           className="flex-1"
         >
           {createStaffMutation.isPending 

@@ -33,6 +33,8 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
       phone: staff?.phone || '',
       gender: staff?.gender || '',
       is_active: staff?.is_active ?? true,
+      workload: staff?.workload || null,
+      shift: staff?.shift || null,
     }
   });
 

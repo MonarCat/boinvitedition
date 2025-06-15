@@ -40,6 +40,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: 'Services', href: '/app/services', icon: FileText },
     { name: 'Staff', href: '/app/staff', icon: Users },
     { name: 'Attendance', href: '/app/attendance', icon: Clock },
+    { name: 'Staff Dashboard', href: '/app/staff-dashboard', icon: BarChart3 },
     { name: 'Clients', href: '/app/clients', icon: UserCheck },
     { name: 'Invoices', href: '/app/invoices', icon: FileText },
     { name: 'Settings', href: '/app/settings', icon: Settings },

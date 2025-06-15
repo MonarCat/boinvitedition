@@ -60,9 +60,14 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
   const createStaffMutation = useMutation({
     mutationFn: async (data: any) => {
       if (!business) {
-        throw new Error('No business found');
+        throw new Error('No business found to add staff to.');
       }
-
+      if (!data.name || !data.email) {
+        throw new Error('Name and email are required.');
+      }
+      if (!business.id) {
+        throw new Error('Invalid business id.');
+      }
       const staffData = {
         business_id: business.id,
         name: data.name,
@@ -74,20 +79,23 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
         workload: data.workload || null,
         shift: data.shift || null,
       };
-
       if (staff) {
         const { error } = await supabase
           .from('staff')
           .update(staffData)
           .eq('id', staff.id);
-
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase staff update error:', error);
+          throw error;
+        }
       } else {
         const { error } = await supabase
           .from('staff')
           .insert([staffData]);
-
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase staff insert error:', error);
+          throw error;
+        }
       }
     },
     onSuccess: () => {

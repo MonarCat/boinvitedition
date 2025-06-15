@@ -12,7 +12,7 @@ const StaffDashboardPage = () => {
   const { user } = useAuth();
 
   // Fetch business id
-  const { data: business } = useQuery({
+  const { data: business, error: businessError } = useQuery({
     queryKey: ["user-business", user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -20,15 +20,18 @@ const StaffDashboardPage = () => {
         .from("businesses")
         .select("id")
         .eq("user_id", user.id)
-        .single();
-      if (error) throw error;
+        .maybeSingle();
+      if (error) {
+        console.error("Error fetching business for staff dashboard:", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user,
   });
 
   // Fetch staff list
-  const { data: staff, isLoading } = useQuery({
+  const { data: staff, isLoading, error: staffError } = useQuery({
     queryKey: ["staff", business?.id],
     queryFn: async () => {
       if (!business) return [];
@@ -37,11 +40,30 @@ const StaffDashboardPage = () => {
         .select("*")
         .eq("business_id", business.id)
         .eq("is_active", true);
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching staff for staff dashboard:", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!business,
   });
+
+  if (businessError) {
+    return (
+      <DashboardLayout>
+        <div className="text-red-600">Failed to load business for dashboard.</div>
+      </DashboardLayout>
+    );
+  }
+
+  if (staffError) {
+    return (
+      <DashboardLayout>
+        <div className="text-red-600">Failed to load staff data.</div>
+      </DashboardLayout>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -76,5 +98,4 @@ const StaffDashboardPage = () => {
     </DashboardLayout>
   );
 };
-
 export default StaffDashboardPage;

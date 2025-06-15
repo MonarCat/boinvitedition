@@ -38,10 +38,13 @@ const App = () => {
                 {/* Business Discovery Map */}
                 <Route path="/discover" element={<BusinessDiscoveryPage />} />
                 
+                {/* Public booking - global route for QR codes */}
+                <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
+                
                 {/* Authenticated app routes */}
                 <Route path="/app/*" element={<AuthenticatedApp />} />
                 
-                {/* Public booking */}
+                {/* (legacy) Public booking */}
                 <Route path="/booking/:businessId" element={<PublicBookingPage />} />
                 
                 {/* Legal pages */}

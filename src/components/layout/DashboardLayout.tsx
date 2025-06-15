@@ -61,7 +61,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center justify-center border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-900">BookingApp</h1>
+            <a href="/" className="flex items-center gap-2 group" tabIndex={0} aria-label="Home">
+              <h1 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">BookingApp</h1>
+            </a>
           </div>
 
           {/* Navigation */}

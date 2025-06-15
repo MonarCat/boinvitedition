@@ -38,13 +38,13 @@ const App = () => {
                 {/* Business Discovery Map */}
                 <Route path="/discover" element={<BusinessDiscoveryPage />} />
                 
-                {/* Public booking - global route for QR codes */}
+                {/* Public booking - primary global route for QR codes */}
                 <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
                 
                 {/* Authenticated app routes */}
                 <Route path="/app/*" element={<AuthenticatedApp />} />
                 
-                {/* (legacy) Public booking */}
+                {/* Legacy public booking route - redirect to new route */}
                 <Route path="/booking/:businessId" element={<PublicBookingPage />} />
                 
                 {/* Legal pages */}
@@ -79,4 +79,5 @@ const App = () => {
     </QueryClientProvider>
   );
 };
+
 export default App;

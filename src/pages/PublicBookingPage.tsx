@@ -1,172 +1,106 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PublicBookingCalendar } from '@/components/booking/PublicBookingCalendar';
-import { ReviewDisplay } from '@/components/reviews/ReviewDisplay';
 import { BusinessHeader } from '@/components/booking/BusinessHeader';
-import { ServicesList } from '@/components/booking/ServicesList';
-import { EmptyServiceSelection } from '@/components/booking/EmptyServiceSelection';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
 
 const PublicBookingPage = () => {
-  const { subdomain } = useParams();
-  const [selectedService, setSelectedService] = useState(null);
+  const { businessId } = useParams<{ businessId: string }>();
 
-  useEffect(() => {
-    console.log('PublicBookingPage loaded with subdomain:', subdomain);
-  }, [subdomain]);
-
-  // Fetch business by subdomain
   const { data: business, isLoading: businessLoading, error: businessError } = useQuery({
-    queryKey: ['public-business', subdomain],
+    queryKey: ['public-business', businessId],
     queryFn: async () => {
-      console.log('Fetching business for subdomain:', subdomain);
+      if (!businessId) return null;
+      
       const { data, error } = await supabase
         .from('businesses')
         .select('*')
-        .eq('subdomain', subdomain)
-        .single();
+        .eq('id', businessId)
+        .eq('is_active', true)
+        .maybeSingle();
       
       if (error) {
-        console.error('Error fetching business:', error);
+        console.error('Error fetching business for public booking:', error);
         throw error;
       }
-      console.log('Business data:', data);
+      
+      if (!data) {
+        throw new Error('Business not found or inactive');
+      }
+      
       return data;
     },
-    enabled: !!subdomain,
+    enabled: !!businessId,
   });
 
-  // Fetch business services
-  const { data: services } = useQuery({
-    queryKey: ['public-services', business?.id],
+  const { data: services, isLoading: servicesLoading } = useQuery({
+    queryKey: ['public-services', businessId],
     queryFn: async () => {
+      if (!businessId) return [];
+      
       const { data, error } = await supabase
         .from('services')
         .select('*')
-        .eq('business_id', business.id)
+        .eq('business_id', businessId)
         .eq('is_active', true)
         .order('name');
       
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!business?.id,
-  });
-
-  // Fetch business reviews with client names
-  const { data: reviews } = useQuery({
-    queryKey: ['public-reviews', business?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('business_reviews')
-        .select(`
-          *,
-          bookings (
-            clients (
-              name
-            )
-          )
-        `)
-        .eq('business_id', business.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
+      if (error) {
+        console.error('Error fetching services for public booking:', error);
+        throw error;
+      }
       
-      if (error) throw error;
-      return data;
+      return data || [];
     },
-    enabled: !!business?.id,
+    enabled: !!businessId,
   });
 
-  if (businessLoading) {
+  if (!businessId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading business information...</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Invalid Booking Link</h1>
+          <p className="text-gray-600">The booking link you followed is not valid.</p>
         </div>
       </div>
     );
   }
 
-  if (businessError) {
-    console.error('Business error:', businessError);
+  if (businessLoading || servicesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md mx-auto p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Business</h1>
-          <p className="text-gray-600 mb-4">
-            We encountered an error while loading the business information. Please try again later.
-          </p>
-          <p className="text-sm text-gray-500">Subdomain: {subdomain}</p>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading booking page...</p>
         </div>
       </div>
     );
   }
 
-  if (!business) {
+  if (businessError || !business) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md mx-auto p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Business Not Found</h1>
-          <p className="text-gray-600 mb-4">
-            The business you're looking for doesn't exist or is no longer available.
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Business Not Found</h1>
+          <p className="text-gray-600">
+            {businessError?.message || 'The business you are looking for is not available.'}
           </p>
-          <p className="text-sm text-gray-500">Subdomain: {subdomain}</p>
         </div>
       </div>
     );
   }
-
-  const handleBookingComplete = () => {
-    toast.success('Booking created successfully! You will receive a confirmation shortly.');
-    setSelectedService(null);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <BusinessHeader business={business} />
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8">
-          {/* Services List */}
-          <div className="lg:col-span-1 space-y-6">
-            <ServicesList 
-              services={services || []}
-              selectedService={selectedService}
-              onServiceSelect={setSelectedService}
-            />
-
-            {/* Reviews */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg sm:text-xl">Customer Reviews</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ReviewDisplay 
-                  reviews={reviews || []} 
-                  averageRating={business.average_rating}
-                  totalReviews={business.total_reviews}
-                />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Booking Calendar */}
-          <div className="lg:col-span-3">
-            {selectedService ? (
-              <PublicBookingCalendar 
-                businessId={business.id} 
-                selectedService={selectedService}
-                onBookingComplete={handleBookingComplete}
-              />
-            ) : (
-              <EmptyServiceSelection />
-            )}
-          </div>
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <BusinessHeader business={business} />
+        <div className="mt-8">
+          <PublicBookingCalendar 
+            businessId={businessId} 
+            services={services || []} 
+          />
         </div>
       </div>
     </div>

@@ -10,7 +10,8 @@ import {
   UserCheck,
   Clock,
   LogOut,
-  User
+  User,
+  BarChart3, // <-- Added missing import!
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';

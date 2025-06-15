@@ -7,10 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { QRCodeGenerator } from '@/components/qr/QRCodeGenerator';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 const ServicesPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingService, setEditingService] = useState(null);
+  const { user } = useAuth();
 
   const handleCreateService = () => {
     setEditingService(null);
@@ -26,6 +30,22 @@ const ServicesPage = () => {
     setIsFormOpen(false);
     setEditingService(null);
   };
+
+  // Fetch the business for the logged-in user
+  const { data: business, isLoading: isLoadingBusiness } = useQuery({
+    queryKey: ['current-business', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
   return (
     <DashboardLayout>
@@ -68,7 +88,13 @@ const ServicesPage = () => {
           <p className="text-gray-600 mb-4">
             Display this QR code at your shop. When customers scan it, they will be taken to your services booking page for easy reservations.
           </p>
-          <QRCodeGenerator />
+          {!business && isLoadingBusiness ? (
+            <div className="text-gray-400">Loading QR code...</div>
+          ) : business ? (
+            <QRCodeGenerator businessId={business.id} />
+          ) : (
+            <div className="text-red-500">Unable to load business QR code</div>
+          )}
         </div>
       </div>
     </DashboardLayout>
@@ -76,4 +102,3 @@ const ServicesPage = () => {
 };
 
 export default ServicesPage;
-

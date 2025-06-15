@@ -126,6 +126,7 @@ const PublicBookingPage = () => {
               ) : (
                 <ServicesList 
                   services={services} 
+                  selectedService={selectedService}
                   onServiceSelect={handleServiceSelect}
                 />
               )}

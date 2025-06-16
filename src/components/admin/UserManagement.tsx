@@ -19,10 +19,7 @@ export const UserManagement = () => {
     queryFn: async () => {
       let query = supabase
         .from('businesses')
-        .select(`
-          *,
-          profiles:user_id(first_name, last_name, email)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
@@ -33,6 +30,30 @@ export const UserManagement = () => {
       if (error) throw error;
       return data;
     },
+  });
+
+  // Fetch business owners separately
+  const { data: businessOwners } = useQuery({
+    queryKey: ['business-owners'],
+    queryFn: async () => {
+      if (!businesses) return {};
+      
+      const userIds = businesses.map(b => b.user_id).filter(Boolean);
+      if (userIds.length === 0) return {};
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .in('id', userIds);
+      
+      if (error) throw error;
+      
+      return data.reduce((acc, profile) => {
+        acc[profile.id] = profile;
+        return acc;
+      }, {} as Record<string, any>);
+    },
+    enabled: !!businesses
   });
 
   // Fetch all clients across businesses
@@ -95,43 +116,46 @@ export const UserManagement = () => {
                   <div className="text-center py-8">Loading businesses...</div>
                 ) : (
                   <div className="grid gap-4">
-                    {businesses?.map((business) => (
-                      <div key={business.id} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-semibold">{business.name}</h3>
-                              <Badge variant={business.is_active ? 'default' : 'secondary'}>
-                                {business.is_active ? 'Active' : 'Inactive'}
-                              </Badge>
-                              {business.is_verified && (
-                                <Badge variant="outline">Verified</Badge>
-                              )}
+                    {businesses?.map((business) => {
+                      const owner = businessOwners?.[business.user_id];
+                      return (
+                        <div key={business.id} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h3 className="font-semibold">{business.name}</h3>
+                                <Badge variant={business.is_active ? 'default' : 'secondary'}>
+                                  {business.is_active ? 'Active' : 'Inactive'}
+                                </Badge>
+                                {business.is_verified && (
+                                  <Badge variant="outline">Verified</Badge>
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-600 space-y-1">
+                                <p>Owner: {owner?.first_name} {owner?.last_name}</p>
+                                <p>Email: {owner?.email || business.email}</p>
+                                <p>Location: {business.city}, {business.country}</p>
+                                {business.phone && <p>Phone: {business.phone}</p>}
+                              </div>
                             </div>
-                            <div className="text-sm text-gray-600 space-y-1">
-                              <p>Owner: {business.profiles?.first_name} {business.profiles?.last_name}</p>
-                              <p>Email: {business.profiles?.email}</p>
-                              <p>Location: {business.city}, {business.country}</p>
-                              {business.phone && <p>Phone: {business.phone}</p>}
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewBusiness(business.id)}
+                              >
+                                <Eye className="w-4 h-4 mr-1" />
+                                View
+                              </Button>
+                              <Button variant="outline" size="sm">
+                                <Settings className="w-4 h-4 mr-1" />
+                                Manage
+                              </Button>
                             </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewBusiness(business.id)}
-                            >
-                              <Eye className="w-4 h-4 mr-1" />
-                              View
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              <Settings className="w-4 h-4 mr-1" />
-                              Manage
-                            </Button>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

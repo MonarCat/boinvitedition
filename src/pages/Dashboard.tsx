@@ -35,6 +35,7 @@ const DashboardContent = () => {
         />
 
         <DashboardKPISection
+          business={business}
           stats={stats}
           currency={currency}
           formatPrice={formatPrice}

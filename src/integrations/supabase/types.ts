@@ -263,6 +263,7 @@ export type Database = {
           longitude: number | null
           name: string
           phone: string | null
+          search_vector: unknown | null
           service_radius_km: number | null
           subdomain: string | null
           total_reviews: number | null
@@ -289,6 +290,7 @@ export type Database = {
           longitude?: number | null
           name: string
           phone?: string | null
+          search_vector?: unknown | null
           service_radius_km?: number | null
           subdomain?: string | null
           total_reviews?: number | null
@@ -315,6 +317,7 @@ export type Database = {
           longitude?: number | null
           name?: string
           phone?: string | null
+          search_vector?: unknown | null
           service_radius_km?: number | null
           subdomain?: string | null
           total_reviews?: number | null
@@ -488,6 +491,47 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_methods: {
+        Row: {
+          business_id: string
+          created_at: string
+          details: string
+          id: string
+          is_active: boolean
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          details: string
+          id?: string
+          is_active?: boolean
+          name: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          details?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_methods_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]

@@ -1,35 +1,40 @@
 
 import React from 'react';
+import { GeneralSettingsContainer } from './general/GeneralSettingsContainer';
+import { PaymentDetailsSection } from './general/PaymentDetailsSection';
 import { useGeneralSettings } from '@/hooks/useGeneralSettings';
-import { GeneralSettingsContainer } from '@/components/settings/general/GeneralSettingsContainer';
-import { GeneralSettingsForm } from '@/components/settings/general/GeneralSettingsForm';
+import { usePaymentMethods } from '@/hooks/usePaymentMethods';
 
 export const GeneralSettings = () => {
+  const { business } = useGeneralSettings();
   const {
-    settings,
-    isLoading,
-    errors,
-    isUpdating,
-    handleSubmit,
-    error,
-    handleError
-  } = useGeneralSettings();
+    paymentMethods,
+    addPaymentMethod,
+    updatePaymentMethod,
+    removePaymentMethod,
+    isLoading: paymentMethodsLoading
+  } = usePaymentMethods(business?.id || '');
 
-  // Handle error using useEffect
-  React.useEffect(() => {
-    if (error) {
-      handleError(error, { customMessage: 'Failed to load general settings' });
-    }
-  }, [error, handleError]);
+  if (!business) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-600">Loading business settings...</p>
+      </div>
+    );
+  }
 
   return (
-    <GeneralSettingsContainer isLoading={isLoading}>
-      <GeneralSettingsForm
-        settings={settings}
-        errors={errors}
-        isLoading={isUpdating}
-        onSubmit={handleSubmit}
-      />
-    </GeneralSettingsContainer>
+    <div className="space-y-6">
+      <GeneralSettingsContainer />
+      
+      {!paymentMethodsLoading && (
+        <PaymentDetailsSection
+          paymentMethods={paymentMethods}
+          onAddPayment={addPaymentMethod}
+          onUpdatePayment={updatePaymentMethod}
+          onRemovePayment={removePaymentMethod}
+        />
+      )}
+    </div>
   );
 };

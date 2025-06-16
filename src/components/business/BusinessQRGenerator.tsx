@@ -4,6 +4,7 @@ import QRCode from 'qrcode';
 import { Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface BusinessQRGeneratorProps {
   businessId: string;
@@ -14,27 +15,48 @@ export const BusinessQRGenerator = ({ businessId }: BusinessQRGeneratorProps) =>
   const [businessName, setBusinessName] = useState<string>('Our Business');
   const printRef = useRef<HTMLDivElement>(null);
 
-  const bookingUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/public-booking/${businessId}`
-      : `/public-booking/${businessId}`;
+  // Generate production-ready URL
+  const bookingUrl = `https://boinvit.com/public-booking/${businessId}`;
 
-  // Fetch business name
+  // Fetch business name and verify it exists
   useEffect(() => {
     const fetchBusinessName = async () => {
-      const { data, error } = await supabase
-        .from('businesses')
-        .select('name')
-        .eq('id', businessId)
-        .single();
-      if (data?.name) setBusinessName(data.name);
+      try {
+        const { data, error } = await supabase
+          .from('businesses')
+          .select('name, is_active')
+          .eq('id', businessId)
+          .single();
+        
+        if (error || !data) {
+          toast.error('Business not found or inactive');
+          return;
+        }
+        
+        if (!data.is_active) {
+          toast.error('Business is inactive');
+          return;
+        }
+        
+        if (data?.name) setBusinessName(data.name);
+      } catch (error) {
+        console.error('Error fetching business:', error);
+        toast.error('Failed to load business information');
+      }
     };
     fetchBusinessName();
   }, [businessId]);
 
   // Generate QR code
   useEffect(() => {
-    QRCode.toDataURL(bookingUrl, { width: 256, margin: 2 }, (err, url) => {
+    QRCode.toDataURL(bookingUrl, { 
+      width: 256, 
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    }, (err, url) => {
       if (!err && url) setQrUrl(url);
     });
   }, [bookingUrl]);

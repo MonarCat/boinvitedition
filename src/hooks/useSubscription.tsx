@@ -13,7 +13,7 @@ interface SubscriptionData {
   status: 'active' | 'expired' | 'cancelled';
   trial_ends_at: string | null;
   current_period_end: string;
-  stripe_subscription_id?: string;
+  paystack_reference?: string;
   staff_limit?: number;
   bookings_limit?: number;
   created_at: string;
@@ -83,19 +83,18 @@ export const useSubscription = () => {
         if (error) throw error;
         return data;
       } else {
-        // For paid plans, redirect to Stripe checkout
-        const { data, error } = await supabase.functions.invoke('create-checkout', {
+        // For paid plans, redirect to Paystack checkout
+        const { data, error } = await supabase.functions.invoke('create-paystack-checkout', {
           body: { 
             planType,
             businessId,
-            successUrl: `${window.location.origin}/subscription/success`,
-            cancelUrl: `${window.location.origin}/subscription` 
+            customerEmail: user?.email
           }
         });
         
         if (error) throw error;
         
-        // Redirect to Stripe checkout
+        // Redirect to Paystack checkout
         if (data.url) {
           window.location.href = data.url;
         }

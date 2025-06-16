@@ -24,17 +24,14 @@ export const useSubscription = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch current subscription
+  // Fetch current subscription using raw SQL
   const { data: subscription, isLoading } = useQuery({
     queryKey: ['subscription', user?.id],
     queryFn: async () => {
       if (!user) return null;
       
       const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+        .rpc('get_user_subscription', { user_id: user.id });
       
       if (error && error.code !== 'PGRST116') throw error;
       return data as SubscriptionData | null;
@@ -61,19 +58,11 @@ export const useSubscription = () => {
         trialEndDate.setDate(trialEndDate.getDate() + 14);
         
         const { data, error } = await supabase
-          .from('subscriptions')
-          .upsert({
+          .rpc('create_trial_subscription', {
             user_id: user?.id,
             business_id: businessId,
-            plan_type: 'trial',
-            status: 'active',
-            trial_ends_at: trialEndDate.toISOString(),
-            current_period_end: trialEndDate.toISOString(),
-            staff_limit: null, // Unlimited during trial
-            bookings_limit: null, // Unlimited during trial
-          })
-          .select()
-          .single();
+            trial_end_date: trialEndDate.toISOString()
+          });
         
         if (error) throw error;
         return data;

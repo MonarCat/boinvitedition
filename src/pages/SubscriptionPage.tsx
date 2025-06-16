@@ -41,6 +41,14 @@ const SubscriptionPage = () => {
     createSubscription({ planType: planId, businessId: business.id });
   };
 
+  const handleUpgrade = () => {
+    // Scroll to plans section or show modal
+    const plansSection = document.querySelector('[data-plans-section]');
+    if (plansSection) {
+      plansSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -65,13 +73,13 @@ const SubscriptionPage = () => {
           <div className="max-w-2xl mx-auto">
             <SubscriptionStatus
               subscription={subscription}
-              onUpgrade={() => {/* This will open plan selection */}}
+              onUpgrade={handleUpgrade}
               businessId={business?.id || ''}
             />
           </div>
         )}
 
-        <div>
+        <div data-plans-section>
           <h2 className="text-2xl font-semibold text-center mb-8">Available Plans</h2>
           <SubscriptionPlans
             currentPlan={subscription?.plan_type}

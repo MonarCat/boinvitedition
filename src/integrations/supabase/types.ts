@@ -685,6 +685,59 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          bookings_limit: number | null
+          business_id: string | null
+          created_at: string
+          current_period_end: string
+          id: string
+          plan_type: string
+          staff_limit: number | null
+          status: string
+          stripe_subscription_id: string | null
+          trial_ends_at: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          bookings_limit?: number | null
+          business_id?: string | null
+          created_at?: string
+          current_period_end: string
+          id?: string
+          plan_type: string
+          staff_limit?: number | null
+          status?: string
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          bookings_limit?: number | null
+          business_id?: string | null
+          created_at?: string
+          current_period_end?: string
+          id?: string
+          plan_type?: string
+          staff_limit?: number | null
+          status?: string
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null

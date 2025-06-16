@@ -1,80 +1,51 @@
 
-import { useAuth } from '@/hooks/useAuth';
+import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { PaymentSuccess } from '@/components/payment/PaymentSuccess';
-import { LoadingSpinner } from '@/components/subscription/LoadingSpinner';
-import { SubscriptionHeader } from '@/components/subscription/SubscriptionHeader';
-import { MobilePaymentNotice } from '@/components/subscription/MobilePaymentNotice';
-import { ContactSalesSection } from '@/components/subscription/ContactSalesSection';
+import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
+import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useState } from 'react';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
-export default function SubscriptionPage() {
+const SubscriptionPage = () => {
   const { user } = useAuth();
-  const [showSuccess, setShowSuccess] = useState(false);
+  const { subscription, isLoading, createSubscription, isCreatingSubscription } = useSubscription();
 
-  // Mock subscription plans data since the table doesn't exist
-  const subscriptionPlans = [
-    {
-      id: '1',
-      name: 'Free',
-      description: 'Basic features for small businesses',
-      price_monthly: 0,
-      max_bookings: 50,
-      max_services: 3,
-      features: ['Basic booking management', 'Email notifications', 'Customer management'],
-      is_active: true
+  // Get user's business
+  const { data: business } = useQuery({
+    queryKey: ['user-business', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
     },
-    {
-      id: '2', 
-      name: 'Pro',
-      description: 'Advanced features for growing businesses',
-      price_monthly: 29,
-      max_bookings: 500,
-      max_services: 20,
-      features: ['Advanced booking management', 'SMS notifications', 'Analytics', 'Custom branding'],
-      is_active: true
-    },
-    {
-      id: '3',
-      name: 'Enterprise', 
-      description: 'Full features for large businesses',
-      price_monthly: 99,
-      max_bookings: -1,
-      max_services: -1,
-      features: ['Unlimited bookings', 'Priority support', 'Advanced analytics', 'API access'],
-      is_active: true
-    }
-  ];
+    enabled: !!user,
+  });
 
-  // Mock user business data
-  const userBusiness = {
-    id: 'mock-business-id',
-    subscription_plan: 'Free',
-    subscription_status: 'active'
-  };
-
-  const handleUpgrade = (plan: any) => {
-    if (plan.price_monthly === 0) {
-      toast.info('You are already on the free plan');
+  const handleSelectPlan = (planId: string, priceId: string) => {
+    if (!business) {
+      console.error('No business found');
       return;
     }
-    
-    toast.info('Subscription upgrade functionality will be available once payment integration is complete');
+
+    createSubscription({ planType: planId, businessId: business.id });
   };
 
-  const handleContinueAfterSuccess = () => {
-    setShowSuccess(false);
-    toast.success('Subscription activated successfully!');
-  };
-
-  if (showSuccess) {
+  if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="max-w-2xl mx-auto">
-          <PaymentSuccess onContinue={handleContinueAfterSuccess} />
+        <div className="space-y-6">
+          <LoadingSkeleton lines={6} />
         </div>
       </DashboardLayout>
     );
@@ -82,54 +53,75 @@ export default function SubscriptionPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto">
-        <SubscriptionHeader userBusiness={userBusiness} />
-        <MobilePaymentNotice />
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          {subscriptionPlans.map((plan) => (
-            <Card key={plan.id} className={`relative ${plan.name === 'Pro' ? 'border-blue-500 shadow-lg' : ''}`}>
-              {plan.name === 'Pro' && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                    Most Popular
-                  </span>
-                </div>
-              )}
-              <CardHeader>
-                <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                <div className="text-3xl font-bold">
-                  {plan.price_monthly === 0 ? 'Free' : `$${plan.price_monthly}`}
-                  {plan.price_monthly > 0 && <span className="text-sm font-normal text-gray-500">/month</span>}
-                </div>
-                <p className="text-gray-600">{plan.description}</p>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3 mb-6">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-center">
-                      <svg className="h-4 w-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Button 
-                  onClick={() => handleUpgrade(plan)}
-                  className="w-full"
-                  variant={plan.name === userBusiness.subscription_plan ? "outline" : "default"}
-                  disabled={plan.name === userBusiness.subscription_plan}
-                >
-                  {plan.name === userBusiness.subscription_plan ? 'Current Plan' : 'Choose Plan'}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="space-y-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Subscription Plans</h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Choose the perfect plan for your business. Start with a 14-day free trial with full access to all features.
+          </p>
         </div>
-        
-        <ContactSalesSection />
+
+        {subscription && (
+          <div className="max-w-2xl mx-auto">
+            <SubscriptionStatus
+              subscription={subscription}
+              onUpgrade={() => {/* This will open plan selection */}}
+              businessId={business?.id || ''}
+            />
+          </div>
+        )}
+
+        <div>
+          <h2 className="text-2xl font-semibold text-center mb-8">Available Plans</h2>
+          <SubscriptionPlans
+            currentPlan={subscription?.plan_type}
+            onSelectPlan={handleSelectPlan}
+            isLoading={isCreatingSubscription}
+          />
+        </div>
+
+        <Card className="max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle>Plan Comparison</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+              <div>
+                <h4 className="font-semibold mb-2">Free Trial</h4>
+                <ul className="space-y-1 text-gray-600">
+                  <li>• 14 days full access</li>
+                  <li>• All features included</li>
+                  <li>• No limitations</li>
+                  <li>• Perfect for testing</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">Medium Plan</h4>
+                <ul className="space-y-1 text-gray-600">
+                  <li>• Up to 15 staff members</li>
+                  <li>• 3,000 bookings/month</li>
+                  <li>• QR code system</li>
+                  <li>• Basic analytics</li>
+                  <li>• Email support</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">Premium Plan</h4>
+                <ul className="space-y-1 text-gray-600">
+                  <li>• Unlimited staff</li>
+                  <li>• Unlimited bookings</li>
+                  <li>• Advanced analytics</li>
+                  <li>• Priority support</li>
+                  <li>• API access</li>
+                  <li>• Custom integrations</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
-}
+};
+
+export default SubscriptionPage;

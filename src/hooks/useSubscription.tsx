@@ -11,7 +11,7 @@ interface SubscriptionData {
   business_id: string;
   plan_type: 'trial' | 'medium' | 'premium';
   status: 'active' | 'expired' | 'cancelled';
-  trial_ends_at: string;
+  trial_ends_at: string | null;
   current_period_end: string;
   stripe_subscription_id?: string;
   staff_limit?: number;
@@ -24,16 +24,23 @@ export const useSubscription = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch current subscription using raw SQL
+  // Fetch current subscription using direct table query
   const { data: subscription, isLoading } = useQuery({
     queryKey: ['subscription', user?.id],
     queryFn: async () => {
       if (!user) return null;
       
       const { data, error } = await supabase
-        .rpc('get_user_subscription', { user_id: user.id });
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
       
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) {
+        console.error('Error fetching subscription:', error);
+        return null;
+      }
+      
       return data as SubscriptionData | null;
     },
     enabled: !!user,
@@ -42,6 +49,7 @@ export const useSubscription = () => {
   // Check if trial has expired
   const isTrialExpired = subscription && 
     subscription.plan_type === 'trial' && 
+    subscription.trial_ends_at &&
     new Date(subscription.trial_ends_at) < new Date();
 
   // Check if subscription is active
@@ -53,16 +61,24 @@ export const useSubscription = () => {
   const createSubscriptionMutation = useMutation({
     mutationFn: async ({ planType, businessId }: { planType: string; businessId: string }) => {
       if (planType === 'trial') {
-        // Create trial subscription
+        // Create trial subscription directly
         const trialEndDate = new Date();
         trialEndDate.setDate(trialEndDate.getDate() + 14);
         
         const { data, error } = await supabase
-          .rpc('create_trial_subscription', {
+          .from('subscriptions')
+          .insert({
             user_id: user?.id,
             business_id: businessId,
-            trial_end_date: trialEndDate.toISOString()
-          });
+            plan_type: 'trial',
+            status: 'active',
+            trial_ends_at: trialEndDate.toISOString(),
+            current_period_end: trialEndDate.toISOString(),
+            staff_limit: null, // Unlimited during trial
+            bookings_limit: null // Unlimited during trial
+          })
+          .select()
+          .single();
         
         if (error) throw error;
         return data;

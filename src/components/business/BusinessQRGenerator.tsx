@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { QrCode, Download, Share2 } from 'lucide-react';
+import { QrCode, Download, Share2, RefreshCw, TestTube } from 'lucide-react';
 import QRCodeLib from 'qrcode';
 import { toast } from 'sonner';
 
@@ -17,24 +17,37 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
 }) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
 
-  // Use production domain
+  // Use the correct production URL structure for booking
   const bookingUrl = `https://boinvit.com/book/${businessId}`;
+  
+  // Fallback to services page if direct booking fails
+  const servicesUrl = `https://boinvit.com/services`;
 
-  const generateQRCode = async () => {
+  const generateQRCode = async (useServicesUrl = false) => {
     setIsGenerating(true);
     try {
-      const dataUrl = await QRCodeLib.toDataURL(bookingUrl, {
-        width: 300,
-        margin: 2,
+      const targetUrl = useServicesUrl ? servicesUrl : bookingUrl;
+      
+      // Generate QR with high error correction and optimal size
+      const dataUrl = await QRCodeLib.toDataURL(targetUrl, {
+        width: 500, // Increased from 300 for better scanning
+        margin: 3,  // Increased margin for better scanning
         color: {
           dark: '#000000',
           light: '#FFFFFF'
         },
-        errorCorrectionLevel: 'M'
+        errorCorrectionLevel: 'H' // High error correction (30% recovery)
       });
+      
       setQrDataUrl(dataUrl);
-      toast.success('QR code generated successfully!');
+      toast.success(`QR code generated successfully! URL: ${targetUrl}`);
+      
+      if (debugMode) {
+        console.log('QR Code generated for URL:', targetUrl);
+        console.log('QR Code data URL length:', dataUrl.length);
+      }
     } catch (error) {
       console.error('Error generating QR code:', error);
       toast.error('Failed to generate QR code');
@@ -43,16 +56,22 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
     }
   };
 
+  const testQRCodeURL = () => {
+    // Open the URL in a new tab for testing
+    window.open(bookingUrl, '_blank');
+    toast.info('Testing QR code URL in new tab');
+  };
+
   const downloadQRCode = () => {
     if (!qrDataUrl) return;
     
     const link = document.createElement('a');
-    link.download = `${businessName.replace(/\s+/g, '_')}_booking_qr.png`;
+    link.download = `${businessName.replace(/\s+/g, '_')}_booking_qr_500px.png`;
     link.href = qrDataUrl;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('QR code downloaded!');
+    toast.success('High-resolution QR code downloaded!');
   };
 
   const shareQRCode = async () => {
@@ -60,7 +79,7 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
       try {
         const response = await fetch(qrDataUrl);
         const blob = await response.blob();
-        const file = new File([blob], `${businessName}_qr.png`, { type: 'image/png' });
+        const file = new File([blob], `${businessName}_booking_qr.png`, { type: 'image/png' });
         
         await navigator.share({
           title: `Book with ${businessName}`,
@@ -90,11 +109,18 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <QrCode className="w-5 h-5" />
-          Business QR Code
+          Business QR Code - High Resolution
         </CardTitle>
         <p className="text-sm text-gray-600">
-          Generate a QR code for clients to book appointments directly
+          Generate a high-quality QR code for clients to book appointments directly
         </p>
+        {debugMode && (
+          <div className="bg-yellow-50 p-2 rounded border text-xs">
+            <strong>Debug Info:</strong><br />
+            Target URL: {bookingUrl}<br />
+            Fallback URL: {servicesUrl}
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-center">
@@ -103,10 +129,12 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
               <img 
                 src={qrDataUrl} 
                 alt="Business QR Code" 
-                className="mx-auto border rounded-lg shadow-sm"
+                className="mx-auto border rounded-lg shadow-sm max-w-full h-auto"
+                style={{ maxWidth: '300px' }}
               />
-              <div className="text-xs text-gray-500 break-all">
-                {bookingUrl}
+              <div className="text-xs text-gray-500 break-all bg-gray-50 p-2 rounded">
+                Primary: {bookingUrl}<br />
+                Fallback: {servicesUrl}
               </div>
             </div>
           ) : (
@@ -119,14 +147,37 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button 
-            onClick={generateQRCode} 
+            onClick={() => generateQRCode(false)} 
             disabled={isGenerating}
             variant="outline"
+            className="flex-1 min-w-0"
+          >
+            <RefreshCw className="w-4 h-4 mr-1" />
+            {isGenerating ? 'Generating...' : 'Regenerate'}
+          </Button>
+          
+          <Button 
+            onClick={() => generateQRCode(true)} 
+            disabled={isGenerating}
+            variant="outline"
+            className="flex-1 min-w-0"
+            title="Generate QR for services page (fallback)"
+          >
+            Services QR
+          </Button>
+        </div>
+
+        <div className="flex gap-2">
+          <Button 
+            onClick={testQRCodeURL} 
+            variant="outline"
+            size="sm"
             className="flex-1"
           >
-            {isGenerating ? 'Generating...' : 'Regenerate'}
+            <TestTube className="w-4 h-4 mr-1" />
+            Test URL
           </Button>
           
           <Button 
@@ -146,11 +197,30 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
           >
             <Share2 className="w-4 h-4" />
           </Button>
+
+          <Button 
+            onClick={() => setDebugMode(!debugMode)} 
+            variant="ghost"
+            size="sm"
+          >
+            Debug
+          </Button>
         </div>
 
-        <div className="text-xs text-gray-500 text-center">
-          <p>Print and display this QR code at your business location</p>
-          <p>Clients can scan to book appointments instantly</p>
+        <div className="text-xs text-gray-500 text-center space-y-1">
+          <p><strong>📱 Print Instructions:</strong></p>
+          <p>• Use high-resolution download (500x500px)</p>
+          <p>• Print size: minimum 2x2 inches for reliable scanning</p>
+          <p>• Test with multiple devices before displaying</p>
+          <p>• Place at eye level with good lighting</p>
+        </div>
+
+        <div className="bg-blue-50 p-3 rounded text-xs">
+          <p><strong>🔧 Troubleshooting Tips:</strong></p>
+          <p>1. Test the "Test URL" button first</p>
+          <p>2. Use "Services QR" if direct booking fails</p>
+          <p>3. Enable "Debug" mode for detailed info</p>
+          <p>4. Ensure your booking page is mobile-responsive</p>
         </div>
       </CardContent>
     </Card>

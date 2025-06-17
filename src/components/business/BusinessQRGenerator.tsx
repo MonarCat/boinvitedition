@@ -1,139 +1,158 @@
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import QRCode from 'qrcode';
-import { Printer } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { QrCode, Download, Share2 } from 'lucide-react';
+import QRCodeLib from 'qrcode';
 import { toast } from 'sonner';
 
 interface BusinessQRGeneratorProps {
   businessId: string;
+  businessName: string;
 }
 
-export const BusinessQRGenerator = ({ businessId }: BusinessQRGeneratorProps) => {
-  const [qrUrl, setQrUrl] = useState<string | null>(null);
-  const [businessName, setBusinessName] = useState<string>('Our Business');
-  const printRef = useRef<HTMLDivElement>(null);
+export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
+  businessId,
+  businessName
+}) => {
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  // Generate production-ready URL
-  const bookingUrl = `https://boinvit.com/public-booking/${businessId}`;
+  // Use production domain
+  const bookingUrl = `https://boinvit.com/book/${businessId}`;
 
-  // Fetch business name and verify it exists
-  useEffect(() => {
-    const fetchBusinessName = async () => {
+  const generateQRCode = async () => {
+    setIsGenerating(true);
+    try {
+      const dataUrl = await QRCodeLib.toDataURL(bookingUrl, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        },
+        errorCorrectionLevel: 'M'
+      });
+      setQrDataUrl(dataUrl);
+      toast.success('QR code generated successfully!');
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      toast.error('Failed to generate QR code');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const downloadQRCode = () => {
+    if (!qrDataUrl) return;
+    
+    const link = document.createElement('a');
+    link.download = `${businessName.replace(/\s+/g, '_')}_booking_qr.png`;
+    link.href = qrDataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('QR code downloaded!');
+  };
+
+  const shareQRCode = async () => {
+    if (navigator.share && qrDataUrl) {
       try {
-        const { data, error } = await supabase
-          .from('businesses')
-          .select('name, is_active')
-          .eq('id', businessId)
-          .single();
+        const response = await fetch(qrDataUrl);
+        const blob = await response.blob();
+        const file = new File([blob], `${businessName}_qr.png`, { type: 'image/png' });
         
-        if (error || !data) {
-          toast.error('Business not found or inactive');
-          return;
-        }
-        
-        if (!data.is_active) {
-          toast.error('Business is inactive');
-          return;
-        }
-        
-        if (data?.name) setBusinessName(data.name);
+        await navigator.share({
+          title: `Book with ${businessName}`,
+          text: `Scan this QR code to book an appointment with ${businessName}`,
+          files: [file],
+          url: bookingUrl
+        });
       } catch (error) {
-        console.error('Error fetching business:', error);
-        toast.error('Failed to load business information');
+        console.error('Error sharing QR code:', error);
+        // Fallback to copying URL
+        navigator.clipboard.writeText(bookingUrl);
+        toast.success('Booking URL copied to clipboard!');
       }
-    };
-    fetchBusinessName();
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      navigator.clipboard.writeText(bookingUrl);
+      toast.success('Booking URL copied to clipboard!');
+    }
+  };
+
+  useEffect(() => {
+    generateQRCode();
   }, [businessId]);
 
-  // Generate QR code
-  useEffect(() => {
-    QRCode.toDataURL(bookingUrl, { 
-      width: 256, 
-      margin: 2,
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      }
-    }, (err, url) => {
-      if (!err && url) setQrUrl(url);
-    });
-  }, [bookingUrl]);
-
-  // Print handler
-  const handlePrint = useCallback(() => {
-    if (!printRef.current) return;
-    const content = printRef.current.innerHTML;
-    const w = window.open('', '', 'width=400,height=600');
-    if (w) {
-      w.document.write(`
-        <html>
-          <head>
-            <title>Print QR Code</title>
-            <style>
-              body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #fafafa; }
-              .qr-print-container { 
-                display: flex; flex-direction: column; align-items: center; justify-content: center; 
-                min-height: 100vh; padding: 24px;
-              }
-              .qr-title { font-size: 1.25rem; font-weight: bold; margin-bottom: 12px; color: #1a202c; }
-              .qr-business { font-size: 1.1rem; margin-bottom: 12px; color: #566174; }
-              .qr-code-img { margin: 24px 0; }
-              .qr-instruction { font-size: 1rem; color: #374151; margin-top: 16px; }
-              @media print { body { zoom: 1.12; } }
-            </style>
-          </head>
-          <body>
-            <div class="qr-print-container">
-              ${content}
-            </div>
-          </body>
-        </html>
-      `);
-      w.document.close();
-      w.focus();
-      setTimeout(() => {
-        w.print();
-        w.close();
-      }, 100);
-    }
-  }, []);
-
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div ref={printRef}>
-        <div className="qr-title text-xl font-bold text-gray-900 mb-1 text-center">
-          Walk-In & Direct Booking
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <QrCode className="w-5 h-5" />
+          Business QR Code
+        </CardTitle>
+        <p className="text-sm text-gray-600">
+          Generate a QR code for clients to book appointments directly
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="text-center">
+          {qrDataUrl ? (
+            <div className="space-y-4">
+              <img 
+                src={qrDataUrl} 
+                alt="Business QR Code" 
+                className="mx-auto border rounded-lg shadow-sm"
+              />
+              <div className="text-xs text-gray-500 break-all">
+                {bookingUrl}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg">
+              <div className="text-center">
+                <QrCode className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500">QR Code will appear here</p>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="qr-business text-base font-medium text-blue-600 mb-2 text-center truncate max-w-xs">
-          {businessName}
+
+        <div className="flex gap-2">
+          <Button 
+            onClick={generateQRCode} 
+            disabled={isGenerating}
+            variant="outline"
+            className="flex-1"
+          >
+            {isGenerating ? 'Generating...' : 'Regenerate'}
+          </Button>
+          
+          <Button 
+            onClick={downloadQRCode} 
+            disabled={!qrDataUrl}
+            variant="outline"
+            size="icon"
+          >
+            <Download className="w-4 h-4" />
+          </Button>
+          
+          <Button 
+            onClick={shareQRCode} 
+            disabled={!qrDataUrl}
+            variant="outline"
+            size="icon"
+          >
+            <Share2 className="w-4 h-4" />
+          </Button>
         </div>
-        {qrUrl && (
-          <img
-            src={qrUrl}
-            alt={`QR code for ${bookingUrl}`}
-            className="qr-code-img mx-auto rounded-lg border border-gray-300 shadow-lg bg-white p-2"
-            style={{ width: 224, height: 224 }}
-            width={224}
-            height={224}
-          />
-        )}
-        <div className="qr-instruction text-center text-gray-700 mt-3">
-          <span className="block font-medium">Scan this QR code to book directly on our services page.</span>
-          <span className="block text-xs text-gray-400 mt-1">{bookingUrl}</span>
+
+        <div className="text-xs text-gray-500 text-center">
+          <p>Print and display this QR code at your business location</p>
+          <p>Clients can scan to book appointments instantly</p>
         </div>
-      </div>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handlePrint}
-        className="mt-4 flex items-center gap-2"
-        aria-label="Print QR Code Poster"
-      >
-        <Printer className="w-4 h-4 mr-1" />
-        Print QR Code for Display
-      </Button>
-    </div>
+      </CardContent>
+    </Card>
   );
 };

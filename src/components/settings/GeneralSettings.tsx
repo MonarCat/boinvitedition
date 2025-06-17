@@ -6,7 +6,7 @@ import { useGeneralSettings } from '@/hooks/useGeneralSettings';
 import { usePaymentMethods } from '@/hooks/usePaymentMethods';
 
 export const GeneralSettings = () => {
-  const { business } = useGeneralSettings();
+  const { business, isLoading: settingsLoading } = useGeneralSettings();
   const {
     paymentMethods,
     addPaymentMethod,
@@ -25,13 +25,15 @@ export const GeneralSettings = () => {
 
   return (
     <div className="space-y-6">
-      <GeneralSettingsContainer />
+      <GeneralSettingsContainer isLoading={settingsLoading}>
+        <div className="text-lg font-semibold">General Settings</div>
+      </GeneralSettingsContainer>
       
       {!paymentMethodsLoading && (
         <PaymentDetailsSection
           paymentMethods={paymentMethods}
           onAddPayment={addPaymentMethod}
-          onUpdatePayment={updatePaymentMethod}
+          onUpdatePayment={(id: string, updates: any) => updatePaymentMethod({ id, updates })}
           onRemovePayment={removePaymentMethod}
         />
       )}

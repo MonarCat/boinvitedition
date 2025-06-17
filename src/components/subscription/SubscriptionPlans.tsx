@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star } from 'lucide-react';
+import { Check, Star, Smartphone } from 'lucide-react';
 
 interface SubscriptionPlan {
   id: string;
@@ -23,23 +23,40 @@ const plans: SubscriptionPlan[] = [
     price: 0,
     priceId: '',
     features: [
-      '14-day full feature access',
-      'All features included',
+      '14-day Medium Plan trial',
+      'All Medium Plan features',
       'No credit card required',
       'Email support'
     ],
     popular: true
   },
   {
+    id: 'freemium',
+    name: 'Freemium',
+    price: 0,
+    priceId: '',
+    features: [
+      'Up to 3 staff members',
+      'Up to 100 bookings/month',
+      'Basic calendar',
+      'Limited analytics',
+      'Community support'
+    ],
+    staffLimit: 3,
+    bookingsLimit: 100
+  },
+  {
     id: 'medium',
-    name: 'Medium',
+    name: 'Medium Plan',
     price: 29,
-    priceId: 'price_medium', // Replace with actual Stripe price ID
+    priceId: 'price_medium',
     features: [
       'Up to 15 staff members',
       'Up to 3,000 bookings/month',
       'QR code system',
-      'Basic analytics',
+      'Advanced analytics',
+      'SMS & WhatsApp notifications',
+      'Payment gateway integration',
       'Email support'
     ],
     staffLimit: 15,
@@ -47,16 +64,18 @@ const plans: SubscriptionPlan[] = [
   },
   {
     id: 'premium',
-    name: 'Premium',
+    name: 'Premium Plan',
     price: 99,
-    priceId: 'price_premium', // Replace with actual Stripe price ID
+    priceId: 'price_premium',
     features: [
       'Unlimited staff members',
       'Unlimited bookings',
-      'Advanced analytics',
+      'Multi-location support',
+      'Advanced reporting & analytics',
       'Priority support',
       'Custom integrations',
-      'API access'
+      'API access',
+      'White-label options'
     ]
   }
 ];
@@ -73,11 +92,11 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   isLoading = false
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
       {plans.map((plan) => (
-        <Card key={plan.id} className={`relative ${plan.popular ? 'border-blue-500 shadow-lg' : ''}`}>
+        <Card key={plan.id} className={`relative ${plan.popular ? 'border-royal-red shadow-lg' : ''}`}>
           {plan.popular && (
-            <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-blue-500">
+            <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-royal-red">
               <Star className="w-3 h-3 mr-1" />
               Most Popular
             </Badge>
@@ -113,7 +132,11 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               disabled={isLoading || currentPlan === plan.id}
             >
               {currentPlan === plan.id ? 'Current Plan' : 
-               plan.price === 0 ? 'Start Free Trial' : 'Select Plan'}
+               plan.price === 0 ? (plan.id === 'trial' ? 'Start Free Trial' : 'Get Started') : 
+               <span className="flex items-center gap-2">
+                 <Smartphone className="h-4 w-4" />
+                 Pay with Paystack
+               </span>}
             </Button>
           </CardContent>
         </Card>

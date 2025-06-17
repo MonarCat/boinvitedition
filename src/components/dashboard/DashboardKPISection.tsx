@@ -82,7 +82,7 @@ export const DashboardKPISection = ({
                 )}
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
-                {business?.description || 'Business dashboard overview'}
+                Complete business management platform - bookings, invoicing, staff management & more
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -135,19 +135,19 @@ export const DashboardKPISection = ({
       </div>
 
       {/* Subscription Notice */}
-      <Card className="border-amber-200 bg-amber-50">
+      <Card className="border-royal-red bg-gradient-to-r from-royal-red/5 to-royal-red/10">
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-amber-800">Upgrade Your Plan</h3>
-              <p className="text-sm text-amber-700 mt-1">
-                Medium Plan: KES 29/month • Premium Plan: KES 99/month
+              <h3 className="font-semibold text-royal-red">Upgrade Your Business Management</h3>
+              <p className="text-sm text-gray-700 mt-1">
+                <strong>Medium Plan: $29/month</strong> • <strong>Premium Plan: $99/month</strong>
               </p>
-              <p className="text-xs text-amber-600 mt-1">
-                Unlock unlimited staff, advanced analytics, and priority support
+              <p className="text-xs text-gray-600 mt-1">
+                Complete business management: bookings, invoicing, staff management, analytics, payments & more
               </p>
             </div>
-            <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
+            <Button size="sm" className="bg-royal-red hover:bg-royal-red/90 text-white">
               Upgrade Now
             </Button>
           </div>

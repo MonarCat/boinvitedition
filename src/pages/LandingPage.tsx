@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +15,11 @@ import {
   Phone,
   Mail,
   Shield,
-  Globe
+  Globe,
+  BarChart3,
+  CreditCard,
+  UserCheck,
+  Building2
 } from 'lucide-react';
 import { GlobalPartnersSlider } from '@/components/landing/GlobalPartnersSlider';
 
@@ -25,32 +30,42 @@ const LandingPage = () => {
     {
       icon: Calendar,
       title: "Smart Booking System",
-      description: "Advanced scheduling with automated reminders and capacity management"
+      description: "Advanced scheduling with automated reminders, capacity management, and real-time availability"
     },
     {
       icon: Users,
-      title: "Client Management",
-      description: "Comprehensive customer profiles with booking history and preferences"
+      title: "Client & Staff Management",
+      description: "Comprehensive profiles, attendance tracking, performance analytics, and team coordination"
     },
     {
       icon: Receipt,
-      title: "Invoice & Payments",
-      description: "Professional invoicing with integrated international payment processing"
+      title: "Invoice & Payment Processing",
+      description: "Professional invoicing with integrated Paystack payments and multiple payment options"
     },
     {
-      icon: Star,
-      title: "Reviews & Ratings",
-      description: "Build trust with customer feedback and testimonials"
+      icon: BarChart3,
+      title: "Business Analytics & Reporting",
+      description: "Real-time insights, revenue tracking, performance metrics, and growth analytics"
     },
     {
-      icon: Globe,
-      title: "Global Reach",
-      description: "Support for multiple currencies and international businesses"
+      icon: CreditCard,
+      title: "Payment Gateway Integration",
+      description: "Secure payment processing with mobile money, bank transfers, and card payments"
+    },
+    {
+      icon: UserCheck,
+      title: "Staff Performance & Attendance",
+      description: "Track staff productivity, manage schedules, and monitor business operations"
+    },
+    {
+      icon: Building2,
+      title: "Multi-Location Support",
+      description: "Manage multiple business locations from a single dashboard with centralized control"
     },
     {
       icon: Shield,
-      title: "Secure & Reliable",
-      description: "Enterprise-grade security with 99.9% uptime guarantee"
+      title: "Enterprise Security",
+      description: "Bank-grade security with 99.9% uptime guarantee and data protection"
     }
   ];
 
@@ -58,66 +73,67 @@ const LandingPage = () => {
     {
       name: "Sarah Johnson",
       business: "Elegant Beauty Spa",
-      location: "New York, USA",
-      text: "Boinvit transformed how we manage bookings. Our efficiency increased by 60%!",
+      location: "Nairobi, Kenya",
+      text: "Boinvit transformed our entire business operations. Revenue increased by 60% with better management!",
       rating: 5
     },
     {
-      name: "James Smith",
+      name: "James Mwangi",
       business: "FitLife Gym",
-      location: "London, UK",
-      text: "The automated reminders reduced no-shows significantly. Highly recommended!",
+      location: "Mombasa, Kenya",
+      text: "Complete business solution! From bookings to payments, everything is streamlined and professional.",
       rating: 5
     },
     {
-      name: "Maria Rodriguez",
-      business: "HealthCare Plus",
-      location: "Toronto, Canada",
-      text: "Professional invoicing made our billing process seamless and transparent.",
+      name: "Maria Wanjiku",
+      business: "HealthCare Plus Clinic",
+      location: "Kisumu, Kenya",
+      text: "The staff management and analytics features helped us optimize our operations significantly.",
       rating: 5
     }
   ];
 
   const pricingPlans = [
     {
-      name: "Starter",
-      price: "$25",
-      period: "/month",
+      name: "Free Trial",
+      price: "$0",
+      period: "/14 days",
       features: [
-        "Up to 100 bookings/month",
-        "Basic calendar management",
-        "Client database",
-        "Email notifications",
-        "Mobile app access"
-      ],
-      popular: false
-    },
-    {
-      name: "Professional",
-      price: "$50",
-      period: "/month",
-      features: [
-        "Unlimited bookings",
-        "Advanced scheduling",
-        "Invoice generation",
-        "SMS & WhatsApp alerts",
-        "Reviews & ratings",
-        "Staff management",
-        "Analytics dashboard"
+        "Full Medium Plan access",
+        "All premium features",
+        "No credit card required",
+        "Email support",
+        "Complete business management"
       ],
       popular: true
     },
     {
-      name: "Enterprise",
-      price: "Custom",
-      period: "",
+      name: "Medium Plan",
+      price: "$29",
+      period: "/month",
       features: [
-        "Everything in Professional",
-        "Multiple locations",
+        "Up to 15 staff members",
+        "3,000 bookings/month",
+        "Payment gateway integration",
+        "Advanced analytics",
+        "SMS & WhatsApp notifications",
+        "Invoice generation",
+        "Staff management"
+      ],
+      popular: false
+    },
+    {
+      name: "Premium Plan",
+      price: "$99",
+      period: "/month",
+      features: [
+        "Unlimited staff & bookings",
+        "Multi-location support",
         "Advanced reporting",
         "API access",
         "Priority support",
-        "Custom integrations"
+        "Custom integrations",
+        "White-label options"
       ],
       popular: false
     }
@@ -125,6 +141,8 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* SEO Meta Tags are in index.html */}
+      
       {/* Navigation */}
       <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -181,15 +199,15 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Badge className="mb-4 bg-royal-red/10 text-royal-red">
-              🚀 Global Business Management Platform
+              🚀 Complete Business Management Platform
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Streamline Your Business with 
+              Complete Business Management with 
               <span className="text-royal-red"> Boinvit</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Complete booking and invoice management solution for businesses worldwide. 
-              Manage salons, gyms, clinics, transport services, and hospitality businesses globally.
+              All-in-one business management platform: bookings, invoicing, payments, staff management, 
+              analytics, and client relationship management. Everything you need to grow your business.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -221,15 +239,15 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Everything You Need to Manage Your Business
+              Complete Business Management Suite
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              From appointment scheduling to international payment processing, 
-              we've got all your business needs covered worldwide.
+              From appointment scheduling to financial management, staff coordination to customer insights - 
+              we provide everything your business needs to thrive and scale.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
@@ -250,10 +268,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Trusted by Businesses Worldwide
+              Trusted by Businesses Across Kenya & Beyond
             </h2>
             <p className="text-lg text-gray-600">
-              See what our customers have to say about their experience with Boinvit
+              See how Boinvit is transforming businesses and driving growth
             </p>
           </div>
 
@@ -286,7 +304,7 @@ const LandingPage = () => {
               Simple, Transparent Pricing
             </h2>
             <p className="text-lg text-gray-600">
-              Choose the plan that fits your business needs
+              Choose the plan that fits your business needs - start with a free trial
             </p>
           </div>
 
@@ -332,10 +350,10 @@ const LandingPage = () => {
       <section className="py-20 bg-royal-red">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to Transform Your Business?
+            Ready to Transform Your Business Operations?
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join thousands of businesses already using Boinvit to streamline their operations
+            Join thousands of businesses already using Boinvit's complete management platform
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -371,7 +389,7 @@ const LandingPage = () => {
                 <span className="text-xl font-bold">Boinvit</span>
               </div>
               <p className="text-gray-400">
-                Global business management platform for modern entrepreneurs worldwide.
+                Complete business management platform for modern entrepreneurs worldwide.
               </p>
             </div>
             

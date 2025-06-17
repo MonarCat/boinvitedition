@@ -27,7 +27,10 @@ export const usePaymentMethods = (businessId: string) => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      return (data || []).map(item => ({
+        ...item,
+        type: item.type as 'bank' | 'mobile' | 'card' | 'cash'
+      }));
     },
     enabled: !!businessId,
   });

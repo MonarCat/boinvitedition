@@ -91,7 +91,7 @@ const ServicesPage = () => {
           {!business && isLoadingBusiness ? (
             <div className="text-gray-400">Loading QR code...</div>
           ) : business ? (
-            <QRCodeGenerator businessId={business.id} />
+            <QRCodeGenerator businessId={business.id} businessName={business.name} />
           ) : (
             <div className="text-red-500">Unable to load business QR code</div>
           )}

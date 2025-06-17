@@ -48,6 +48,9 @@ export const useBusinessSettings = () => {
         address: formData.get('address') as string,
         website: formData.get('website') as string,
         description: formData.get('description') as string,
+        city: formData.get('city') as string,
+        country: formData.get('country') as string,
+        logo_url: formData.get('logo_url') as string || null,
       };
 
       const { error } = await supabase
@@ -67,10 +70,7 @@ export const useBusinessSettings = () => {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    
+  const handleSubmit = (formData: FormData) => {
     const newErrors = validateBusinessForm(formData);
     setErrors(newErrors);
     

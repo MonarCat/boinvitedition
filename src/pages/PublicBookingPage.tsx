@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { PublicBookingCalendar } from '@/components/booking/PublicBookingCalendar';
 import { BusinessHeader } from '@/components/booking/BusinessHeader';
 import { ServicesList } from '@/components/booking/ServicesList';

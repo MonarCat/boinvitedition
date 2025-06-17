@@ -2,11 +2,11 @@
 import React from 'react';
 import { BusinessQRGenerator } from '@/components/business/BusinessQRGenerator';
 
-// Fix: QRCodeGenerator must require a businessId prop and pass it along.
 type QRCodeGeneratorProps = {
   businessId: string;
+  businessName: string;
 };
 
-export const QRCodeGenerator = ({ businessId }: QRCodeGeneratorProps) => {
-  return <BusinessQRGenerator businessId={businessId} />;
+export const QRCodeGenerator = ({ businessId, businessName }: QRCodeGeneratorProps) => {
+  return <BusinessQRGenerator businessId={businessId} businessName={businessName} />;
 };

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -38,7 +39,8 @@ const App = () => {
                 {/* Business Discovery Map */}
                 <Route path="/discover" element={<BusinessDiscoveryPage />} />
                 
-                {/* Public booking - primary global route for QR codes */}
+                {/* QR Code booking routes - BOTH variations */}
+                <Route path="/book/:businessId" element={<PublicBookingPage />} />
                 <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
                 
                 {/* Authenticated app routes */}

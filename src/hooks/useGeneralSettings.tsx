@@ -56,8 +56,11 @@ export const useGeneralSettings = () => {
         currency: formData.get('currency') as string,
         booking_slot_duration_minutes: parseInt(formData.get('slot_duration') as string),
         max_bookings_per_slot: parseInt(formData.get('max_bookings') as string),
+        booking_advance_days: parseInt(formData.get('booking_advance_days') as string) || 30,
         auto_confirm_bookings: formData.get('auto_confirm') === 'on',
         require_payment: formData.get('require_payment') === 'on',
+        send_reminders: formData.get('send_reminders') === 'on',
+        reminder_hours_before: parseInt(formData.get('reminder_hours') as string) || 24,
       };
 
       if (settings) {

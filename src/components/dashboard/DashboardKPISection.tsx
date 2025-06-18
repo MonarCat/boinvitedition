@@ -10,8 +10,10 @@ import {
   TrendingUp, 
   RefreshCw, 
   Settings,
-  Crown
+  Crown,
+  Upgrade
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardKPISectionProps {
   business: any;
@@ -35,6 +37,8 @@ export const DashboardKPISection = ({
   onRefresh, 
   onEditBusiness 
 }: DashboardKPISectionProps) => {
+  const navigate = useNavigate();
+
   const kpis = [
     {
       title: "Today's Bookings",
@@ -65,6 +69,10 @@ export const DashboardKPISection = ({
       bgColor: "bg-orange-50"
     }
   ];
+
+  const handleUpgradeClick = () => {
+    navigate('/app/subscription');
+  };
 
   return (
     <div className="space-y-6">
@@ -147,7 +155,12 @@ export const DashboardKPISection = ({
                 Complete business management: bookings, invoicing, staff management, analytics, payments & more
               </p>
             </div>
-            <Button size="sm" className="bg-royal-red hover:bg-royal-red/90 text-white">
+            <Button 
+              onClick={handleUpgradeClick}
+              size="sm" 
+              className="bg-royal-red hover:bg-royal-red/90 text-white"
+            >
+              <Upgrade className="w-4 h-4 mr-1" />
               Upgrade Now
             </Button>
           </div>

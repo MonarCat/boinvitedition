@@ -1,12 +1,21 @@
 
 import React from 'react';
 import { GeneralSettingsContainer } from './general/GeneralSettingsContainer';
-import { PaymentDetailsSection } from './general/PaymentDetailsSection';
+import { EnhancedPaymentMethodsSection } from './general/EnhancedPaymentMethodsSection';
+import { GeneralSettingsForm } from './general/GeneralSettingsForm';
 import { useGeneralSettings } from '@/hooks/useGeneralSettings';
 import { usePaymentMethods } from '@/hooks/usePaymentMethods';
 
 export const GeneralSettings = () => {
-  const { business, isLoading: settingsLoading } = useGeneralSettings();
+  const { 
+    business, 
+    settings, 
+    isLoading: settingsLoading, 
+    errors, 
+    isUpdating, 
+    handleSubmit 
+  } = useGeneralSettings();
+  
   const {
     paymentMethods,
     addPaymentMethod,
@@ -24,13 +33,18 @@ export const GeneralSettings = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <GeneralSettingsContainer isLoading={settingsLoading}>
-        <div className="text-lg font-semibold">General Settings</div>
+        <GeneralSettingsForm
+          settings={settings}
+          errors={errors}
+          isLoading={isUpdating}
+          onSubmit={handleSubmit}
+        />
       </GeneralSettingsContainer>
       
       {!paymentMethodsLoading && (
-        <PaymentDetailsSection
+        <EnhancedPaymentMethodsSection
           paymentMethods={paymentMethods}
           onAddPayment={addPaymentMethod}
           onUpdatePayment={(id: string, updates: any) => updatePaymentMethod({ id, updates })}

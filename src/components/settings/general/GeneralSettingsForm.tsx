@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormError } from '@/components/ui/form-error';
 
 interface GeneralSettingsFormProps {
@@ -38,18 +38,20 @@ export const GeneralSettingsForm: React.FC<GeneralSettingsFormProps> = ({
     { value: 'EUR', label: 'EUR - Euro' },
     { value: 'GBP', label: 'GBP - British Pound' },
     { value: 'KES', label: 'KES - Kenyan Shilling' },
+    { value: 'NGN', label: 'NGN - Nigerian Naira' },
     { value: 'CAD', label: 'CAD - Canadian Dollar' },
     { value: 'AUD', label: 'AUD - Australian Dollar' },
   ];
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4">Regional Settings</h3>
-            
-            <div className="space-y-4">
+    <div className="space-y-6">
+      <form onSubmit={onSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-medium">Regional Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="timezone">Timezone</Label>
                 <Select name="timezone" defaultValue={settings?.timezone || 'UTC'}>
@@ -81,15 +83,14 @@ export const GeneralSettingsForm: React.FC<GeneralSettingsFormProps> = ({
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4">Booking Settings</h3>
-            
-            <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-medium">Booking Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="slot_duration">Slot Duration (minutes)</Label>
                 <Input
@@ -118,16 +119,29 @@ export const GeneralSettingsForm: React.FC<GeneralSettingsFormProps> = ({
                   <FormError message={errors.max_bookings} />
                 )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
-      <Card>
-        <CardContent className="p-6">
-          <h3 className="text-lg font-medium mb-4">Booking Options</h3>
-          
-          <div className="space-y-4">
+              <div>
+                <Label htmlFor="booking_advance_days">Booking Advance Limit (days)</Label>
+                <Input
+                  id="booking_advance_days"
+                  name="booking_advance_days"
+                  type="number"
+                  min="1"
+                  defaultValue={settings?.booking_advance_days || 30}
+                />
+                {errors.booking_advance_days && (
+                  <FormError message={errors.booking_advance_days} />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-medium">Booking Options</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <Label htmlFor="auto_confirm">Auto-confirm bookings</Label>
@@ -151,15 +165,41 @@ export const GeneralSettingsForm: React.FC<GeneralSettingsFormProps> = ({
                 defaultChecked={settings?.require_payment ?? false}
               />
             </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : 'Save Settings'}
-        </Button>
-      </div>
-    </form>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="send_reminders">Send booking reminders</Label>
+                <p className="text-sm text-gray-600">Send automated reminders to clients</p>
+              </div>
+              <Switch
+                id="send_reminders"
+                name="send_reminders"
+                defaultChecked={settings?.send_reminders ?? true}
+              />
+            </div>
+
+            {settings?.send_reminders && (
+              <div>
+                <Label htmlFor="reminder_hours">Reminder time (hours before)</Label>
+                <Input
+                  id="reminder_hours"
+                  name="reminder_hours"
+                  type="number"
+                  min="1"
+                  max="168"
+                  defaultValue={settings?.reminder_hours_before || 24}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? 'Saving...' : 'Save Settings'}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 };

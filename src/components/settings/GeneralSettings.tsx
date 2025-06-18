@@ -2,6 +2,7 @@
 import React from 'react';
 import { GeneralSettingsContainer } from './general/GeneralSettingsContainer';
 import { EnhancedPaymentMethodsSection } from './general/EnhancedPaymentMethodsSection';
+import { PaystackIntegrationSection } from './PaystackIntegrationSection';
 import { GeneralSettingsForm } from './general/GeneralSettingsForm';
 import { useGeneralSettings } from '@/hooks/useGeneralSettings';
 import { usePaymentMethods } from '@/hooks/usePaymentMethods';
@@ -42,6 +43,8 @@ export const GeneralSettings = () => {
           onSubmit={handleSubmit}
         />
       </GeneralSettingsContainer>
+      
+      <PaystackIntegrationSection />
       
       {!paymentMethodsLoading && (
         <EnhancedPaymentMethodsSection

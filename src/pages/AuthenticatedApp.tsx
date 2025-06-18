@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Dashboard from './Dashboard';
@@ -8,6 +9,7 @@ import StaffAttendancePage from './StaffAttendancePage';
 import ClientsPage from './ClientsPage';
 import InvoicesPage from './InvoicesPage';
 import SettingsPage from './SettingsPage';
+import SubscriptionPage from './SubscriptionPage';
 import PublicBookingPage from './PublicBookingPage';
 import StaffDashboardPage from "./StaffDashboardPage";
 
@@ -24,6 +26,7 @@ const AuthenticatedApp = () => {
       <Route path="/clients" element={<ClientsPage />} />
       <Route path="/invoices" element={<InvoicesPage />} />
       <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/subscription" element={<SubscriptionPage />} />
       <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
     </Routes>
   );

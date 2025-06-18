@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Smartphone } from 'lucide-react';
+import { Check, Star, Smartphone, Crown, Zap } from 'lucide-react';
 
 interface SubscriptionPlan {
   id: string;
@@ -23,27 +23,13 @@ const plans: SubscriptionPlan[] = [
     price: 0,
     priceId: '',
     features: [
-      '14-day Medium Plan trial',
+      '14-day full access trial',
       'All Medium Plan features',
       'No credit card required',
-      'Email support'
+      'Email support',
+      'Perfect for testing'
     ],
     popular: true
-  },
-  {
-    id: 'freemium',
-    name: 'Freemium',
-    price: 0,
-    priceId: '',
-    features: [
-      'Up to 3 staff members',
-      'Up to 100 bookings/month',
-      'Basic calendar',
-      'Limited analytics',
-      'Community support'
-    ],
-    staffLimit: 3,
-    bookingsLimit: 100
   },
   {
     id: 'medium',
@@ -91,10 +77,19 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   onSelectPlan,
   isLoading = false
 }) => {
+  const getPlanIcon = (planId: string) => {
+    switch (planId) {
+      case 'trial': return <Zap className="w-6 h-6 text-blue-600" />;
+      case 'medium': return <Star className="w-6 h-6 text-purple-600" />;
+      case 'premium': return <Crown className="w-6 h-6 text-gold-600" />;
+      default: return <Zap className="w-6 h-6" />;
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
       {plans.map((plan) => (
-        <Card key={plan.id} className={`relative ${plan.popular ? 'border-royal-red shadow-lg' : ''}`}>
+        <Card key={plan.id} className={`relative ${plan.popular ? 'border-royal-red shadow-lg scale-105' : 'border-gray-200'} transition-all hover:shadow-lg`}>
           {plan.popular && (
             <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-royal-red">
               <Star className="w-3 h-3 mr-1" />
@@ -102,20 +97,23 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
             </Badge>
           )}
           
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">{plan.name}</CardTitle>
-            <div className="text-3xl font-bold">
+          <CardHeader className="text-center pb-4">
+            <div className="flex justify-center mb-2">
+              {getPlanIcon(plan.id)}
+            </div>
+            <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
+            <div className="text-4xl font-bold text-gray-900 mt-2">
               ${plan.price}
               {plan.price > 0 && <span className="text-lg font-normal text-gray-600">/month</span>}
             </div>
             {plan.staffLimit && (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 mt-2">
                 Up to {plan.staffLimit} staff • {plan.bookingsLimit?.toLocaleString()} bookings
               </p>
             )}
           </CardHeader>
           
-          <CardContent>
+          <CardContent className="space-y-4">
             <ul className="space-y-3 mb-6">
               {plan.features.map((feature, index) => (
                 <li key={index} className="flex items-center gap-2">
@@ -126,16 +124,16 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
             </ul>
             
             <Button
-              className="w-full"
-              variant={currentPlan === plan.id ? 'outline' : 'default'}
+              className={`w-full ${plan.popular ? 'bg-royal-red hover:bg-royal-red/90' : ''}`}
+              variant={currentPlan === plan.id ? 'outline' : (plan.popular ? 'default' : 'outline')}
               onClick={() => onSelectPlan(plan.id, plan.priceId)}
               disabled={isLoading || currentPlan === plan.id}
             >
               {currentPlan === plan.id ? 'Current Plan' : 
-               plan.price === 0 ? (plan.id === 'trial' ? 'Start Free Trial' : 'Get Started') : 
+               plan.price === 0 ? 'Start Free Trial' : 
                <span className="flex items-center gap-2">
                  <Smartphone className="h-4 w-4" />
-                 Pay with Paystack
+                 Upgrade with Paystack
                </span>}
             </Button>
           </CardContent>

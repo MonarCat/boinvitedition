@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 interface PaymentAccount {
   id: string;
-  type: 'bank' | 'mobile' | 'cash';
+  type: 'bank' | 'mobile' | 'cash' | 'card';
   name: string;
   details: string;
   is_active: boolean;
@@ -43,6 +43,12 @@ const accountTypeConfig = {
     icon: Banknote,
     placeholder: 'Instructions (e.g., Pay at reception)',
     description: 'Cash payment instructions for clients'
+  },
+  card: {
+    label: 'Card Payments',
+    icon: CreditCard,
+    placeholder: 'Processor name (e.g., Paystack)',
+    description: 'Credit/debit card payment processor'
   }
 };
 

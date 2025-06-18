@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, QrCode, Copy, ExternalLink } from 'lucide-react';
+import { Download, QrCode, Copy, ExternalLink, Share2, Link } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface BusinessQRGeneratorProps {
@@ -17,8 +17,8 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
-  // Use the correct booking URL format that matches our routing
-  const bookingUrl = `${window.location.origin}/app/book/${businessId}`;
+  // Use the correct booking URL format
+  const bookingUrl = `${window.location.origin}/book/${businessId}`;
   
   React.useEffect(() => {
     if (canvasRef.current && businessId) {
@@ -57,6 +57,22 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
     }
   };
 
+  const shareUrl = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Book ${businessName}`,
+          text: `Book services with ${businessName}`,
+          url: bookingUrl,
+        });
+      } catch (error) {
+        // User cancelled sharing
+      }
+    } else {
+      copyUrl();
+    }
+  };
+
   const testBooking = () => {
     window.open(bookingUrl, '_blank');
   };
@@ -66,10 +82,10 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
       <CardHeader className="text-center">
         <CardTitle className="flex items-center justify-center gap-2">
           <QrCode className="w-5 h-5" />
-          Booking QR Code
+          Client Booking Access
         </CardTitle>
         <p className="text-sm text-gray-600">
-          Share this QR code for instant bookings
+          Multiple ways for clients to book your services
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -82,30 +98,41 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
         
         <div className="text-center">
           <p className="text-xs text-gray-500 mb-2">Booking URL:</p>
-          <p className="text-xs font-mono bg-gray-100 p-2 rounded break-all">
+          <div className="bg-gray-100 p-2 rounded text-xs font-mono break-all">
             {bookingUrl}
-          </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-2">
+          <Button onClick={shareUrl} variant="default" size="sm">
+            <Share2 className="w-4 h-4 mr-2" />
+            Share Booking Link
+          </Button>
+          
+          <Button onClick={copyUrl} variant="outline" size="sm">
+            <Copy className="w-4 h-4 mr-2" />
+            Copy Link
+          </Button>
+          
           <Button onClick={downloadQR} variant="outline" size="sm">
             <Download className="w-4 h-4 mr-2" />
             Download QR Code
           </Button>
           
-          <Button onClick={copyUrl} variant="outline" size="sm">
-            <Copy className="w-4 h-4 mr-2" />
-            Copy Booking URL
-          </Button>
-          
           <Button onClick={testBooking} variant="outline" size="sm">
             <ExternalLink className="w-4 h-4 mr-2" />
-            Test Booking Page
+            Test Booking
           </Button>
         </div>
 
-        <div className="text-xs text-gray-500 text-center">
-          <p>Customers can scan this QR code to book your services instantly</p>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <h5 className="font-medium text-blue-900 mb-2 text-sm">Sharing Options</h5>
+          <ul className="text-xs text-blue-800 space-y-1">
+            <li>• Share the link via WhatsApp, SMS, or email</li>
+            <li>• Post on social media platforms</li>
+            <li>• Print the QR code on business cards</li>
+            <li>• Add to your website or email signature</li>
+          </ul>
         </div>
       </CardContent>
     </Card>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,7 @@ import {
   RefreshCw, 
   Settings,
   Crown,
-  Upgrade
+  ArrowUp
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -160,7 +159,7 @@ export const DashboardKPISection = ({
               size="sm" 
               className="bg-royal-red hover:bg-royal-red/90 text-white"
             >
-              <Upgrade className="w-4 h-4 mr-1" />
+              <ArrowUp className="w-4 h-4 mr-1" />
               Upgrade Now
             </Button>
           </div>

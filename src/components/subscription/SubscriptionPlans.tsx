@@ -24,7 +24,7 @@ const plans: SubscriptionPlan[] = [
     priceId: '',
     features: [
       '14-day full access trial',
-      'All Medium Plan features',
+      'All Premium Plan features',
       'No credit card required',
       'Email support',
       'Perfect for testing'
@@ -33,13 +33,13 @@ const plans: SubscriptionPlan[] = [
   },
   {
     id: 'medium',
-    name: 'Medium Plan',
+    name: 'Business Plan',
     price: 29,
     priceId: 'price_medium',
     features: [
       'Up to 15 staff members',
       'Up to 3,000 bookings/month',
-      'QR code system',
+      'QR code booking system',
       'Advanced analytics',
       'SMS & WhatsApp notifications',
       'Payment gateway integration',
@@ -50,7 +50,7 @@ const plans: SubscriptionPlan[] = [
   },
   {
     id: 'premium',
-    name: 'Premium Plan',
+    name: 'Enterprise Plan',
     price: 99,
     priceId: 'price_premium',
     features: [
@@ -89,9 +89,9 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
       {plans.map((plan) => (
-        <Card key={plan.id} className={`relative ${plan.popular ? 'border-royal-red shadow-lg scale-105' : 'border-gray-200'} transition-all hover:shadow-lg`}>
+        <Card key={plan.id} className={`relative ${plan.popular ? 'border-blue-500 shadow-lg scale-105' : 'border-gray-200'} transition-all hover:shadow-lg`}>
           {plan.popular && (
-            <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-royal-red">
+            <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-blue-500">
               <Star className="w-3 h-3 mr-1" />
               Most Popular
             </Badge>
@@ -103,7 +103,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
             </div>
             <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
             <div className="text-4xl font-bold text-gray-900 mt-2">
-              ${plan.price}
+              KES {plan.price}
               {plan.price > 0 && <span className="text-lg font-normal text-gray-600">/month</span>}
             </div>
             {plan.staffLimit && (
@@ -124,7 +124,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
             </ul>
             
             <Button
-              className={`w-full ${plan.popular ? 'bg-royal-red hover:bg-royal-red/90' : ''}`}
+              className={`w-full ${plan.popular ? 'bg-blue-500 hover:bg-blue-600' : ''}`}
               variant={currentPlan === plan.id ? 'outline' : (plan.popular ? 'default' : 'outline')}
               onClick={() => onSelectPlan(plan.id, plan.priceId)}
               disabled={isLoading || currentPlan === plan.id}
@@ -133,7 +133,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                plan.price === 0 ? 'Start Free Trial' : 
                <span className="flex items-center gap-2">
                  <Smartphone className="h-4 w-4" />
-                 Upgrade with Paystack
+                 Subscribe with M-Pesa
                </span>}
             </Button>
           </CardContent>

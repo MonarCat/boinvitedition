@@ -27,7 +27,7 @@ const AuthenticatedApp = () => {
       <Route path="/invoices" element={<InvoicesPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/subscription" element={<SubscriptionPage />} />
-      <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
+      <Route path="/book/:businessId" element={<PublicBookingPage />} />
     </Routes>
   );
 };

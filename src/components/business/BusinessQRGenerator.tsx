@@ -18,7 +18,7 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
   // Use the correct booking URL format that matches our routing
-  const bookingUrl = `${window.location.origin}/book/${businessId}`;
+  const bookingUrl = `${window.location.origin}/app/book/${businessId}`;
   
   React.useEffect(() => {
     if (canvasRef.current && businessId) {

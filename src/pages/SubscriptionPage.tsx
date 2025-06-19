@@ -149,7 +149,7 @@ const SubscriptionPage = () => {
             <CardTitle>Plan Comparison</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
               <div>
                 <h4 className="font-semibold mb-2">Free Trial</h4>
                 <ul className="space-y-1 text-gray-600">
@@ -157,6 +157,17 @@ const SubscriptionPage = () => {
                   <li>• All features included</li>
                   <li>• No limitations</li>
                   <li>• Perfect for testing</li>
+                  <li>• QR code system</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">Starter Plan</h4>
+                <ul className="space-y-1 text-gray-600">
+                  <li>• Up to 5 staff members</li>
+                  <li>• 1,000 bookings/month</li>
+                  <li>• QR code system</li>
+                  <li>• Basic analytics</li>
+                  <li>• Email support</li>
                 </ul>
               </div>
               <div>
@@ -165,7 +176,7 @@ const SubscriptionPage = () => {
                   <li>• Up to 15 staff members</li>
                   <li>• 3,000 bookings/month</li>
                   <li>• QR code system</li>
-                  <li>• Basic analytics</li>
+                  <li>• Advanced analytics</li>
                   <li>• Email support</li>
                 </ul>
               </div>
@@ -178,6 +189,7 @@ const SubscriptionPage = () => {
                   <li>• Priority support</li>
                   <li>• API access</li>
                   <li>• Custom integrations</li>
+                  <li>• QR code system</li>
                 </ul>
               </div>
             </div>

@@ -34,6 +34,23 @@ const plans: SubscriptionPlan[] = [
     popular: true
   },
   {
+    id: 'starter',
+    name: 'Starter Plan',
+    price: 1020,
+    priceId: 'price_starter',
+    paystackUrl: 'https://paystack.shop/pay/starter-plan-1020',
+    features: [
+      'Up to 5 staff members',
+      'Up to 1,000 bookings/month',
+      'QR code booking system',
+      'Basic analytics',
+      'SMS & WhatsApp notifications',
+      'Email support'
+    ],
+    staffLimit: 5,
+    bookingsLimit: 1000
+  },
+  {
     id: 'medium',
     name: 'Business Plan',
     price: 2900,
@@ -84,6 +101,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   const getPlanIcon = (planId: string) => {
     switch (planId) {
       case 'trial': return <Zap className="w-6 h-6 text-blue-600" />;
+      case 'starter': return <Smartphone className="w-6 h-6 text-green-600" />;
       case 'medium': return <Star className="w-6 h-6 text-purple-600" />;
       case 'premium': return <Crown className="w-6 h-6 text-gold-600" />;
       default: return <Zap className="w-6 h-6" />;
@@ -111,13 +129,12 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
             <div className="space-y-2 text-sm text-blue-800">
               <p><strong>1. Online Payment:</strong> Pay securely via Paystack (Card, Bank Transfer, USSD)</p>
               <p><strong>2. Mobile Payment:</strong> M-Pesa Paybill</p>
-              <p><strong>3. Bank Payment:</strong> Pay via KCB Paybill</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
         {plans.map((plan) => (
           <Card key={plan.id} className={`relative ${plan.popular ? 'border-blue-500 shadow-lg scale-105' : 'border-gray-200'} transition-all hover:shadow-lg`}>
             {plan.popular && (
@@ -131,11 +148,16 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               <div className="flex justify-center mb-2">
                 {getPlanIcon(plan.id)}
               </div>
-              <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
-              <div className="text-4xl font-bold text-gray-900 mt-2">
+              <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
+              <div className="text-3xl font-bold text-gray-900 mt-2">
                 KES {plan.price.toLocaleString()}
                 {plan.price > 0 && <span className="text-lg font-normal text-gray-600">/month</span>}
               </div>
+              {plan.price > 0 && (
+                <p className="text-xs text-gray-500">
+                  ≈ USD ${Math.round(plan.price / 145)}
+                </p>
+              )}
               {plan.staffLimit && (
                 <p className="text-sm text-gray-600 mt-2">
                   Up to {plan.staffLimit} staff • {plan.bookingsLimit?.toLocaleString()} bookings
@@ -174,35 +196,21 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
         ))}
       </div>
 
-      {/* Manual Payment Instructions */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-4xl mx-auto">
+      {/* Manual Payment Instructions - Only M-Pesa */}
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-2xl mx-auto">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Building2 className="w-5 h-5" />
-          Manual Payment Options
+          Manual Payment Option
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-3">
-            <h4 className="font-medium text-gray-900">Mobile Payment: M-Pesa Paybill</h4>
-            <div className="bg-white p-4 rounded border">
-              <p className="text-sm text-gray-600 mb-2">Lipa na M-pesa:</p>
-              <div className="space-y-1 text-sm">
-                <p><strong>Business No.:</strong> 400222</p>
-                <p><strong>Account No.:</strong> 1852604#</p>
-                <p><strong>Amount:</strong> Plan amount</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="font-medium text-gray-900">Bank Payment (KCB)</h4>
-            <div className="bg-white p-4 rounded border">
-              <p className="text-sm text-gray-600 mb-2">Bank details:</p>
-              <div className="space-y-1 text-sm">
-                <p><strong>Paybill:</strong> 522522</p>
-                <p><strong>Account No:</strong> 1769155</p>
-                <p><strong>Reference:</strong> Your business name</p>
-              </div>
+        <div className="space-y-3">
+          <h4 className="font-medium text-gray-900">Mobile Payment: M-Pesa Paybill</h4>
+          <div className="bg-white p-4 rounded border">
+            <p className="text-sm text-gray-600 mb-2">Lipa na M-pesa:</p>
+            <div className="space-y-1 text-sm">
+              <p><strong>Business No.:</strong> 400222</p>
+              <p><strong>Account No.:</strong> 1852604#</p>
+              <p><strong>Amount:</strong> Plan amount</p>
             </div>
           </div>
         </div>

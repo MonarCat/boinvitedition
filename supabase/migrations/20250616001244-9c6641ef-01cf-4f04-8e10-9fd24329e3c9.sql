@@ -4,7 +4,7 @@ CREATE TABLE public.subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
-  plan_type TEXT NOT NULL CHECK (plan_type IN ('trial', 'medium', 'premium')),
+  plan_type TEXT NOT NULL CHECK (plan_type IN ('trial', 'starter', 'medium', 'premium')),
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'expired', 'cancelled')),
   trial_ends_at TIMESTAMPTZ,
   current_period_end TIMESTAMPTZ NOT NULL,

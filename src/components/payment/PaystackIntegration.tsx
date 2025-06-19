@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CreditCard, ExternalLink, Smartphone, Building2 } from 'lucide-react';
+import { CreditCard, ExternalLink, Smartphone } from 'lucide-react';
 
 interface PaystackPlan {
   id: string;
@@ -13,6 +13,13 @@ interface PaystackPlan {
 }
 
 const paystackPlans: PaystackPlan[] = [
+  {
+    id: 'starter',
+    name: 'Starter Plan',
+    price: 1020,
+    paystackUrl: 'https://paystack.shop/pay/starter-plan-1020',
+    description: 'Perfect for small businesses with up to 5 staff members'
+  },
   {
     id: 'business',
     name: 'Business Plan',
@@ -41,7 +48,7 @@ export const PaystackIntegration = () => {
         <p className="text-gray-600">Pay safely using your preferred method via Paystack</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {paystackPlans.map((plan) => (
           <Card key={plan.id} className="border-blue-200 hover:shadow-lg transition-all">
             <CardHeader>
@@ -51,6 +58,9 @@ export const PaystackIntegration = () => {
               </CardTitle>
               <p className="text-2xl font-bold text-blue-600">
                 KES {plan.price.toLocaleString()}<span className="text-sm font-normal">/month</span>
+              </p>
+              <p className="text-xs text-gray-500">
+                ≈ USD ${Math.round(plan.price / 145)}
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -82,30 +92,19 @@ export const PaystackIntegration = () => {
         </ul>
       </div>
 
-      {/* Alternative Payment Methods */}
+      {/* Alternative Payment Method - Only M-Pesa */}
       <div className="border-t pt-6">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <Smartphone className="w-5 h-5" />
-          Alternative Payment Methods
+          Alternative Payment Method
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium mb-2">Mobile Payment: M-Pesa Paybill</h4>
-            <div className="text-sm space-y-1">
-              <p>Lipa na M-pesa</p>
-              <p>Business No.: <strong>400222</strong></p>
-              <p>Account No.: <strong>1852604#</strong></p>
-            </div>
-          </div>
-          
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium mb-2">KCB Bank Payment</h4>
-            <div className="text-sm space-y-1">
-              <p>Paybill: <strong>522522</strong></p>
-              <p>Account No.: <strong>1769155</strong></p>
-              <p>Reference: <strong>Your Business Name</strong></p>
-            </div>
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h4 className="font-medium mb-2">Mobile Payment: M-Pesa Paybill</h4>
+          <div className="text-sm space-y-1">
+            <p>Lipa na M-pesa</p>
+            <p>Business No.: <strong>400222</strong></p>
+            <p>Account No.: <strong>1852604#</strong></p>
           </div>
         </div>
       </div>

@@ -80,7 +80,10 @@ DECLARE
   period_end TIMESTAMPTZ;
 BEGIN
   -- Set limits based on plan type
-  IF plan_type = 'medium' THEN
+  IF plan_type = 'starter' THEN
+    staff_limit_val := 5;
+    bookings_limit_val := 1000;
+  ELSIF plan_type = 'medium' THEN
     staff_limit_val := 15;
     bookings_limit_val := 3000;
   ELSIF plan_type = 'premium' THEN

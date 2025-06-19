@@ -91,11 +91,11 @@ export const PaystackIntegration = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium mb-2">M-Pesa Payment</h4>
+            <h4 className="font-medium mb-2">Mobile Payment: M-Pesa Paybill</h4>
             <div className="text-sm space-y-1">
-              <p>Paybill: <strong>400200</strong></p>
-              <p>Account: <strong>Your Email</strong></p>
-              <p>Send receipt to: payments@boinvit.com</p>
+              <p>Lipa na M-pesa</p>
+              <p>Business No.: <strong>400222</strong></p>
+              <p>Account No.: <strong>1852604#</strong></p>
             </div>
           </div>
           
@@ -103,7 +103,7 @@ export const PaystackIntegration = () => {
             <h4 className="font-medium mb-2">KCB Bank Payment</h4>
             <div className="text-sm space-y-1">
               <p>Paybill: <strong>522522</strong></p>
-              <p>Account: <strong>1769155</strong></p>
+              <p>Account No.: <strong>1769155</strong></p>
               <p>Reference: <strong>Your Business Name</strong></p>
             </div>
           </div>

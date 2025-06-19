@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Smartphone, Crown, Zap, AlertCircle, CreditCard, Building2 } from 'lucide-react';
+import { Check, Star, Smartphone, Crown, Zap, CreditCard, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SubscriptionPlan {
@@ -110,8 +110,8 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
             <h4 className="font-medium text-blue-900 mb-2">Payment Options Available</h4>
             <div className="space-y-2 text-sm text-blue-800">
               <p><strong>1. Online Payment:</strong> Pay securely via Paystack (Card, Bank Transfer, USSD)</p>
-              <p><strong>2. M-Pesa Payment:</strong> Send payment to our M-Pesa account</p>
-              <p><strong>3. Bank Payment:</strong> Pay via KCB Paybill - 522522, Account: 1769155</p>
+              <p><strong>2. Mobile Payment:</strong> M-Pesa Paybill</p>
+              <p><strong>3. Bank Payment:</strong> Pay via KCB Paybill</p>
             </div>
           </div>
         </div>
@@ -183,12 +183,12 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3">
-            <h4 className="font-medium text-gray-900">M-Pesa Payment</h4>
+            <h4 className="font-medium text-gray-900">Mobile Payment: M-Pesa Paybill</h4>
             <div className="bg-white p-4 rounded border">
-              <p className="text-sm text-gray-600 mb-2">Send payment to:</p>
+              <p className="text-sm text-gray-600 mb-2">Lipa na M-pesa:</p>
               <div className="space-y-1 text-sm">
-                <p><strong>Paybill:</strong> 400200</p>
-                <p><strong>Account:</strong> Your business email</p>
+                <p><strong>Business No.:</strong> 400222</p>
+                <p><strong>Account No.:</strong> 1852604#</p>
                 <p><strong>Amount:</strong> Plan amount</p>
               </div>
             </div>
@@ -205,15 +205,6 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-          <p className="text-sm text-yellow-800">
-            <strong>Note:</strong> After making payment, please email your transaction receipt to 
-            <a href="mailto:payments@boinvit.com" className="text-blue-600 hover:underline ml-1">
-              payments@boinvit.com
-            </a> with your business details for account activation.
-          </p>
         </div>
       </div>
     </div>

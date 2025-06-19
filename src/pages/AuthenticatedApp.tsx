@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from '@/pages/Dashboard';
 import ServicesPage from '@/pages/ServicesPage';
 import BookingManagementPage from '@/pages/BookingManagementPage';
@@ -18,6 +18,10 @@ import NotFound from '@/pages/NotFound';
 const AuthenticatedApp = () => {
   return (
     <Routes>
+      {/* Default route - redirect to dashboard */}
+      <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+      
+      {/* Main app routes */}
       <Route path="/app/dashboard" element={<Dashboard />} />
       <Route path="/app/services" element={<ServicesPage />} />
       <Route path="/app/bookings" element={<BookingManagementPage />} />
@@ -32,9 +36,10 @@ const AuthenticatedApp = () => {
       
       {/* Public booking routes - these should work without /app prefix */}
       <Route path="/book/:businessId" element={<PublicBookingPage />} />
+      <Route path="/booking/:businessId" element={<PublicBookingPage />} />
       
-      {/* Default redirect */}
-      <Route path="/app" element={<Dashboard />} />
+      {/* Default fallback for /app routes */}
+      <Route path="/app" element={<Navigate to="/app/dashboard" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

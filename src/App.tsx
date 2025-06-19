@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -21,7 +22,8 @@ import { useSystemDarkMode } from "@/lib/useSystemDarkMode";
 const queryClient = new QueryClient();
 
 const App = () => {
-  useSystemDarkMode(); // Enable auto dark mode
+  useSystemDarkMode();
+  
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -38,10 +40,10 @@ const App = () => {
                 {/* Business Discovery Map */}
                 <Route path="/discover" element={<BusinessDiscoveryPage />} />
                 
-                {/* QR Code booking routes - PRIMARY and FALLBACK variations */}
+                {/* QR Code booking routes - Multiple variations for reliability */}
                 <Route path="/book/:businessId" element={<PublicBookingPage />} />
-                <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
                 <Route path="/booking/:businessId" element={<PublicBookingPage />} />
+                <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
                 
                 {/* Authenticated app routes */}
                 <Route path="/app/*" element={<AuthenticatedApp />} />
@@ -52,7 +54,7 @@ const App = () => {
                 <Route path="/cookies" element={<CookiePolicy />} />
                 <Route path="/safety" element={<SafetyTips />} />
                 
-                {/* Legacy route redirects - redirect to app paths */}
+                {/* Legacy route redirects */}
                 <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
                 <Route path="/services" element={<Navigate to="/app/services" replace />} />
                 <Route path="/booking-management" element={<Navigate to="/app/bookings" replace />} />
@@ -62,7 +64,7 @@ const App = () => {
                 <Route path="/invoices" element={<Navigate to="/app/invoices" replace />} />
                 <Route path="/subscription" element={<Navigate to="/app/subscription" replace />} />
                 
-                {/* Catch all - redirect to landing page */}
+                {/* Catch all - 404 page */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
               

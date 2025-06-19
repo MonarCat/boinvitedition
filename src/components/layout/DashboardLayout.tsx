@@ -11,7 +11,7 @@ import {
   Clock,
   LogOut,
   User,
-  BarChart3, // <-- Added missing import!
+  BarChart3,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,11 +36,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   };
 
   const navigation = [
-    { name: 'Dashboard', href: '/app', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
     { name: 'Bookings', href: '/app/bookings', icon: Calendar },
     { name: 'Services', href: '/app/services', icon: FileText },
     { name: 'Staff', href: '/app/staff', icon: Users },
-    { name: 'Attendance', href: '/app/attendance', icon: Clock },
+    { name: 'Attendance', href: '/app/staff-attendance', icon: Clock },
     { name: 'Staff Dashboard', href: '/app/staff-dashboard', icon: BarChart3 },
     { name: 'Clients', href: '/app/clients', icon: UserCheck },
     { name: 'Invoices', href: '/app/invoices', icon: FileText },
@@ -48,8 +48,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   ];
 
   const isActive = (href: string) => {
-    if (href === '/app') {
-      return location.pathname === '/app';
+    if (href === '/app/dashboard') {
+      return location.pathname === '/app/dashboard' || location.pathname === '/app';
     }
     return location.pathname.startsWith(href);
   };
@@ -61,9 +61,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center justify-center border-b border-gray-200">
-            <a href="/" className="flex items-center gap-2 group" tabIndex={0} aria-label="Home">
+            <Link to="/" className="flex items-center gap-2 group" tabIndex={0} aria-label="Home">
               <h1 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">BookingApp</h1>
-            </a>
+            </Link>
           </div>
 
           {/* Navigation */}
@@ -74,14 +74,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive(item.href)
                       ? 'bg-blue-100 text-blue-900'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
                   <Icon
-                    className={`mr-3 h-5 w-5 ${
+                    className={`mr-3 h-5 w-5 transition-colors ${
                       isActive(item.href) ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
                     }`}
                   />

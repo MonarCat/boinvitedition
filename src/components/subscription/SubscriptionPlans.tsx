@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Smartphone, Crown, Zap, AlertCircle } from 'lucide-react';
+import { Check, Star, Smartphone, Crown, Zap, AlertCircle, CreditCard, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SubscriptionPlan {
@@ -11,6 +11,7 @@ interface SubscriptionPlan {
   name: string;
   price: number;
   priceId: string;
+  paystackUrl?: string;
   features: string[];
   staffLimit?: number;
   bookingsLimit?: number;
@@ -37,6 +38,7 @@ const plans: SubscriptionPlan[] = [
     name: 'Business Plan',
     price: 2900,
     priceId: 'price_medium',
+    paystackUrl: 'https://paystack.shop/pay/business-plan-2900',
     features: [
       'Up to 15 staff members',
       'Up to 3,000 bookings/month',
@@ -54,6 +56,7 @@ const plans: SubscriptionPlan[] = [
     name: 'Enterprise Plan',
     price: 9900,
     priceId: 'price_premium',
+    paystackUrl: 'https://paystack.shop/pay/enterprise-plan-9900',
     features: [
       'Unlimited staff members',
       'Unlimited bookings',
@@ -90,25 +93,26 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   const handlePlanSelection = (plan: SubscriptionPlan) => {
     if (plan.id === 'trial') {
       onSelectPlan(plan.id, plan.priceId);
-    } else {
-      // For paid plans, show M-Pesa payment notice
-      toast.info('M-Pesa payment integration coming soon! Please contact support for now.', {
-        duration: 5000
-      });
+    } else if (plan.paystackUrl) {
+      // Open Paystack payment page in new tab
+      window.open(plan.paystackUrl, '_blank');
+      toast.success('Redirected to Paystack payment page');
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* M-Pesa Notice */}
-      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+      {/* Payment Methods Notice */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
+          <CreditCard className="w-5 h-5 text-blue-600 mt-0.5" />
           <div>
-            <h4 className="font-medium text-orange-900 mb-1">M-Pesa Payments Coming Soon</h4>
-            <p className="text-sm text-orange-800">
-              We're working on M-Pesa integration for seamless payments. For now, please contact our support team to activate paid plans.
-            </p>
+            <h4 className="font-medium text-blue-900 mb-2">Payment Options Available</h4>
+            <div className="space-y-2 text-sm text-blue-800">
+              <p><strong>1. Online Payment:</strong> Pay securely via Paystack (Card, Bank Transfer, USSD)</p>
+              <p><strong>2. M-Pesa Payment:</strong> Send payment to our M-Pesa account</p>
+              <p><strong>3. Bank Payment:</strong> Pay via KCB Paybill - 522522, Account: 1769155</p>
+            </div>
           </div>
         </div>
       </div>
@@ -157,16 +161,60 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               >
                 {currentPlan === plan.id ? 'Current Plan' : 
                  plan.price === 0 ? 'Start Free Trial' : 
-                 plan.price > 0 ? (
-                   <span className="flex items-center gap-2">
-                     <Smartphone className="h-4 w-4" />
-                     Subscribe (Contact Support)
-                   </span>
-                 ) : 'Select Plan'}
+                 'Pay with Paystack'}
               </Button>
+
+              {plan.price > 0 && (
+                <div className="text-xs text-gray-500 text-center">
+                  Secure payment via Paystack
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Manual Payment Instructions */}
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-4xl mx-auto">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Building2 className="w-5 h-5" />
+          Manual Payment Options
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-3">
+            <h4 className="font-medium text-gray-900">M-Pesa Payment</h4>
+            <div className="bg-white p-4 rounded border">
+              <p className="text-sm text-gray-600 mb-2">Send payment to:</p>
+              <div className="space-y-1 text-sm">
+                <p><strong>Paybill:</strong> 400200</p>
+                <p><strong>Account:</strong> Your business email</p>
+                <p><strong>Amount:</strong> Plan amount</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="font-medium text-gray-900">Bank Payment (KCB)</h4>
+            <div className="bg-white p-4 rounded border">
+              <p className="text-sm text-gray-600 mb-2">Bank details:</p>
+              <div className="space-y-1 text-sm">
+                <p><strong>Paybill:</strong> 522522</p>
+                <p><strong>Account No:</strong> 1769155</p>
+                <p><strong>Reference:</strong> Your business name</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+          <p className="text-sm text-yellow-800">
+            <strong>Note:</strong> After making payment, please email your transaction receipt to 
+            <a href="mailto:payments@boinvit.com" className="text-blue-600 hover:underline ml-1">
+              payments@boinvit.com
+            </a> with your business details for account activation.
+          </p>
+        </div>
       </div>
     </div>
   );

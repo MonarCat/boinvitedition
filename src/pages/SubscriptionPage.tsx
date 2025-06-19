@@ -3,11 +3,13 @@ import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
 import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus';
+import { PaystackIntegration } from '@/components/payment/PaystackIntegration';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
 const SubscriptionPage = () => {
@@ -79,14 +81,27 @@ const SubscriptionPage = () => {
           </div>
         )}
 
-        <div data-plans-section>
-          <h2 className="text-2xl font-semibold text-center mb-8">Available Plans</h2>
-          <SubscriptionPlans
-            currentPlan={subscription?.plan_type}
-            onSelectPlan={handleSelectPlan}
-            isLoading={isCreatingSubscription}
-          />
-        </div>
+        <Tabs defaultValue="plans" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+            <TabsTrigger value="plans">All Plans</TabsTrigger>
+            <TabsTrigger value="payment">Payment Options</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="plans" className="space-y-8">
+            <div data-plans-section>
+              <h2 className="text-2xl font-semibold text-center mb-8">Available Plans</h2>
+              <SubscriptionPlans
+                currentPlan={subscription?.plan_type}
+                onSelectPlan={handleSelectPlan}
+                isLoading={isCreatingSubscription}
+              />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="payment" className="space-y-8">
+            <PaystackIntegration />
+          </TabsContent>
+        </Tabs>
 
         <Card className="max-w-4xl mx-auto">
           <CardHeader>
@@ -104,7 +119,7 @@ const SubscriptionPage = () => {
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Medium Plan</h4>
+                <h4 className="font-semibold mb-2">Business Plan</h4>
                 <ul className="space-y-1 text-gray-600">
                   <li>• Up to 15 staff members</li>
                   <li>• 3,000 bookings/month</li>
@@ -114,7 +129,7 @@ const SubscriptionPage = () => {
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Premium Plan</h4>
+                <h4 className="font-semibold mb-2">Enterprise Plan</h4>
                 <ul className="space-y-1 text-gray-600">
                   <li>• Unlimited staff</li>
                   <li>• Unlimited bookings</li>

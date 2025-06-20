@@ -3,14 +3,15 @@ import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { EnhancedSubscriptionPlans } from '@/components/subscription/EnhancedSubscriptionPlans';
 import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus';
+import { SubscriptionPageHeader } from '@/components/subscription/SubscriptionPageHeader';
+import { BusinessSetupRequired } from '@/components/subscription/BusinessSetupRequired';
+import { PaymentMethodsInfo } from '@/components/subscription/PaymentMethodsInfo';
+import { PlanFeaturesComparison } from '@/components/subscription/PlanFeaturesComparison';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Smartphone, CreditCard, TrendingUp, Users } from 'lucide-react';
 
 const SubscriptionPage = () => {
   const { user } = useAuth();
@@ -60,25 +61,7 @@ const SubscriptionPage = () => {
     return (
       <DashboardLayout>
         <div className="space-y-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
-            <Card className="border-orange-200 bg-orange-50 max-w-2xl mx-auto">
-              <CardHeader>
-                <CardTitle className="text-orange-800">Business Setup Required</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-orange-700 mb-4">
-                  You need to set up your business profile before subscribing to a plan.
-                </p>
-                <button
-                  onClick={() => window.location.href = '/app/settings'}
-                  className="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors"
-                >
-                  Set Up Business Profile
-                </button>
-              </CardContent>
-            </Card>
-          </div>
+          <BusinessSetupRequired />
         </div>
       </DashboardLayout>
     );
@@ -87,13 +70,7 @@ const SubscriptionPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Perfect Plan</h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Flexible pricing designed for businesses of all sizes. Start with a free trial, 
-            pay only when you earn, or choose a subscription with fantastic long-term discounts.
-          </p>
-        </div>
+        <SubscriptionPageHeader />
 
         {subscription && (
           <div className="max-w-2xl mx-auto">
@@ -105,42 +82,7 @@ const SubscriptionPage = () => {
           </div>
         )}
 
-        {/* Payment Methods Information */}
-        <div className="max-w-5xl mx-auto">
-          <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-                Multiple Secure Payment Options
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Smartphone className="w-8 h-8 text-green-600" />
-                  </div>
-                  <h4 className="font-semibold mb-2">M-Pesa Mobile Money</h4>
-                  <p className="text-sm text-gray-600">Pay instantly using your M-Pesa account - most popular option</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <CreditCard className="w-8 h-8 text-blue-600" />
-                  </div>
-                  <h4 className="font-semibold mb-2">Cards & Bank Transfer</h4>
-                  <p className="text-sm text-gray-600">Visa, Mastercard, and direct bank transfers supported</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <TrendingUp className="w-8 h-8 text-purple-600" />
-                  </div>
-                  <h4 className="font-semibold mb-2">Auto-Split Payments</h4>
-                  <p className="text-sm text-gray-600">Automatic revenue sharing for pay-as-you-go plans</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <PaymentMethodsInfo />
 
         <EnhancedSubscriptionPlans
           currentPlan={subscription?.plan_type}
@@ -150,60 +92,7 @@ const SubscriptionPage = () => {
           isLoading={isCreatingSubscription}
         />
 
-        {/* Plan Comparison and Features */}
-        <Card className="max-w-6xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-center">What's Included in Every Plan</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
-              <div className="space-y-3">
-                <h4 className="font-semibold text-orange-600">Free Trial Benefits</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• KES 10 one-time setup fee</li>
-                  <li>• 14 days complete access</li>
-                  <li>• All premium features</li>
-                  <li>• Perfect for testing</li>
-                  <li>• No monthly charges during trial</li>
-                </ul>
-              </div>
-              
-              <div className="space-y-3">
-                <h4 className="font-semibold text-purple-600">Pay As You Go</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• KES 10 one-time setup fee</li>
-                  <li>• 7% commission per booking</li>
-                  <li>• You receive 93% instantly</li>
-                  <li>• Prepaid bookings only</li>
-                  <li>• Perfect for low volume</li>
-                </ul>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="font-semibold text-blue-600">Subscription Plans</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• Starter: 5 staff, 1K bookings</li>
-                  <li>• Business: 15 staff, 3K bookings</li>
-                  <li>• Enterprise: Unlimited everything</li>
-                  <li>• Up to 30% long-term discounts</li>
-                  <li>• Predictable monthly costs</li>
-                </ul>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="font-semibold text-green-600">Core Features</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• QR code booking system</li>
-                  <li>• WhatsApp notifications</li>
-                  <li>• Online booking calendar</li>
-                  <li>• Client management system</li>
-                  <li>• Payment processing</li>
-                  <li>• Analytics dashboard</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <PlanFeaturesComparison />
       </div>
     </DashboardLayout>
   );

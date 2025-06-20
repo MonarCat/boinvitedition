@@ -1,17 +1,20 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { generateBusinessSlug } from './businessSlug';
 
 export interface BusinessValidationResult {
   isValid: boolean;
   issues: string[];
   business?: any;
   services?: any[];
+  slug?: string;
 }
 
 export const validateBusinessSetup = async (businessId: string): Promise<BusinessValidationResult> => {
   const issues: string[] = [];
   let business = null;
   let services = null;
+  let slug = '';
 
   try {
     // Check if business exists and is properly configured
@@ -39,6 +42,7 @@ export const validateBusinessSetup = async (businessId: string): Promise<Busines
     }
 
     business = businessData;
+    slug = generateBusinessSlug(business.name);
 
     // Check required fields
     if (!business.name?.trim()) {
@@ -110,7 +114,8 @@ export const validateBusinessSetup = async (businessId: string): Promise<Busines
       isValid: issues.length === 0,
       issues,
       business,
-      services
+      services,
+      slug
     };
 
   } catch (error) {

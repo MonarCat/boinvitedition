@@ -1,28 +1,26 @@
 
 import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
+import { EnhancedSubscriptionPlans } from '@/components/subscription/EnhancedSubscriptionPlans';
 import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus';
-import { PaystackIntegration } from '@/components/payment/PaystackIntegration';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Clock, TrendingUp, Users, CheckCircle } from 'lucide-react';
 
 const SubscriptionPage = () => {
   const { user } = useAuth();
   const { subscription, isLoading, createSubscription, isCreatingSubscription } = useSubscription();
 
-  // Get user's business with better error handling
-  const { data: business, isLoading: isBusinessLoading, error: businessError } = useQuery({
+  // Get user's business
+  const { data: business, isLoading: isBusinessLoading } = useQuery({
     queryKey: ['user-business', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      
-      console.log('Fetching business for user:', user.id);
       
       const { data, error } = await supabase
         .from('businesses')
@@ -31,34 +29,21 @@ const SubscriptionPage = () => {
         .eq('is_active', true)
         .maybeSingle();
       
-      if (error) {
-        console.error('Business fetch error:', error);
-        throw error;
-      }
-      
-      console.log('Business data:', data);
+      if (error) throw error;
       return data;
     },
     enabled: !!user,
-    retry: 3,
   });
 
-  const handleSelectPlan = (planId: string, priceId: string) => {
-    if (!business) {
-      console.error('No business found for user:', user?.id);
-      return;
-    }
-
-    console.log('Creating subscription for business:', business.id);
-    createSubscription({ planType: planId, businessId: business.id });
-  };
-
-  const handleUpgrade = () => {
-    // Scroll to plans section or show modal
-    const plansSection = document.querySelector('[data-plans-section]');
-    if (plansSection) {
-      plansSection.scrollIntoView({ behavior: 'smooth' });
-    }
+  const handleSelectPlan = (planId: string, interval: string, amount: number) => {
+    if (!business) return;
+    
+    console.log('Selected plan:', { planId, interval, amount, businessId: business.id });
+    createSubscription({ 
+      planType: planId, 
+      businessId: business.id,
+      paymentInterval: interval 
+    });
   };
 
   if (isLoading || isBusinessLoading) {
@@ -71,31 +56,28 @@ const SubscriptionPage = () => {
     );
   }
 
-  // Show business creation prompt if no business found
-  if (!business && !businessError) {
+  if (!business) {
     return (
       <DashboardLayout>
         <div className="space-y-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Subscription Plans</h1>
-            <div className="max-w-2xl mx-auto">
-              <Card className="border-orange-200 bg-orange-50">
-                <CardHeader>
-                  <CardTitle className="text-orange-800">Business Setup Required</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-orange-700 mb-4">
-                    You need to set up your business profile before subscribing to a plan.
-                  </p>
-                  <button
-                    onClick={() => window.location.href = '/app/settings'}
-                    className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
-                  >
-                    Set Up Business
-                  </button>
-                </CardContent>
-              </Card>
-            </div>
+            <Card className="border-orange-200 bg-orange-50 max-w-2xl mx-auto">
+              <CardHeader>
+                <CardTitle className="text-orange-800">Business Setup Required</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-orange-700 mb-4">
+                  You need to set up your business profile before subscribing to a plan.
+                </p>
+                <button
+                  onClick={() => window.location.href = '/app/settings'}
+                  className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
+                >
+                  Set Up Business
+                </button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </DashboardLayout>
@@ -106,9 +88,10 @@ const SubscriptionPage = () => {
     <DashboardLayout>
       <div className="space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Subscription Plans</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Choose the perfect plan for your business. Start with a 14-day free trial with full access to all features.
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            Flexible pricing options to match your business needs. Start with a free trial, 
+            pay as you grow, or choose a subscription plan with great discounts for longer commitments.
           </p>
         </div>
 
@@ -116,80 +99,113 @@ const SubscriptionPage = () => {
           <div className="max-w-2xl mx-auto">
             <SubscriptionStatus
               subscription={subscription}
-              onUpgrade={handleUpgrade}
-              businessId={business?.id || ''}
+              onUpgrade={() => {}}
+              businessId={business.id}
             />
           </div>
         )}
 
-        <Tabs defaultValue="plans" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-            <TabsTrigger value="plans">All Plans</TabsTrigger>
-            <TabsTrigger value="payment">Payment Options</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="plans" className="space-y-8">
-            <div data-plans-section>
-              <h2 className="text-2xl font-semibold text-center mb-8">Available Plans</h2>
-              <SubscriptionPlans
-                currentPlan={subscription?.plan_type}
-                onSelectPlan={handleSelectPlan}
-                isLoading={isCreatingSubscription}
-              />
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="payment" className="space-y-8">
-            <PaystackIntegration />
-          </TabsContent>
-        </Tabs>
+        {/* Payment Method Information */}
+        <div className="max-w-4xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                Enhanced Payment Options
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-blue-600 mt-1" />
+                  <div>
+                    <h4 className="font-medium">M-Pesa STK Push</h4>
+                    <p className="text-sm text-gray-600">Direct payment from your M-Pesa account</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="w-5 h-5 text-purple-600 mt-1" />
+                  <div>
+                    <h4 className="font-medium">Multiple Options</h4>
+                    <p className="text-sm text-gray-600">Cards, bank transfer, USSD via Paystack</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Users className="w-5 h-5 text-green-600 mt-1" />
+                  <div>
+                    <h4 className="font-medium">Auto-Split Payments</h4>
+                    <p className="text-sm text-gray-600">Automatic revenue sharing for pay-as-you-go</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card className="max-w-4xl mx-auto">
+        <EnhancedSubscriptionPlans
+          currentPlan={subscription?.plan_type}
+          businessId={business.id}
+          customerEmail={user?.email}
+          onSelectPlan={handleSelectPlan}
+          isLoading={isCreatingSubscription}
+        />
+
+        {/* Plan Comparison Details */}
+        <Card className="max-w-6xl mx-auto">
           <CardHeader>
-            <CardTitle>Plan Comparison</CardTitle>
+            <CardTitle>Plan Details & Features</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
-              <div>
-                <h4 className="font-semibold mb-2">Free Trial</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-orange-600" />
+                  <h4 className="font-semibold">Free Trial</h4>
+                </div>
                 <ul className="space-y-1 text-gray-600">
+                  <li>• KES 10 initialization fee</li>
                   <li>• 14 days full access</li>
-                  <li>• All features included</li>
-                  <li>• No limitations</li>
+                  <li>• All features unlocked</li>
                   <li>• Perfect for testing</li>
-                  <li>• QR code system</li>
+                  <li>• No monthly charges</li>
                 </ul>
               </div>
-              <div>
-                <h4 className="font-semibold mb-2">Starter Plan</h4>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-purple-600" />
+                  <h4 className="font-semibold">Pay As You Go</h4>
+                </div>
                 <ul className="space-y-1 text-gray-600">
-                  <li>• Up to 5 staff members</li>
-                  <li>• 1,000 bookings/month</li>
-                  <li>• QR code system</li>
-                  <li>• Basic analytics</li>
-                  <li>• Email support</li>
+                  <li>• KES 10 initialization fee</li>
+                  <li>• 7% commission per booking</li>
+                  <li>• Prepaid bookings only</li>
+                  <li>• Automatic settlements</li>
+                  <li>• Perfect for low volume</li>
                 </ul>
               </div>
-              <div>
-                <h4 className="font-semibold mb-2">Business Plan</h4>
+
+              <div className="space-y-3">
+                <Badge className="bg-blue-100 text-blue-800 mb-2">Popular Choice</Badge>
+                <h4 className="font-semibold">Subscription Plans</h4>
                 <ul className="space-y-1 text-gray-600">
-                  <li>• Up to 15 staff members</li>
-                  <li>• 3,000 bookings/month</li>
-                  <li>• QR code system</li>
-                  <li>• Advanced analytics</li>
-                  <li>• Email support</li>
+                  <li>• Starter: 5 staff, 1K bookings</li>
+                  <li>• Business: 15 staff, 3K bookings</li>
+                  <li>• Enterprise: Unlimited</li>
+                  <li>• Up to 30% discount</li>
+                  <li>• Predictable monthly costs</li>
                 </ul>
               </div>
-              <div>
-                <h4 className="font-semibold mb-2">Enterprise Plan</h4>
+
+              <div className="space-y-3">
+                <h4 className="font-semibold">All Plans Include</h4>
                 <ul className="space-y-1 text-gray-600">
-                  <li>• Unlimited staff</li>
-                  <li>• Unlimited bookings</li>
-                  <li>• Advanced analytics</li>
-                  <li>• Priority support</li>
-                  <li>• API access</li>
-                  <li>• Custom integrations</li>
-                  <li>• QR code system</li>
+                  <li>• QR code booking system</li>
+                  <li>• WhatsApp notifications</li>
+                  <li>• Online booking calendar</li>
+                  <li>• Client management</li>
+                  <li>• Payment processing</li>
+                  <li>• Analytics dashboard</li>
                 </ul>
               </div>
             </div>

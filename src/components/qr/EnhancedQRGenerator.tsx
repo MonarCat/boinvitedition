@@ -27,11 +27,26 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
   const [businessData, setBusinessData] = useState<any>(null);
   const [hasServices, setHasServices] = useState(false);
   
-  // Generate the booking URL - use production domain when available
-  const baseUrl = window.location.hostname.includes('netlify.app') || window.location.hostname.includes('lovable.app') 
-    ? 'https://boinvit.netlify.app' 
-    : window.location.origin;
-  const bookingUrl = `${baseUrl}/book/${businessId}`;
+  // Fixed domain detection - use production domain
+  const getBookingUrl = () => {
+    const currentDomain = window.location.hostname;
+    console.log('QR Debug: Current domain:', currentDomain);
+    
+    // Use production domains
+    if (currentDomain.includes('lovableproject.com')) {
+      return `${window.location.origin}/book/${businessId}`;
+    } else if (currentDomain.includes('netlify.app')) {
+      return `https://boinvit.com/book/${businessId}`;
+    } else if (currentDomain === 'localhost' || currentDomain.includes('127.0.0.1')) {
+      return `${window.location.origin}/book/${businessId}`;
+    } else {
+      // Default to production domain
+      return `https://boinvit.com/book/${businessId}`;
+    }
+  };
+  
+  const bookingUrl = getBookingUrl();
+  console.log('QR Debug: Generated booking URL:', bookingUrl);
   
   // Comprehensive validation and QR generation
   useEffect(() => {
@@ -51,6 +66,7 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
 
       setIsValidating(true);
       console.log('QR Debug: Starting validation for business:', businessId);
+      console.log('QR Debug: Booking URL to encode:', bookingUrl);
       
       try {
         // Validate business exists and is active
@@ -58,11 +74,17 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
           .from('businesses')
           .select('id, name, is_active, user_id, description, phone, email')
           .eq('id', businessId)
-          .eq('is_active', true)
           .single();
 
-        if (businessError || !business) {
+        if (businessError) {
           console.error('QR Error: Business validation failed:', businessError);
+          setValidationStatus('invalid');
+          toast.error('Business not found or inactive');
+          return;
+        }
+
+        if (!business || !business.is_active) {
+          console.error('QR Error: Business not found or inactive:', business);
           setValidationStatus('invalid');
           toast.error('Business not found or inactive');
           return;
@@ -80,7 +102,6 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
 
         if (servicesError) {
           console.error('QR Error: Services check failed:', servicesError);
-          toast.error('Error checking business services');
         }
 
         const activeServices = services || [];
@@ -89,18 +110,18 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
 
         setValidationStatus('valid');
 
-        // Generate high-quality QR code
+        // Generate high-quality QR code with the correct URL
         if (canvasRef.current) {
           await QRCode.toCanvas(canvasRef.current, bookingUrl, {
             width: 300,
             margin: 2,
-            errorCorrectionLevel: 'H', // High error correction (30% damage tolerance)
+            errorCorrectionLevel: 'H',
             color: {
               dark: '#000000',
               light: '#FFFFFF'
             }
           });
-          console.log('QR Debug: QR code generated successfully');
+          console.log('QR Debug: QR code generated successfully for URL:', bookingUrl);
         }
 
       } catch (error) {
@@ -163,6 +184,7 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
 
   const testBooking = () => {
     if (validationStatus === 'valid') {
+      console.log('QR Debug: Testing booking URL:', bookingUrl);
       window.open(bookingUrl, '_blank');
     } else {
       toast.error('Cannot test invalid booking URL');
@@ -172,54 +194,57 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
   const refreshValidation = () => {
     setValidationStatus('pending');
     setIsValidating(true);
-    // Trigger re-validation without page reload
-    const validateAndGenerateQR = async () => {
-      if (!businessId || !isValidUUID(businessId)) {
-        setValidationStatus('invalid');
-        setIsValidating(false);
-        return;
-      }
-
-      try {
-        const { data: business, error: businessError } = await supabase
-          .from('businesses')
-          .select('id, name, is_active, user_id, description, phone, email')
-          .eq('id', businessId)
-          .eq('is_active', true)
-          .single();
-
-        if (businessError || !business) {
+    console.log('QR Debug: Refreshing validation...');
+    
+    // Trigger re-validation
+    setTimeout(() => {
+      const validateAndGenerateQR = async () => {
+        if (!businessId || !isValidUUID(businessId)) {
           setValidationStatus('invalid');
-          toast.error('Business not found or inactive');
+          setIsValidating(false);
           return;
         }
 
-        setBusinessData(business);
-        setValidationStatus('valid');
-        
-        // Regenerate QR code
-        if (canvasRef.current) {
-          await QRCode.toCanvas(canvasRef.current, bookingUrl, {
-            width: 300,
-            margin: 2,
-            errorCorrectionLevel: 'H',
-            color: {
-              dark: '#000000',
-              light: '#FFFFFF'
-            }
-          });
+        try {
+          const { data: business, error: businessError } = await supabase
+            .from('businesses')
+            .select('id, name, is_active, user_id, description, phone, email')
+            .eq('id', businessId)
+            .single();
+
+          if (businessError || !business || !business.is_active) {
+            setValidationStatus('invalid');
+            toast.error('Business not found or inactive');
+            return;
+          }
+
+          setBusinessData(business);
+          setValidationStatus('valid');
+          
+          // Regenerate QR code
+          if (canvasRef.current) {
+            await QRCode.toCanvas(canvasRef.current, bookingUrl, {
+              width: 300,
+              margin: 2,
+              errorCorrectionLevel: 'H',
+              color: {
+                dark: '#000000',
+                light: '#FFFFFF'
+              }
+            });
+          }
+          
+          toast.success('QR code refreshed successfully');
+        } catch (error) {
+          setValidationStatus('invalid');
+          toast.error('Failed to refresh QR code');
+        } finally {
+          setIsValidating(false);
         }
-        
-        toast.success('QR code refreshed successfully');
-      } catch (error) {
-        setValidationStatus('invalid');
-        toast.error('Failed to refresh QR code');
-      } finally {
-        setIsValidating(false);
-      }
-    };
-    
-    validateAndGenerateQR();
+      };
+      
+      validateAndGenerateQR();
+    }, 100);
   };
 
   const getStatusBadge = () => {
@@ -378,6 +403,7 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
               <li>• High error correction (30% damage tolerance)</li>
               <li>• Optimized for mobile camera scanning</li>
               <li>• Points to verified booking page</li>
+              <li>• URL: {bookingUrl}</li>
               {hasServices && <li>• Services available for booking</li>}
               {!hasServices && <li>• ⚠️ No active services found</li>}
             </ul>

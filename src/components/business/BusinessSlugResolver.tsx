@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { resolveBusinessSlug } from '@/utils/businessSlug';
-import PublicBookingPage from '@/pages/PublicBookingPage';
 import { BusinessNotFound } from './location/BusinessNotFound';
 
 const BusinessSlugResolver = () => {
@@ -61,7 +60,8 @@ const BusinessSlugResolver = () => {
     return <BusinessNotFound slug={slug} />;
   }
 
-  return <PublicBookingPage businessId={businessId} />;
+  // Navigate to the public booking page with the resolved business ID
+  return <Navigate to={`/book/${businessId}`} replace />;
 };
 
 export default BusinessSlugResolver;

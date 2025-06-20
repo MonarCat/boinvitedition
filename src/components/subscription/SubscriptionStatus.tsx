@@ -42,13 +42,14 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   const trialEndsAt = subscription.trial_ends_at ? new Date(subscription.trial_ends_at) : null;
   const daysRemaining = trialEndsAt ? differenceInDays(trialEndsAt, new Date()) : 0;
   const isExpiring = daysRemaining <= 3 && daysRemaining > 0;
-  const isExpired = daysRemaining <= 0;
+  const isExpired = daysRemaining <= 0 && isTrialPlan;
 
   const getPlanDisplayName = (planType: string) => {
     switch (planType) {
       case 'trial': return 'Free Trial';
-      case 'medium': return 'Medium Plan';
-      case 'premium': return 'Premium Plan';
+      case 'starter': return 'Starter Plan';
+      case 'medium': return 'Business Plan';
+      case 'premium': return 'Enterprise Plan';
       default: return planType;
     }
   };

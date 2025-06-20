@@ -45,16 +45,25 @@ function App() {
           <Router>
             <div className="min-h-screen bg-background font-sans antialiased">
               <Routes>
-                {/* Main App Routes - these should come BEFORE the business slug route */}
+                {/* Static Routes - These must come FIRST before any dynamic routes */}
                 <Route path="/" element={<Index />} />
                 <Route path="/landing" element={<LandingPage />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/login" element={<AuthPage />} />
                 <Route path="/demo" element={<DemoPage />} />
                 <Route path="/discover" element={<BusinessDiscoveryPage />} />
+                
+                {/* Authentication Routes - CRITICAL: These must come before /:slug */}
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/login" element={<AuthPage />} />
+                <Route path="/signup" element={<AuthPage />} />
+                
+                {/* Booking Routes */}
                 <Route path="/book/:businessId" element={<PublicBookingPage />} />
-                <Route path="/app/*" element={<AuthenticatedApp />} />
+                
+                {/* Admin Routes */}
                 <Route path="/admin/first-setup" element={<FirstAdminPage />} />
+                
+                {/* App Routes */}
+                <Route path="/app/*" element={<AuthenticatedApp />} />
                 
                 {/* Legal Pages */}
                 <Route path="/safety-tips" element={<SafetyTips />} />
@@ -62,10 +71,10 @@ function App() {
                 <Route path="/terms-of-service" element={<TermsOfService />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
                 
-                {/* Business Slug Route - This should come last to catch business slugs */}
+                {/* Business Slug Route - This MUST come after all static routes */}
                 <Route path="/:slug" element={<BusinessSlugResolver />} />
                 
-                {/* 404 Page */}
+                {/* 404 Fallback */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
               

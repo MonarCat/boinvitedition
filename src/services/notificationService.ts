@@ -20,8 +20,7 @@ export class NotificationService {
           *,
           businesses (name, phone, email, address),
           clients (name, email, phone),
-          services (name, duration_minutes),
-          subscriptions (notification_channels)
+          services (name, duration_minutes)
         `)
         .eq('id', bookingId)
         .single();
@@ -31,12 +30,19 @@ export class NotificationService {
         return;
       }
 
+      // Get subscription details separately using business_id
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('notification_channels')
+        .eq('business_id', booking.business_id)
+        .maybeSingle();
+
       const business = booking.businesses;
       const client = booking.clients;
       const service = booking.services;
 
       // Check subscription notification preferences
-      const notificationChannels = booking.subscriptions?.notification_channels || {};
+      const notificationChannels = subscription?.notification_channels || { email: true, sms: false, whatsapp: false };
 
       const reminderMessage = `
         Hi ${client.name},

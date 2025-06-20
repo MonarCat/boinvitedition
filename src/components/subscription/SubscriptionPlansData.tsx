@@ -35,14 +35,15 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'trial',
     name: 'Free Trial',
-    description: '14 days of full access with one-time setup fee',
+    description: '7 days of full premium access with one-time setup fee',
     features: [
-      '14 days complete access',
-      'All premium features included',
+      '7 days complete premium access',
+      'All Business Plan features included',
       'QR code booking system',
       'WhatsApp notifications',
       'Client management',
-      'Perfect for testing'
+      'Perfect for testing',
+      'Auto-upgrade to Business Plan after 7 days'
     ],
     pricing: {
       monthly: 10,
@@ -74,7 +75,8 @@ export const subscriptionPlans: SubscriptionPlan[] = [
       'Automatic 93% payment to you',
       'Real-time settlements',
       'QR code booking system',
-      'WhatsApp notifications'
+      'WhatsApp notifications',
+      'Payment option disabled for businesses'
     ],
     pricing: {
       monthly: 10,
@@ -106,7 +108,8 @@ export const subscriptionPlans: SubscriptionPlan[] = [
       'WhatsApp notifications',
       'Basic analytics dashboard',
       'Email support',
-      'No commission fees'
+      'No commission fees',
+      'Client payment options'
     ],
     pricing: {
       monthly: 1020,
@@ -130,7 +133,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'medium',
     name: 'Business Plan',
-    description: 'Perfect for growing businesses',
+    description: 'Perfect for growing businesses - Auto-upgrade after trial',
     features: [
       'Up to 15 staff members',
       '3,000 bookings per month',
@@ -139,7 +142,9 @@ export const subscriptionPlans: SubscriptionPlan[] = [
       'Advanced analytics & reports',
       'Priority email support',
       'Custom branding options',
-      'No commission fees'
+      'No commission fees',
+      'Client payment options',
+      'Auto-upgrade from trial'
     ],
     pricing: {
       monthly: 2900,
@@ -175,7 +180,8 @@ export const subscriptionPlans: SubscriptionPlan[] = [
       'Custom integrations',
       'API access',
       'White-label options',
-      'No commission fees'
+      'No commission fees',
+      'Client payment options'
     ],
     pricing: {
       monthly: 9900,

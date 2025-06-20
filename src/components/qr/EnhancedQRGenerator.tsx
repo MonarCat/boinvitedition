@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
@@ -28,8 +27,10 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
   const [businessData, setBusinessData] = useState<any>(null);
   const [hasServices, setHasServices] = useState(false);
   
-  // Generate the booking URL
-  const baseUrl = window.location.origin;
+  // Generate the booking URL - use production domain when available
+  const baseUrl = window.location.hostname.includes('netlify.app') || window.location.hostname.includes('lovable.app') 
+    ? 'https://boinvit.netlify.app' 
+    : window.location.origin;
   const bookingUrl = `${baseUrl}/book/${businessId}`;
   
   // Comprehensive validation and QR generation
@@ -171,8 +172,54 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
   const refreshValidation = () => {
     setValidationStatus('pending');
     setIsValidating(true);
-    // Trigger re-validation by updating a dependency
-    window.location.reload();
+    // Trigger re-validation without page reload
+    const validateAndGenerateQR = async () => {
+      if (!businessId || !isValidUUID(businessId)) {
+        setValidationStatus('invalid');
+        setIsValidating(false);
+        return;
+      }
+
+      try {
+        const { data: business, error: businessError } = await supabase
+          .from('businesses')
+          .select('id, name, is_active, user_id, description, phone, email')
+          .eq('id', businessId)
+          .eq('is_active', true)
+          .single();
+
+        if (businessError || !business) {
+          setValidationStatus('invalid');
+          toast.error('Business not found or inactive');
+          return;
+        }
+
+        setBusinessData(business);
+        setValidationStatus('valid');
+        
+        // Regenerate QR code
+        if (canvasRef.current) {
+          await QRCode.toCanvas(canvasRef.current, bookingUrl, {
+            width: 300,
+            margin: 2,
+            errorCorrectionLevel: 'H',
+            color: {
+              dark: '#000000',
+              light: '#FFFFFF'
+            }
+          });
+        }
+        
+        toast.success('QR code refreshed successfully');
+      } catch (error) {
+        setValidationStatus('invalid');
+        toast.error('Failed to refresh QR code');
+      } finally {
+        setIsValidating(false);
+      }
+    };
+    
+    validateAndGenerateQR();
   };
 
   const getStatusBadge = () => {

@@ -100,7 +100,7 @@ export const usePublicBookingData = (businessId: string | undefined, isValidUUID
       return failureCount < 2 && !error.message.includes('not found');
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (changed from cacheTime)
   });
 
   const servicesQuery = useQuery({

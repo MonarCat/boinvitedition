@@ -5,8 +5,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/lib/ThemeProvider";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/hooks/useAuth';
-import { PWAStatus } from '@/components/pwa/PWAStatus';
-import { InstallPrompt } from '@/components/pwa/InstallPrompt';
+import PWAStatus from '@/components/pwa/PWAStatus';
+import InstallPrompt from '@/components/pwa/InstallPrompt';
 import { NetworkStatus } from '@/components/ui/network-status';
 import AuthenticatedApp from '@/pages/AuthenticatedApp';
 import Index from '@/pages/Index';
@@ -41,7 +41,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider defaultTheme="light" storageKey="app-theme">
+        <ThemeProvider>
           <Router>
             <div className="min-h-screen bg-background font-sans antialiased">
               <Routes>

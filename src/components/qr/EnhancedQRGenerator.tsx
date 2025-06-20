@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
@@ -30,14 +31,14 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
   const [isMinimized, setIsMinimized] = useState(false);
   const [businessSlug, setBusinessSlug] = useState('');
   
-  // Generate clean URL using business slug
+  // Generate clean URL using business slug - this is the main booking URL
   const getBookingUrl = () => {
     const slug = businessSlug || generateBusinessSlug(businessName);
     return `https://boinvit.com/${slug}`;
   };
   
   const bookingUrl = getBookingUrl();
-  console.log('QR Debug: Using clean URL:', bookingUrl);
+  console.log('QR Debug: Final booking URL:', bookingUrl);
   
   // Generate alternative booking methods
   const getAlternativeBookingMethods = () => {
@@ -100,6 +101,14 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
         setBusinessSlug(slug);
         console.log('QR Debug: Generated slug:', slug);
 
+        // Validate slug
+        if (!isValidSlug(slug)) {
+          console.error('QR Error: Invalid slug generated:', slug);
+          setValidationStatus('invalid');
+          toast.error('Invalid business name for URL generation');
+          return;
+        }
+
         // Check if business has active services
         const { data: services, error: servicesError } = await supabase
           .from('services')
@@ -119,7 +128,7 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
 
         // Generate high-quality QR code with the clean URL
         const finalUrl = `https://boinvit.com/${slug}`;
-        console.log('QR Debug: Final booking URL:', finalUrl);
+        console.log('QR Debug: Generating QR for URL:', finalUrl);
         
         if (canvasRef.current) {
           await QRCode.toCanvas(canvasRef.current, finalUrl, {
@@ -132,6 +141,7 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
             }
           });
           console.log('QR Debug: QR code generated successfully for URL:', finalUrl);
+          toast.success('QR code generated successfully!');
         }
 
       } catch (error) {
@@ -197,55 +207,10 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
     setIsValidating(true);
     console.log('QR Debug: Refreshing validation...');
     
+    // Re-trigger the validation
     setTimeout(() => {
-      const validateAndGenerateQR = async () => {
-        if (!businessId || !isValidUUID(businessId)) {
-          setValidationStatus('invalid');
-          setIsValidating(false);
-          return;
-        }
-
-        try {
-          const { data: business, error: businessError } = await supabase
-            .from('businesses')
-            .select('id, name, is_active, user_id, description, phone, email')
-            .eq('id', businessId)
-            .single();
-
-          if (businessError || !business || !business.is_active) {
-            setValidationStatus('invalid');
-            toast.error('Business not found or inactive');
-            return;
-          }
-
-          setBusinessData(business);
-          const slug = generateBusinessSlug(business.name);
-          setBusinessSlug(slug);
-          setValidationStatus('valid');
-          
-          const finalUrl = `https://boinvit.com/${slug}`;
-          if (canvasRef.current) {
-            await QRCode.toCanvas(canvasRef.current, finalUrl, {
-              width: 300,
-              margin: 2,
-              errorCorrectionLevel: 'H',
-              color: {
-                dark: '#000000',
-                light: '#FFFFFF'
-              }
-            });
-          }
-          
-          toast.success('QR code refreshed successfully');
-        } catch (error) {
-          setValidationStatus('invalid');
-          toast.error('Failed to refresh QR code');
-        } finally {
-          setIsValidating(false);
-        }
-      };
-      
-      validateAndGenerateQR();
+      const event = new Event('refresh');
+      window.dispatchEvent(event);
     }, 100);
   };
 
@@ -280,7 +245,7 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <QrCode className="w-5 h-5" />
-            Booking System
+            QR Booking System
           </CardTitle>
           <Button
             variant="ghost"
@@ -306,7 +271,7 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
               </Button>
             </div>
             <p className="text-sm text-gray-600">
-              Clean URLs for {businessName}
+              Clean URLs: {businessSlug}.boinvit.com
             </p>
           </>
         )}
@@ -322,7 +287,10 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
                 <strong>Name:</strong> {businessData.name}
               </p>
               <p className="text-xs text-blue-800">
-                <strong>Clean URL:</strong> {businessSlug}.boinvit.com
+                <strong>Slug:</strong> {businessSlug}
+              </p>
+              <p className="text-xs text-blue-800">
+                <strong>URL:</strong> boinvit.com/{businessSlug}
               </p>
               {businessData.phone && (
                 <p className="text-xs text-blue-800">
@@ -370,6 +338,42 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
             </div>
           </div>
 
+          {/* Primary Action Buttons */}
+          <div className="grid grid-cols-1 gap-2">
+            <Button 
+              onClick={copyUrl} 
+              variant="default" 
+              size="sm"
+              disabled={validationStatus !== 'valid'}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              Copy Clean URL
+            </Button>
+            
+            <div className="grid grid-cols-2 gap-2">
+              <Button 
+                onClick={downloadQR} 
+                variant="outline" 
+                size="sm"
+                disabled={validationStatus !== 'valid'}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download QR
+              </Button>
+              
+              <Button 
+                onClick={testBooking} 
+                variant="outline" 
+                size="sm"
+                disabled={validationStatus !== 'valid'}
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Test Booking
+              </Button>
+            </div>
+          </div>
+
           {/* Alternative Booking Methods */}
           <div className="space-y-3">
             <h4 className="font-medium text-sm">Share Your Business:</h4>
@@ -410,49 +414,13 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
             </div>
           </div>
 
-          {/* Primary Action Buttons */}
-          <div className="grid grid-cols-1 gap-2">
-            <Button 
-              onClick={copyUrl} 
-              variant="default" 
-              size="sm"
-              disabled={validationStatus !== 'valid'}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Copy className="w-4 h-4 mr-2" />
-              Copy Clean URL
-            </Button>
-            
-            <div className="grid grid-cols-2 gap-2">
-              <Button 
-                onClick={downloadQR} 
-                variant="outline" 
-                size="sm"
-                disabled={validationStatus !== 'valid'}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download QR
-              </Button>
-              
-              <Button 
-                onClick={testBooking} 
-                variant="outline" 
-                size="sm"
-                disabled={validationStatus !== 'valid'}
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Test Booking
-              </Button>
-            </div>
-          </div>
-
           {/* Status Messages */}
           {validationStatus === 'valid' && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <h5 className="font-medium text-green-900 mb-2 text-sm">✅ Clean URL Ready!</h5>
+              <h5 className="font-medium text-green-900 mb-2 text-sm">✅ QR Code Ready!</h5>
               <ul className="text-xs text-green-800 space-y-1">
                 <li>• Business verified and active</li>
-                <li>• Clean URL: {businessSlug}.boinvit.com</li>
+                <li>• Clean URL: boinvit.com/{businessSlug}</li>
                 <li>• QR code points to clean URL</li>
                 <li>• High error correction enabled</li>
                 <li>• Mobile-optimized scanning</li>

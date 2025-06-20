@@ -14,6 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { validateBusinessSetup, getBusinessSetupCompleteness } from '@/utils/businessValidation';
+import { generateBusinessSlug } from '@/utils/businessSlug';
 
 const ServicesPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -59,6 +60,9 @@ const ServicesPage = () => {
   });
 
   const completeness = businessValidation ? getBusinessSetupCompleteness(businessValidation) : 0;
+
+  // Generate business slug for display
+  const businessSlug = business ? generateBusinessSlug(business.name) : '';
 
   return (
     <DashboardLayout>
@@ -154,7 +158,7 @@ const ServicesPage = () => {
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Client Booking System</h2>
             <p className="text-gray-600">
-              Multiple ways for clients to discover and book your services. QR codes, direct links, and social sharing all point to your custom domain: <strong>boinvit.com</strong>
+              QR codes and direct links for clients to book your services. Clean URLs using your business name.
             </p>
           </div>
           
@@ -167,30 +171,33 @@ const ServicesPage = () => {
               {/* Additional Booking Options */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Direct Booking Options</CardTitle>
+                  <CardTitle className="text-lg">Clean URL Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-medium text-blue-900 mb-2">Your Booking URL:</h4>
+                    <h4 className="font-medium text-blue-900 mb-2">Your Clean Booking URL:</h4>
                     <code className="text-sm bg-white p-2 rounded border break-all block">
-                      https://boinvit.com/book/{business.id}
+                      https://boinvit.com/{businessSlug}
                     </code>
+                    <p className="text-xs text-blue-700 mt-2">
+                      This clean URL redirects to your full booking page automatically.
+                    </p>
                   </div>
                   
                   <div className="space-y-3">
-                    <h4 className="font-medium">Share Methods:</h4>
+                    <h4 className="font-medium">Marketing Benefits:</h4>
                     <ul className="text-sm space-y-2 text-gray-700">
-                      <li>• Print QR codes on business cards</li>
-                      <li>• Share booking link via WhatsApp Business</li>
-                      <li>• Email booking link to clients</li>
-                      <li>• Post on social media platforms</li>
-                      <li>• Add to your website or Google My Business</li>
+                      <li>• Easy to remember and share</li>
+                      <li>• Professional appearance</li>
+                      <li>• Works in QR codes perfectly</li>
+                      <li>• SEO-friendly business name</li>
+                      <li>• No complex IDs for customers</li>
                     </ul>
                   </div>
 
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                     <p className="text-sm text-green-800">
-                      <strong>✅ Custom Domain Active:</strong> All booking links use your professional boinvit.com domain
+                      <strong>✅ Ready for Publishing:</strong> Your booking system uses clean, professional URLs perfect for marketing materials.
                     </p>
                   </div>
                 </CardContent>

@@ -1,84 +1,83 @@
 
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
-import AuthenticatedApp from "@/pages/AuthenticatedApp";
-import LandingPage from "@/pages/LandingPage";
-import AuthPage from "@/pages/AuthPage";
-import DemoPage from "@/pages/DemoPage";
-import PublicBookingPage from "@/pages/PublicBookingPage";
-import TermsOfService from "@/pages/TermsOfService";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import CookiePolicy from "@/pages/CookiePolicy";
-import SafetyTips from "@/pages/SafetyTips";
-import NotFound from "@/pages/NotFound";
-import InstallPrompt from "@/components/pwa/InstallPrompt";
-import PWAStatus from "@/components/pwa/PWAStatus";
-import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
-import { useSystemDarkMode } from "@/lib/useSystemDarkMode";
+import { ThemeProvider } from "@/lib/ThemeProvider";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from '@/hooks/useAuth';
+import { PWAStatus } from '@/components/pwa/PWAStatus';
+import { InstallPrompt } from '@/components/pwa/InstallPrompt';
+import { NetworkStatus } from '@/components/ui/network-status';
+import AuthenticatedApp from '@/pages/AuthenticatedApp';
+import Index from '@/pages/Index';
+import LandingPage from '@/pages/LandingPage';
+import AuthPage from '@/pages/AuthPage';
+import DemoPage from '@/pages/DemoPage';
+import BusinessDiscoveryPage from '@/pages/BusinessDiscoveryPage';
+import PublicBookingPage from '@/pages/PublicBookingPage';
+import BusinessSlugResolver from '@/components/business/BusinessSlugResolver';
+import SafetyTips from '@/pages/SafetyTips';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import TermsOfService from '@/pages/TermsOfService';
+import CookiePolicy from '@/pages/CookiePolicy';
+import NotFound from '@/pages/NotFound';
+import FirstAdminPage from '@/pages/FirstAdminPage';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      retry: (failureCount, error) => {
+        if (error?.message?.includes('404') || error?.message?.includes('not found')) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+    },
+  },
+});
 
-const App = () => {
-  useSystemDarkMode();
-  
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <BrowserRouter>
-          <AuthProvider>
-            <div className="relative">
+      <AuthProvider>
+        <ThemeProvider defaultTheme="light" storageKey="app-theme">
+          <Router>
+            <div className="min-h-screen bg-background font-sans antialiased">
               <Routes>
-                {/* Landing page as default */}
-                <Route path="/" element={<LandingPage />} />
+                {/* Main App Routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/landing" element={<LandingPage />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/demo" element={<DemoPage />} />
-                
-                {/* Business Discovery Map */}
                 <Route path="/discover" element={<BusinessDiscoveryPage />} />
-                
-                {/* QR Code booking routes - Multiple variations for reliability */}
                 <Route path="/book/:businessId" element={<PublicBookingPage />} />
-                <Route path="/booking/:businessId" element={<PublicBookingPage />} />
-                <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
-                
-                {/* Authenticated app routes */}
                 <Route path="/app/*" element={<AuthenticatedApp />} />
+                <Route path="/admin/first-setup" element={<FirstAdminPage />} />
                 
-                {/* Legal pages */}
-                <Route path="/terms" element={<TermsOfService />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/cookies" element={<CookiePolicy />} />
-                <Route path="/safety" element={<SafetyTips />} />
+                {/* Legal Pages */}
+                <Route path="/safety-tips" element={<SafetyTips />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
+                <Route path="/cookie-policy" element={<CookiePolicy />} />
                 
-                {/* Legacy route redirects */}
-                <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
-                <Route path="/services" element={<Navigate to="/app/services" replace />} />
-                <Route path="/booking-management" element={<Navigate to="/app/bookings" replace />} />
-                <Route path="/clients" element={<Navigate to="/app/clients" replace />} />
-                <Route path="/staff" element={<Navigate to="/app/staff" replace />} />
-                <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
-                <Route path="/invoices" element={<Navigate to="/app/invoices" replace />} />
-                <Route path="/subscription" element={<Navigate to="/app/subscription" replace />} />
+                {/* Business Slug Route - This should come last to catch business slugs */}
+                <Route path="/:slug" element={<BusinessSlugResolver />} />
                 
-                {/* Catch all - 404 page */}
+                {/* 404 Page */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
               
-              {/* PWA Components */}
+              <Toaster />
+              <PWAStatus />
               <InstallPrompt />
-              <div className="fixed top-4 right-4 z-40">
-                <PWAStatus />
-              </div>
+              <NetworkStatus />
             </div>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+          </Router>
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;

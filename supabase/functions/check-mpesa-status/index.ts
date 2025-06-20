@@ -19,7 +19,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { checkoutRequestId }: StatusCheckRequest = await req.json();
 
-    console.log('Checking M-Pesa status for:', checkoutRequestId);
+    console.log('Checking payment status for:', checkoutRequestId);
 
     // Initialize Supabase client
     const supabaseClient = createClient(
@@ -27,62 +27,71 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get Paystack secret key
-    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
-    if (!paystackSecretKey) {
-      throw new Error('Paystack secret key not configured');
+    // Check transaction status in our database
+    const { data: transaction, error } = await supabaseClient
+      .from('payment_transactions')
+      .select('*')
+      .eq('paystack_reference', checkoutRequestId)
+      .single();
+
+    if (error || !transaction) {
+      console.error('Transaction not found:', error);
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Transaction not found'
+        }),
+        { 
+          status: 404,
+          headers: { 
+            "Content-Type": "application/json", 
+            ...corsHeaders 
+          } 
+        }
+      );
     }
 
-    // Check transaction status with Paystack
-    const paystackResponse = await fetch(`https://api.paystack.co/charge/${checkoutRequestId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${paystackSecretKey}`,
-        'Content-Type': 'application/json',
+    // For mock transactions, simulate completion after 10 seconds
+    if (transaction.metadata?.is_mock) {
+      const createdAt = new Date(transaction.created_at);
+      const now = new Date();
+      const timeDiff = now.getTime() - createdAt.getTime();
+      
+      if (timeDiff > 10000) { // 10 seconds
+        // Update transaction to completed
+        await supabaseClient
+          .from('payment_transactions')
+          .update({
+            status: 'success',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', transaction.id);
+
+        return new Response(
+          JSON.stringify({ 
+            success: true,
+            status: 'completed',
+            reference: transaction.paystack_reference,
+            amount: transaction.amount,
+            rawStatus: 'success'
+          }),
+          { 
+            headers: { 
+              "Content-Type": "application/json", 
+              ...corsHeaders 
+            } 
+          }
+        );
       }
-    });
-
-    const paystackData = await paystackResponse.json();
-    console.log('Paystack Status Response:', paystackData);
-
-    if (!paystackData.status) {
-      throw new Error(paystackData.message || 'Failed to check payment status');
-    }
-
-    const transactionStatus = paystackData.data.status;
-    let appStatus = 'pending';
-
-    if (transactionStatus === 'success') {
-      appStatus = 'completed';
-      
-      // Update transaction in database
-      await supabaseClient
-        .from('payment_transactions')
-        .update({
-          status: 'success',
-          updated_at: new Date().toISOString()
-        })
-        .eq('paystack_reference', paystackData.data.reference);
-
-    } else if (transactionStatus === 'failed' || transactionStatus === 'cancelled') {
-      appStatus = 'failed';
-      
-      await supabaseClient
-        .from('payment_transactions')
-        .update({
-          status: 'failed',
-          updated_at: new Date().toISOString()
-        })
-        .eq('paystack_reference', paystackData.data.reference);
     }
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        status: appStatus,
-        reference: paystackData.data.reference,
-        amount: paystackData.data.amount / 100, // Convert from kobo
-        rawStatus: transactionStatus
+        status: transaction.status === 'success' ? 'completed' : 'pending',
+        reference: transaction.paystack_reference,
+        amount: transaction.amount,
+        rawStatus: transaction.status
       }),
       { 
         headers: { 

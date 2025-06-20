@@ -1,88 +1,67 @@
 
-import React, { useEffect, useState } from 'react';
-import { useParams, Navigate, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { generateBusinessSlug } from '@/utils/businessSlug';
-import { PublicBookingErrorPage } from '@/components/booking/PublicBookingErrorPage';
-import { LoadingScreen } from '@/components/ui/loading-screen';
+import { useEffect, useState } from 'react';
+import { useParams, Navigate } from 'react-router-dom';
+import { resolveBusinessSlug } from '@/utils/businessSlug';
+import PublicBookingPage from '@/pages/PublicBookingPage';
+import { BusinessNotFound } from './location/BusinessNotFound';
 
-const BusinessSlugResolver: React.FC = () => {
+const BusinessSlugResolver = () => {
   const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
   const [businessId, setBusinessId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const resolveBusinessSlug = async () => {
+    const resolveSlug = async () => {
       if (!slug) {
-        setError('No business slug provided');
-        setIsLoading(false);
+        setError('No slug provided');
+        setLoading(false);
         return;
       }
 
-      console.log('Slug Debug: Resolving slug:', slug);
+      // Skip resolution for known system routes that might accidentally get here
+      const systemRoutes = ['login', 'auth', 'signup', 'admin', 'api', 'dashboard', 'settings'];
+      if (systemRoutes.includes(slug.toLowerCase())) {
+        console.log('Slug Debug: Skipping system route:', slug);
+        setError('System route');
+        setLoading(false);
+        return;
+      }
 
       try {
-        // Fetch all active businesses and find matching slug
-        const { data: businesses, error: businessError } = await supabase
-          .from('businesses')
-          .select('id, name, is_active')
-          .eq('is_active', true);
-
-        if (businessError) {
-          console.error('Slug Error: Failed to fetch businesses:', businessError);
-          setError('Failed to resolve business');
-          setIsLoading(false);
-          return;
-        }
-
-        console.log('Slug Debug: Found businesses:', businesses?.length);
-
-        // Find business with matching slug
-        const matchingBusiness = businesses?.find(business => {
-          const businessSlug = generateBusinessSlug(business.name);
-          console.log('Slug Debug: Comparing', businessSlug, 'with', slug);
-          return businessSlug === slug;
-        });
-
-        if (matchingBusiness) {
-          console.log('Slug Debug: Found matching business:', matchingBusiness.name);
-          setBusinessId(matchingBusiness.id);
-          
-          // Navigate to the booking page with the resolved business ID
-          navigate(`/book/${matchingBusiness.id}`, { replace: true });
-        } else {
-          console.error('Slug Error: No business found for slug:', slug);
-          setError('Business not found');
-          setIsLoading(false);
-        }
+        console.log('Slug Debug: Resolving slug:', slug);
+        const resolvedBusinessId = await resolveBusinessSlug(slug);
+        console.log('Slug Debug: Resolved business ID:', resolvedBusinessId);
+        setBusinessId(resolvedBusinessId);
       } catch (error) {
-        console.error('Slug Error: Unexpected error:', error);
-        setError('Unexpected error occurred');
-        setIsLoading(false);
+        console.error('Slug Error:', error);
+        setError(error instanceof Error ? error.message : 'Unknown error');
+      } finally {
+        setLoading(false);
       }
     };
 
-    resolveBusinessSlug();
-  }, [slug, navigate]);
+    resolveSlug();
+  }, [slug]);
 
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
-  if (error) {
+  if (loading) {
     return (
-      <PublicBookingErrorPage
-        type="business-not-found"
-        error={error}
-        businessId={slug}
-      />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
-  // This component will navigate away, so this shouldn't render
-  return <LoadingScreen />;
+  if (error === 'System route') {
+    // Redirect system routes to the auth page or 404
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (error || !businessId) {
+    return <BusinessNotFound slug={slug} />;
+  }
+
+  return <PublicBookingPage businessId={businessId} />;
 };
 
 export default BusinessSlugResolver;

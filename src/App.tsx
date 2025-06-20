@@ -45,10 +45,11 @@ function App() {
           <Router>
             <div className="min-h-screen bg-background font-sans antialiased">
               <Routes>
-                {/* Main App Routes */}
+                {/* Main App Routes - these should come BEFORE the business slug route */}
                 <Route path="/" element={<Index />} />
                 <Route path="/landing" element={<LandingPage />} />
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/login" element={<AuthPage />} />
                 <Route path="/demo" element={<DemoPage />} />
                 <Route path="/discover" element={<BusinessDiscoveryPage />} />
                 <Route path="/book/:businessId" element={<PublicBookingPage />} />

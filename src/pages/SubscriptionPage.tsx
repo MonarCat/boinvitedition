@@ -3,7 +3,7 @@ import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { EnhancedSubscriptionPlans } from '@/components/subscription/EnhancedSubscriptionPlans';
 import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus';
-import { DirectPaystackSTK } from '@/components/payment/DirectPaystackSTK';
+import { WorkingMpesaSTK } from '@/components/payment/WorkingMpesaSTK';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -71,8 +71,8 @@ const SubscriptionPage = () => {
 
   const handlePaymentSuccess = (reference: string) => {
     toast.success('Payment completed successfully!');
-    // Redirect to success page or handle success
-    window.location.href = `/payment-success?reference=${reference}&method=direct_paystack`;
+    console.log('Payment successful with reference:', reference);
+    // You can add additional logic here like updating subscription status
   };
 
   const handlePaymentError = (error: any) => {
@@ -149,97 +149,33 @@ const SubscriptionPage = () => {
           />
         </div>
 
-        {/* Direct Payment Demo Section */}
-        <Card className="max-w-4xl mx-auto border-green-200 bg-green-50">
+        {/* Working M-Pesa Payment Demo */}
+        <Card className="max-w-md mx-auto border-green-200 bg-green-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-800">
               <CheckCircle className="w-5 h-5" />
-              Enhanced Direct Payment Integration
+              Test M-Pesa Payment
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p className="text-green-700">
-                Experience our new direct payment integration with Paystack STK Push and enhanced payment options.
+              <p className="text-green-700 text-sm">
+                Test the M-Pesa STK Push functionality with a sample payment.
               </p>
               
               {user?.email && (
-                <div className="max-w-md mx-auto">
-                  <DirectPaystackSTK
-                    amount={1000}
-                    email={user.email}
-                    description="Test Payment"
-                    onSuccess={handlePaymentSuccess}
-                    onError={handlePaymentError}
-                    metadata={{
-                      test: true,
-                      businessId: business?.id
-                    }}
-                  />
-                </div>
+                <WorkingMpesaSTK
+                  amount={100}
+                  email={user.email}
+                  description="Test Payment"
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentError}
+                  metadata={{
+                    test: true,
+                    businessId: business?.id
+                  }}
+                />
               )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Plan Comparison */}
-        <Card className="max-w-4xl mx-auto">
-          <CardHeader>
-            <CardTitle>Plan Comparison & Features</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 text-sm">
-              <div>
-                <h4 className="font-semibold mb-2">Free Trial</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• KES 10 setup fee</li>
-                  <li>• 7 days full access</li>
-                  <li>• All features included</li>
-                  <li>• Perfect for testing</li>
-                  <li>• QR code system</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Pay As You Go</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• No monthly fees</li>
-                  <li>• 7.5% per booking</li>
-                  <li>• Auto payment splitting</li>
-                  <li>• All premium features</li>
-                  <li>• Perfect for irregular bookings</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Starter Plan</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• Up to 5 staff members</li>
-                  <li>• 1,000 bookings/month</li>
-                  <li>• QR code system</li>
-                  <li>• Basic analytics</li>
-                  <li>• Email support</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Business Plan</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• Up to 15 staff members</li>
-                  <li>• 3,000 bookings/month</li>
-                  <li>• QR code system</li>
-                  <li>• Advanced analytics</li>
-                  <li>• Priority support</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Enterprise Plan</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• Unlimited staff</li>
-                  <li>• Unlimited bookings</li>
-                  <li>• Advanced analytics</li>
-                  <li>• Priority support</li>
-                  <li>• API access</li>
-                  <li>• Custom integrations</li>
-                </ul>
-              </div>
             </div>
           </CardContent>
         </Card>

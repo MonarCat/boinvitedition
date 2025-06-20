@@ -1,12 +1,12 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Download, Share2, Copy, QrCode, RefreshCw } from 'lucide-react';
+import { Download, Share2, Copy, QrCode, RefreshCw, TestTube } from 'lucide-react';
 import { toast } from 'sonner';
+import { QRCodeTester } from './QRCodeTester';
 
 interface BoinvitQRGeneratorProps {
   businessId: string;
@@ -22,6 +22,7 @@ export const BoinvitQRGenerator: React.FC<BoinvitQRGeneratorProps> = ({
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
+  const [showTester, setShowTester] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Generate the booking URL - use subdomain if available, otherwise use business ID
@@ -217,6 +218,12 @@ export const BoinvitQRGenerator: React.FC<BoinvitQRGeneratorProps> = ({
     }
   };
 
+  const testQRCode = () => {
+    // Open the booking URL in a new tab for testing
+    window.open(bookingUrl, '_blank');
+    toast.success('QR code test page opened in new tab');
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -292,7 +299,11 @@ export const BoinvitQRGenerator: React.FC<BoinvitQRGeneratorProps> = ({
             </div>
             
             {/* Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <Button onClick={testQRCode} variant="outline">
+                <TestTube className="w-4 h-4 mr-2" />
+                Test QR
+              </Button>
               <Button onClick={downloadQRCode} variant="outline">
                 <Download className="w-4 h-4 mr-2" />
                 Download
@@ -304,6 +315,17 @@ export const BoinvitQRGenerator: React.FC<BoinvitQRGeneratorProps> = ({
               <Button onClick={copyBookingUrl} variant="outline">
                 <Copy className="w-4 h-4 mr-2" />
                 Copy URL
+              </Button>
+            </div>
+
+            {/* Advanced Testing Toggle */}
+            <div className="flex justify-center">
+              <Button 
+                onClick={() => setShowTester(!showTester)}
+                variant="ghost"
+                size="sm"
+              >
+                {showTester ? 'Hide' : 'Show'} Advanced Testing
               </Button>
             </div>
 
@@ -322,6 +344,11 @@ export const BoinvitQRGenerator: React.FC<BoinvitQRGeneratorProps> = ({
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Advanced Testing Component */}
+      {showTester && qrCodeDataUrl && (
+        <QRCodeTester businessId={businessId} businessName={businessName} />
       )}
     </div>
   );

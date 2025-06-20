@@ -1,197 +1,335 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, Globe, Smartphone, Wifi } from 'lucide-react';
+import { ExternalLink, TestTube, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
-interface QRCodeTesterProps {
+interface QRTestResult {
   businessId: string;
-  businessName: string;
+  businessExists: boolean;
+  businessActive: boolean;
+  businessName?: string;
+  servicesCount: number;
+  urlAccessible: boolean;
+  errorMessage?: string;
 }
 
-export const QRCodeTester: React.FC<QRCodeTesterProps> = ({
-  businessId,
-  businessName
-}) => {
-  const [testResults, setTestResults] = useState<any[]>([]);
-  const [isRunning, setIsRunning] = useState(false);
-  const [customUrl, setCustomUrl] = useState('');
+export const QRCodeTester: React.FC = () => {
+  const [testUrl, setTestUrl] = useState('');
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<QRTestResult | null>(null);
 
-  const testUrls = [
-    { name: 'Direct Booking', url: `https://boinvit.com/book/${businessId}`, type: 'primary' },
-    { name: 'Services Page', url: 'https://boinvit.com/services', type: 'fallback' },
-    { name: 'Landing Page', url: 'https://boinvit.com', type: 'base' },
-    { name: 'Custom URL', url: customUrl, type: 'custom' }
-  ];
-
-  const runConnectivityTests = async () => {
-    setIsRunning(true);
-    const results = [];
-
-    for (const testUrl of testUrls) {
-      if (testUrl.type === 'custom' && !customUrl) continue;
-
-      try {
-        const startTime = Date.now();
-        const response = await fetch(testUrl.url, {
-          method: 'HEAD',
-          mode: 'no-cors' // Avoid CORS issues for testing
-        });
-        const endTime = Date.now();
-        const responseTime = endTime - startTime;
-
-        results.push({
-          name: testUrl.name,
-          url: testUrl.url,
-          status: 'success',
-          responseTime,
-          type: testUrl.type
-        });
-      } catch (error) {
-        results.push({
-          name: testUrl.name,
-          url: testUrl.url,
-          status: 'error',
-          error: error.message,
-          type: testUrl.type
-        });
+  const extractBusinessIdFromUrl = (url: string): string | null => {
+    try {
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('/');
+      const bookIndex = pathParts.indexOf('book');
+      
+      if (bookIndex !== -1 && pathParts[bookIndex + 1]) {
+        return pathParts[bookIndex + 1];
       }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  const testQRCode = async () => {
+    if (!testUrl) {
+      toast.error('Please enter a QR code URL to test');
+      return;
     }
 
-    setTestResults(results);
-    setIsRunning(false);
-    toast.success('Connectivity tests completed');
+    setIsTesting(true);
+    setTestResult(null);
+
+    try {
+      const businessId = extractBusinessIdFromUrl(testUrl);
+      
+      if (!businessId) {
+        setTestResult({
+          businessId: 'invalid',
+          businessExists: false,
+          businessActive: false,
+          servicesCount: 0,
+          urlAccessible: false,
+          errorMessage: 'Could not extract business ID from URL'
+        });
+        return;
+      }
+
+      console.log('QR Test: Testing business ID:', businessId);
+
+      // Test business exists and is active
+      const { data: business, error: businessError } = await supabase
+        .from('businesses')
+        .select('id, name, is_active')
+        .eq('id', businessId)
+        .maybeSingle();
+
+      if (businessError) {
+        setTestResult({
+          businessId,
+          businessExists: false,
+          businessActive: false,
+          servicesCount: 0,
+          urlAccessible: false,
+          errorMessage: `Database error: ${businessError.message}`
+        });
+        return;
+      }
+
+      const businessExists = !!business;
+      const businessActive = business?.is_active || false;
+
+      // Test services count
+      let servicesCount = 0;
+      if (businessExists) {
+        const { data: services, error: servicesError } = await supabase
+          .from('services')
+          .select('id')
+          .eq('business_id', businessId)
+          .eq('is_active', true);
+
+        if (!servicesError) {
+          servicesCount = services?.length || 0;
+        }
+      }
+
+      // Test URL accessibility (basic check)
+      let urlAccessible = false;
+      try {
+        // Simple check - if we can construct the URL without errors
+        new URL(testUrl);
+        urlAccessible = true;
+      } catch {
+        urlAccessible = false;
+      }
+
+      setTestResult({
+        businessId,
+        businessExists,
+        businessActive,
+        businessName: business?.name,
+        servicesCount,
+        urlAccessible,
+        errorMessage: businessExists ? undefined : 'Business not found in database'
+      });
+
+      if (businessExists && businessActive) {
+        toast.success('QR code test passed!');
+      } else {
+        toast.error('QR code test failed - see details below');
+      }
+
+    } catch (error) {
+      console.error('QR Test Error:', error);
+      setTestResult({
+        businessId: 'error',
+        businessExists: false,
+        businessActive: false,
+        servicesCount: 0,
+        urlAccessible: false,
+        errorMessage: `Test failed: ${error.message}`
+      });
+      toast.error('Test failed with error');
+    } finally {
+      setIsTesting(false);
+    }
   };
 
-  const testMobileResponsiveness = (url: string) => {
-    // Open URL with mobile user agent simulation
-    const mobileTestUrl = `https://search.google.com/test/mobile-friendly?url=${encodeURIComponent(url)}`;
-    window.open(mobileTestUrl, '_blank');
-    toast.info('Opening Google Mobile-Friendly Test');
+  const openTestUrl = () => {
+    if (testUrl) {
+      window.open(testUrl, '_blank');
+    }
   };
 
-  const testSSL = (url: string) => {
-    const sslTestUrl = `https://www.ssllabs.com/ssltest/analyze.html?d=${encodeURIComponent(url.replace('https://', ''))}`;
-    window.open(sslTestUrl, '_blank');
-    toast.info('Opening SSL Labs Test');
+  const getOverallStatus = (): 'pass' | 'fail' | 'warning' => {
+    if (!testResult) return 'fail';
+    
+    if (testResult.businessExists && testResult.businessActive && testResult.urlAccessible) {
+      return testResult.servicesCount > 0 ? 'pass' : 'warning';
+    }
+    
+    return 'fail';
   };
 
-  const generateDiagnosticReport = () => {
-    const report = {
-      timestamp: new Date().toISOString(),
-      businessId,
-      businessName,
-      testResults,
-      userAgent: navigator.userAgent,
-      connectionType: (navigator as any).connection?.effectiveType || 'unknown'
-    };
+  const getStatusIcon = () => {
+    const status = getOverallStatus();
+    switch (status) {
+      case 'pass':
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case 'warning':
+        return <AlertCircle className="w-5 h-5 text-yellow-600" />;
+      case 'fail':
+        return <XCircle className="w-5 h-5 text-red-600" />;
+    }
+  };
 
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `qr-diagnostic-${businessId}-${Date.now()}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    toast.success('Diagnostic report downloaded');
+  const getStatusBadge = () => {
+    const status = getOverallStatus();
+    switch (status) {
+      case 'pass':
+        return <Badge className="bg-green-500">All Tests Passed</Badge>;
+      case 'warning':
+        return <Badge className="bg-yellow-500">Warning - No Services</Badge>;
+      case 'fail':
+        return <Badge variant="destructive">Tests Failed</Badge>;
+    }
   };
 
   return (
-    <Card className="mt-6">
+    <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Wifi className="w-5 h-5" />
-          QR Code Connectivity Tester
+          <TestTube className="w-5 h-5" />
+          QR Code System Tester
         </CardTitle>
         <p className="text-sm text-gray-600">
-          Test your QR code URLs for accessibility and performance issues
+          Test any QR code booking URL to verify it works correctly
         </p>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex gap-2">
-          <Input
-            placeholder="Test custom URL (optional)"
-            value={customUrl}
-            onChange={(e) => setCustomUrl(e.target.value)}
-            className="flex-1"
-          />
-          <Button 
-            onClick={runConnectivityTests} 
-            disabled={isRunning}
-            variant="outline"
-          >
-            {isRunning ? 'Testing...' : 'Run Tests'}
-          </Button>
+      <CardContent className="space-y-6">
+        {/* Input Section */}
+        <div className="space-y-2">
+          <Label htmlFor="test-url">QR Code URL or Booking URL</Label>
+          <div className="flex gap-2">
+            <Input
+              id="test-url"
+              placeholder="https://yoursite.com/book/business-id"
+              value={testUrl}
+              onChange={(e) => setTestUrl(e.target.value)}
+              className="flex-1"
+            />
+            <Button
+              onClick={testQRCode}
+              disabled={isTesting || !testUrl}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isTesting ? 'Testing...' : 'Test'}
+            </Button>
+          </div>
         </div>
 
-        {testResults.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="font-medium">Test Results:</h4>
-            {testResults.map((result, index) => (
-              <div key={index} className="flex items-center justify-between p-3 border rounded">
-                <div className="flex items-center gap-2">
-                  {result.status === 'success' ? (
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <XCircle className="w-4 h-4 text-red-500" />
+        {/* Quick Test Examples */}
+        <div className="bg-gray-50 p-3 rounded-lg">
+          <p className="text-sm font-medium text-gray-900 mb-2">Example URLs to test:</p>
+          <div className="space-y-1">
+            <button
+              onClick={() => setTestUrl(`${window.location.origin}/book/f958f752-2971-4c67-9d45-53dc0159ac67`)}
+              className="text-xs text-blue-600 hover:text-blue-800 block"
+            >
+              {window.location.origin}/book/example-business-id
+            </button>
+          </div>
+        </div>
+
+        {/* Test Results */}
+        {testResult && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Test Results</h3>
+              <div className="flex items-center gap-2">
+                {getStatusIcon()}
+                {getStatusBadge()}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Business Details */}
+              <div className="bg-white border rounded-lg p-4">
+                <h4 className="font-medium mb-3">Business Details</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Business ID:</span>
+                    <span className="font-mono text-xs">{testResult.businessId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Exists:</span>
+                    <span className={testResult.businessExists ? 'text-green-600' : 'text-red-600'}>
+                      {testResult.businessExists ? '✅ Yes' : '❌ No'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Active:</span>
+                    <span className={testResult.businessActive ? 'text-green-600' : 'text-red-600'}>
+                      {testResult.businessActive ? '✅ Yes' : '❌ No'}
+                    </span>
+                  </div>
+                  {testResult.businessName && (
+                    <div className="flex justify-between">
+                      <span>Name:</span>
+                      <span className="font-medium">{testResult.businessName}</span>
+                    </div>
                   )}
-                  <span className="font-medium">{result.name}</span>
-                  <Badge variant={result.type === 'primary' ? 'default' : 'secondary'}>
-                    {result.type}
-                  </Badge>
-                </div>
-                <div className="text-sm text-gray-600">
-                  {result.status === 'success' 
-                    ? `${result.responseTime}ms` 
-                    : result.error}
                 </div>
               </div>
-            ))}
+
+              {/* System Status */}
+              <div className="bg-white border rounded-lg p-4">
+                <h4 className="font-medium mb-3">System Status</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>URL Valid:</span>
+                    <span className={testResult.urlAccessible ? 'text-green-600' : 'text-red-600'}>
+                      {testResult.urlAccessible ? '✅ Yes' : '❌ No'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Services Count:</span>
+                    <span className={testResult.servicesCount > 0 ? 'text-green-600' : 'text-yellow-600'}>
+                      {testResult.servicesCount}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Bookable:</span>
+                    <span className={testResult.servicesCount > 0 ? 'text-green-600' : 'text-yellow-600'}>
+                      {testResult.servicesCount > 0 ? '✅ Yes' : '⚠️ No Services'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {testResult.errorMessage && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-sm font-medium text-red-900">Error Details:</p>
+                <p className="text-sm text-red-800">{testResult.errorMessage}</p>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <Button
+                onClick={openTestUrl}
+                variant="outline"
+                size="sm"
+                disabled={!testResult.urlAccessible}
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Open Booking Page
+              </Button>
+            </div>
+
+            {/* Recommendations */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm font-medium text-blue-900 mb-2">Recommendations:</p>
+              <ul className="text-sm text-blue-800 space-y-1">
+                {!testResult.businessExists && <li>• Create or verify the business in your system</li>}
+                {!testResult.businessActive && <li>• Activate the business in your admin panel</li>}
+                {testResult.servicesCount === 0 && <li>• Add at least one active service to enable bookings</li>}
+                {!testResult.urlAccessible && <li>• Check URL format and ensure proper routing</li>}
+                {getOverallStatus() === 'pass' && <li>• ✅ QR code is ready for use!</li>}
+              </ul>
+            </div>
           </div>
         )}
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-          <Button 
-            onClick={() => testMobileResponsiveness(`https://boinvit.com/book/${businessId}`)}
-            variant="outline"
-            size="sm"
-          >
-            <Smartphone className="w-4 h-4 mr-1" />
-            Mobile Test
-          </Button>
-          
-          <Button 
-            onClick={() => testSSL('https://boinvit.com')}
-            variant="outline"
-            size="sm"
-          >
-            <Globe className="w-4 h-4 mr-1" />
-            SSL Test
-          </Button>
-          
-          <Button 
-            onClick={generateDiagnosticReport}
-            variant="outline"
-            size="sm"
-            disabled={testResults.length === 0}
-          >
-            Download Report
-          </Button>
-        </div>
-
-        <div className="bg-amber-50 p-3 rounded text-sm">
-          <p><strong>🔍 Common Issues & Solutions:</strong></p>
-          <ul className="list-disc list-inside mt-2 space-y-1">
-            <li><strong>404 Errors:</strong> Check if booking page route exists</li>
-            <li><strong>Slow Loading:</strong> Optimize images and reduce bundle size</li>
-            <li><strong>Mobile Issues:</strong> Test responsive design on actual devices</li>
-            <li><strong>SSL Problems:</strong> Ensure certificate is valid and up-to-date</li>
-            <li><strong>QR Not Scanning:</strong> Increase size and error correction level</li>
-          </ul>
-        </div>
       </CardContent>
     </Card>
   );

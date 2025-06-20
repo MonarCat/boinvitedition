@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BusinessQRGenerator } from '../business/BusinessQRGenerator';
+import { EnhancedQRGenerator } from './EnhancedQRGenerator';
 
 type QRCodeGeneratorProps = {
   businessId: string;
@@ -8,5 +8,5 @@ type QRCodeGeneratorProps = {
 };
 
 export const QRCodeGenerator = ({ businessId, businessName }: QRCodeGeneratorProps) => {
-  return <BusinessQRGenerator businessId={businessId} businessName={businessName} />;
+  return <EnhancedQRGenerator businessId={businessId} businessName={businessName} />;
 };

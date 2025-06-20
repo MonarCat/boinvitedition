@@ -28,16 +28,26 @@ const PublicBookingPage = () => {
   const navigate = useNavigate();
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
-  // Enhanced validation and error handling
+  // Enhanced validation and debug logging
   React.useEffect(() => {
     if (businessId) {
       console.log('QR Code Debug: Business ID from URL:', businessId);
       console.log('QR Code Debug: Current URL:', window.location.href);
       console.log('QR Code Debug: UUID Valid:', isValidUUID(businessId));
+      console.log('QR Code Debug: Referrer:', document.referrer || 'Direct access (likely QR scan)');
       
-      // Check if this came from a QR code scan
+      // Track QR code usage
+      const trackQRAccess = async () => {
+        try {
+          // Optional: Log QR code access for analytics
+          console.log('QR Code Access: Business ID accessed via QR/Direct link');
+        } catch (error) {
+          console.log('QR Code Debug: Analytics tracking failed (non-critical)');
+        }
+      };
+      
       if (!document.referrer) {
-        console.log('QR Code Debug: Direct access detected (likely QR scan)');
+        trackQRAccess();
       }
     }
   }, [businessId]);
@@ -47,23 +57,27 @@ const PublicBookingPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md mx-auto p-6">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-red-600 text-2xl">⚠️</span>
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Invalid Booking Link</h1>
           <p className="text-gray-600 mb-4">The booking link format is incorrect.</p>
-          <div className="bg-red-50 p-4 rounded-lg text-sm mb-4">
+          <div className="bg-red-50 border border-red-200 p-4 rounded-lg text-sm mb-4">
             <p><strong>Error Details:</strong></p>
             <p>Invalid business ID format: {businessId}</p>
             <p>Expected: Valid UUID format</p>
+            <p>Current URL: {window.location.href}</p>
           </div>
           <div className="space-y-2">
             <button
               onClick={() => navigate('/discover')}
-              className="block w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="block w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
             >
               Browse All Businesses
             </button>
             <button
               onClick={() => navigate('/')}
-              className="block w-full text-gray-600 hover:text-gray-800"
+              className="block w-full text-gray-600 hover:text-gray-800 transition-colors"
             >
               Return to Home
             </button>
@@ -84,7 +98,22 @@ const PublicBookingPage = () => {
       
       const { data, error } = await supabase
         .from('businesses')
-        .select('*')
+        .select(`
+          id, 
+          name, 
+          description, 
+          address, 
+          phone, 
+          email, 
+          website, 
+          logo_url, 
+          featured_image_url,
+          business_hours,
+          average_rating,
+          total_reviews,
+          is_active,
+          user_id
+        `)
         .eq('id', businessId)
         .eq('is_active', true)
         .maybeSingle();
@@ -114,6 +143,8 @@ const PublicBookingPage = () => {
     queryFn: async () => {
       if (!businessId) return [];
       
+      console.log('QR Code Debug: Fetching services for business:', businessId);
+      
       const { data, error } = await supabase
         .from('services')
         .select('*')
@@ -136,11 +167,14 @@ const PublicBookingPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md mx-auto p-6">
+          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-yellow-600 text-2xl">⚠️</span>
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Invalid Booking Link</h1>
           <p className="text-gray-600 mb-4">No business ID provided in the URL.</p>
           <button
             onClick={() => navigate('/')}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
           >
             Return to Home
           </button>
@@ -154,8 +188,11 @@ const PublicBookingPage = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading booking page...</p>
+          <p className="text-gray-600 text-lg">Loading booking page...</p>
           <p className="text-sm text-gray-400 mt-2">Business ID: {businessId}</p>
+          <p className="text-xs text-gray-400 mt-1">
+            {businessLoading ? 'Loading business details...' : 'Loading services...'}
+          </p>
         </div>
       </div>
     );
@@ -165,26 +202,30 @@ const PublicBookingPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md mx-auto p-6">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-red-600 text-2xl">❌</span>
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Business Not Available</h1>
           <p className="text-gray-600 mb-4">
             {businessError?.message || 'The business you are looking for is not available.'}
           </p>
-          <div className="bg-yellow-50 p-4 rounded-lg text-sm mb-4">
+          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-sm mb-4">
             <p><strong>Troubleshooting Info:</strong></p>
             <p>Business ID: {businessId}</p>
             <p>Error: {businessError?.message}</p>
             <p>Time: {new Date().toISOString()}</p>
+            <p>URL: {window.location.href}</p>
           </div>
           <div className="space-y-2">
             <button
               onClick={() => navigate('/discover')}
-              className="block w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="block w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
             >
               Browse All Businesses
             </button>
             <button
               onClick={() => navigate('/')}
-              className="block w-full text-gray-600 hover:text-gray-800"
+              className="block w-full text-gray-600 hover:text-gray-800 transition-colors"
             >
               Return to Home
             </button>
@@ -196,10 +237,18 @@ const PublicBookingPage = () => {
 
   const handleServiceSelect = (service: Service) => {
     setSelectedService(service);
+    console.log('QR Code Debug: Service selected:', service.name);
   };
 
   const handleBackToServices = () => {
     setSelectedService(null);
+    console.log('QR Code Debug: Returned to services selection');
+  };
+
+  const handleBookingComplete = () => {
+    console.log('QR Code Debug: Booking completed successfully');
+    toast.success('Booking completed successfully!');
+    handleBackToServices();
   };
 
   return (
@@ -207,11 +256,37 @@ const PublicBookingPage = () => {
       <div className="max-w-4xl mx-auto py-8 px-4">
         <BusinessHeader business={business} />
         
+        {/* Success indicator for QR scan */}
+        {!document.referrer && (
+          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <span className="text-green-600 text-xl">✅</span>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-green-800">
+                  QR Code Access Detected
+                </p>
+                <p className="text-sm text-green-700">
+                  You've successfully accessed this booking page via QR code!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="mt-8">
           {!selectedService ? (
             <>
               {!services || services.length === 0 ? (
-                <EmptyServiceSelection />
+                <div className="text-center py-12">
+                  <EmptyServiceSelection />
+                  <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-800">
+                      <strong>Business Owner:</strong> Add services to enable bookings through this QR code.
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <ServicesList 
                   services={services} 
@@ -224,14 +299,14 @@ const PublicBookingPage = () => {
             <div className="space-y-4">
               <button
                 onClick={handleBackToServices}
-                className="text-blue-600 hover:text-blue-800 flex items-center gap-2"
+                className="text-blue-600 hover:text-blue-800 flex items-center gap-2 transition-colors"
               >
                 ← Back to Services
               </button>
               <PublicBookingCalendar 
                 businessId={businessId} 
                 selectedService={selectedService}
-                onBookingComplete={handleBackToServices}
+                onBookingComplete={handleBookingComplete}
               />
             </div>
           )}

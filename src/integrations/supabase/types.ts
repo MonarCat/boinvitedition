@@ -56,10 +56,15 @@ export type Database = {
           created_at: string | null
           duration_minutes: number
           id: string
+          invoice_generated: boolean | null
           notes: string | null
+          payment_method: string | null
+          payment_status: string | null
+          reminder_sent_at: string | null
           service_id: string
           staff_id: string | null
           status: string
+          ticket_code: string | null
           ticket_number: string | null
           total_amount: number
           updated_at: string | null
@@ -72,10 +77,15 @@ export type Database = {
           created_at?: string | null
           duration_minutes: number
           id?: string
+          invoice_generated?: boolean | null
           notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          reminder_sent_at?: string | null
           service_id: string
           staff_id?: string | null
           status?: string
+          ticket_code?: string | null
           ticket_number?: string | null
           total_amount: number
           updated_at?: string | null
@@ -88,10 +98,15 @@ export type Database = {
           created_at?: string | null
           duration_minutes?: number
           id?: string
+          invoice_generated?: boolean | null
           notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          reminder_sent_at?: string | null
           service_id?: string
           staff_id?: string | null
           status?: string
+          ticket_code?: string | null
           ticket_number?: string | null
           total_amount?: number
           updated_at?: string | null
@@ -334,9 +349,11 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
+          last_service_date: string | null
           name: string
           notes: string | null
           phone: string | null
+          retain_data: boolean | null
           updated_at: string | null
         }
         Insert: {
@@ -345,9 +362,11 @@ export type Database = {
           created_at?: string | null
           email: string
           id?: string
+          last_service_date?: string | null
           name: string
           notes?: string | null
           phone?: string | null
+          retain_data?: boolean | null
           updated_at?: string | null
         }
         Update: {
@@ -356,9 +375,11 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
+          last_service_date?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
+          retain_data?: boolean | null
           updated_at?: string | null
         }
         Relationships: [
@@ -491,6 +512,66 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_log: {
+        Row: {
+          booking_id: string | null
+          business_id: string | null
+          created_at: string
+          delivered_at: string | null
+          error_message: string | null
+          id: string
+          message: string
+          notification_type: string
+          recipient: string
+          sent_at: string | null
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          business_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          message: string
+          notification_type: string
+          recipient: string
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          business_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          message?: string
+          notification_type?: string
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_log_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
@@ -735,7 +816,9 @@ export type Database = {
           business_id: string | null
           created_at: string
           current_period_end: string
+          feature_flags: Json | null
           id: string
+          notification_channels: Json | null
           plan_type: string
           staff_limit: number | null
           status: string
@@ -749,7 +832,9 @@ export type Database = {
           business_id?: string | null
           created_at?: string
           current_period_end: string
+          feature_flags?: Json | null
           id?: string
+          notification_channels?: Json | null
           plan_type: string
           staff_limit?: number | null
           status?: string
@@ -763,7 +848,9 @@ export type Database = {
           business_id?: string | null
           created_at?: string
           current_period_end?: string
+          feature_flags?: Json | null
           id?: string
+          notification_channels?: Json | null
           plan_type?: string
           staff_limit?: number | null
           status?: string
@@ -815,6 +902,18 @@ export type Database = {
       calculate_distance: {
         Args: { lat1: number; lon1: number; lat2: number; lon2: number }
         Returns: number
+      }
+      create_paid_subscription: {
+        Args: {
+          business_id: string
+          plan_type: string
+          stripe_subscription_id: string
+        }
+        Returns: string
+      }
+      generate_ticket_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_user_roles: {
         Args: { _user_id: string }

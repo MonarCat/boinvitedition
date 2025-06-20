@@ -61,9 +61,9 @@ export const useSubscription = () => {
   const createSubscriptionMutation = useMutation({
     mutationFn: async ({ planType, businessId }: { planType: string; businessId: string }) => {
       if (planType === 'trial') {
-        // Create trial subscription directly
+        // Create trial subscription directly - reduced to 7 days
         const trialEndDate = new Date();
-        trialEndDate.setDate(trialEndDate.getDate() + 14);
+        trialEndDate.setDate(trialEndDate.getDate() + 7); // Changed from 14 to 7 days
         
         const { data, error } = await supabase
           .from('subscriptions')
@@ -75,7 +75,9 @@ export const useSubscription = () => {
             trial_ends_at: trialEndDate.toISOString(),
             current_period_end: trialEndDate.toISOString(),
             staff_limit: null, // Unlimited during trial
-            bookings_limit: null // Unlimited during trial
+            bookings_limit: null, // Unlimited during trial
+            notification_channels: '{"email": true, "sms": true, "whatsapp": true}'::jsonb,
+            feature_flags: '{"can_add_clients": true, "client_data_retention": true}'::jsonb
           })
           .select()
           .single();
@@ -104,7 +106,7 @@ export const useSubscription = () => {
     },
     onSuccess: (data, variables) => {
       if (variables.planType === 'trial') {
-        toast.success('Free trial started! You have 14 days of full access.');
+        toast.success('Free trial started! You have 7 days of full access.');
         queryClient.invalidateQueries({ queryKey: ['subscription'] });
       }
     },
@@ -114,10 +116,17 @@ export const useSubscription = () => {
     },
   });
 
-  // Check subscription limits
+  // Check subscription limits and feature access
   const checkLimits = async (businessId: string) => {
     if (!subscription || subscription.plan_type === 'premium') {
-      return { canAddStaff: true, canAddBooking: true };
+      return { 
+        canAddStaff: true, 
+        canAddBooking: true, 
+        canAddClients: true,
+        canSendSMS: true,
+        canSendWhatsApp: true,
+        clientDataRetention: true
+      };
     }
 
     // Count current staff
@@ -138,8 +147,47 @@ export const useSubscription = () => {
 
     const canAddStaff = !subscription.staff_limit || (staffCount || 0) < subscription.staff_limit;
     const canAddBooking = !subscription.bookings_limit || (bookingCount || 0) < subscription.bookings_limit;
+    
+    // Feature flags from subscription
+    const featureFlags = subscription.feature_flags as any || {};
+    const notificationChannels = subscription.notification_channels as any || {};
+    
+    return { 
+      canAddStaff, 
+      canAddBooking, 
+      canAddClients: featureFlags.can_add_clients !== false,
+      canSendSMS: notificationChannels.sms === true,
+      canSendWhatsApp: notificationChannels.whatsapp === true,
+      clientDataRetention: featureFlags.client_data_retention !== false,
+      staffCount, 
+      bookingCount 
+    };
+  };
 
-    return { canAddStaff, canAddBooking, staffCount, bookingCount };
+  // Get feature access based on plan
+  const getFeatureAccess = () => {
+    if (!subscription) {
+      return {
+        canAddClients: false,
+        canSendSMS: false,
+        canSendWhatsApp: false,
+        clientDataRetention: false,
+        maxStaff: 0,
+        maxBookings: 0
+      };
+    }
+
+    const featureFlags = subscription.feature_flags as any || {};
+    const notificationChannels = subscription.notification_channels as any || {};
+
+    return {
+      canAddClients: featureFlags.can_add_clients !== false,
+      canSendSMS: notificationChannels.sms === true,
+      canSendWhatsApp: notificationChannels.whatsapp === true,
+      clientDataRetention: featureFlags.client_data_retention !== false,
+      maxStaff: subscription.staff_limit,
+      maxBookings: subscription.bookings_limit
+    };
   };
 
   return {
@@ -149,6 +197,7 @@ export const useSubscription = () => {
     isActive,
     createSubscription: createSubscriptionMutation.mutate,
     isCreatingSubscription: createSubscriptionMutation.isPending,
-    checkLimits
+    checkLimits,
+    getFeatureAccess
   };
 };

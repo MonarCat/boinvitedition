@@ -19,7 +19,7 @@ const BusinessSlugResolver = () => {
       }
 
       // Skip resolution for known system routes that might accidentally get here
-      const systemRoutes = ['login', 'auth', 'signup', 'admin', 'api', 'dashboard', 'settings'];
+      const systemRoutes = ['login', 'auth', 'signup', 'admin', 'api', 'dashboard', 'settings', 'app'];
       if (systemRoutes.includes(slug.toLowerCase())) {
         console.log('Slug Debug: Skipping system route:', slug);
         setError('System route');

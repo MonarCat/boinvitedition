@@ -22,6 +22,7 @@ import TermsOfService from '@/pages/TermsOfService';
 import CookiePolicy from '@/pages/CookiePolicy';
 import NotFound from '@/pages/NotFound';
 import FirstAdminPage from '@/pages/FirstAdminPage';
+import Dashboard from '@/pages/Dashboard';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,6 +56,9 @@ function App() {
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/login" element={<AuthPage />} />
                 <Route path="/signup" element={<AuthPage />} />
+                
+                {/* Dashboard Route - Must come before /:slug */}
+                <Route path="/dashboard" element={<Dashboard />} />
                 
                 {/* Booking Routes */}
                 <Route path="/book/:businessId" element={<PublicBookingPage />} />

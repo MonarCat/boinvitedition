@@ -8,12 +8,13 @@ interface LogoAnimationProps {
 }
 
 export const LogoAnimation = ({ onComplete, className }: LogoAnimationProps) => {
+  const [currentStep, setCurrentStep] = useState(0);
   const [showWords, setShowWords] = useState(false);
 
   const words = [
-    { text: 'Booking', color: 'text-blue-600', delay: 0 },
-    { text: 'Invoicing', color: 'text-green-600', delay: 500 },
-    { text: 'Ticketing', color: 'text-purple-600', delay: 1000 }
+    { text: 'Booking', color: 'text-red-600', delay: 0 },
+    { text: 'Invoicing', color: 'text-blue-600', delay: 500 },
+    { text: 'Ticketing', color: 'text-blue-700', delay: 1000 }
   ];
 
   useEffect(() => {
@@ -33,21 +34,20 @@ export const LogoAnimation = ({ onComplete, className }: LogoAnimationProps) => 
 
   return (
     <div className={cn("flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100", className)}>
-      {/* Boinvit Logo */}
+      {/* Logo */}
       <div className="mb-8 animate-fade-in">
-        <div className="text-6xl font-bold text-blue-600 animate-scale-in">
-          Boinvit
-        </div>
-        <div className="text-center text-gray-600 mt-2">
-          Business Management Made Simple
-        </div>
+        <img 
+          src="/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png" 
+          alt="Boinvit Logo" 
+          className="h-24 w-auto animate-scale-in"
+        />
       </div>
 
       {/* Breaking down animation */}
       {showWords && (
         <div className="space-y-4 text-center">
           <div className="text-2xl font-bold text-gray-800 mb-6 animate-fade-in">
-            Bo-in-vit stands for:
+            Breaking down Boinvit:
           </div>
           <div className="space-y-3">
             {words.map((word, index) => (

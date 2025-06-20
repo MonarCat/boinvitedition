@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { QrCode } from 'lucide-react';
 import { toast } from 'sonner';
 import { validateBusiness } from './utils/qrValidation';
-import { QRCodeCanvas } from './components/QRCodeCanvas';
+import { QRCodeDisplay } from './components/QRCodeDisplay';
 import { QRStatusBadge } from './components/QRStatusBadge';
 import { QRActionButtons } from './components/QRActionButtons';
 import { QRStatusMessages } from './components/QRStatusMessages';
@@ -51,6 +51,10 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
     validateAndGenerateQR();
   }, [businessId]);
 
+  const handleQRGenerated = (canvas: HTMLCanvasElement) => {
+    canvasRef.current = canvas;
+  };
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
@@ -70,10 +74,11 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-center">
-          <QRCodeCanvas 
+          <QRCodeDisplay 
             bookingUrl={bookingUrl}
             validationStatus={validationStatus}
             isValidating={isValidating}
+            onQRGenerated={handleQRGenerated}
           />
         </div>
         
@@ -91,7 +96,11 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
           canvasRef={canvasRef}
         />
 
-        <QRStatusMessages validationStatus={validationStatus} />
+        <QRStatusMessages 
+          validationStatus={validationStatus}
+          businessSlug={businessName.toLowerCase().replace(/\s+/g, '-')}
+          hasServices={true}
+        />
       </CardContent>
     </Card>
   );

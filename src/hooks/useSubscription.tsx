@@ -9,13 +9,15 @@ interface SubscriptionData {
   id: string;
   user_id: string;
   business_id: string;
-  plan_type: 'trial' | 'medium' | 'premium';
+  plan_type: 'trial' | 'starter' | 'medium' | 'premium';
   status: 'active' | 'expired' | 'cancelled';
   trial_ends_at: string | null;
   current_period_end: string;
-  paystack_reference?: string;
+  stripe_subscription_id?: string;
   staff_limit?: number;
   bookings_limit?: number;
+  notification_channels?: any;
+  feature_flags?: any;
   created_at: string;
   updated_at: string;
 }
@@ -76,8 +78,15 @@ export const useSubscription = () => {
             current_period_end: trialEndDate.toISOString(),
             staff_limit: null, // Unlimited during trial
             bookings_limit: null, // Unlimited during trial
-            notification_channels: '{"email": true, "sms": true, "whatsapp": true}'::jsonb,
-            feature_flags: '{"can_add_clients": true, "client_data_retention": true}'::jsonb
+            notification_channels: {
+              email: true,
+              sms: true,
+              whatsapp: true
+            },
+            feature_flags: {
+              can_add_clients: true,
+              client_data_retention: true
+            }
           })
           .select()
           .single();

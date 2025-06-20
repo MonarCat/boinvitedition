@@ -14,7 +14,7 @@ import { useTheme } from "@/lib/ThemeProvider";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Upload, CreditCard } from 'lucide-react';
 
@@ -51,10 +51,14 @@ const Dashboard = () => {
       return data;
     },
     enabled: !!user,
-    onSuccess: (data) => {
-      setBusinessData(data);
-    }
   });
+
+  // Update businessData when detailedBusiness changes
+  useEffect(() => {
+    if (detailedBusiness) {
+      setBusinessData(detailedBusiness);
+    }
+  }, [detailedBusiness]);
 
   // Get subscription data
   const { data: subscription } = useQuery({

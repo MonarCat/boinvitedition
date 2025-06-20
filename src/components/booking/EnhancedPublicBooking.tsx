@@ -12,10 +12,11 @@ import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { BusinessHeader } from './BusinessHeader';
+import { ServicesList } from './ServicesList';
 import { DirectPaystackPayment } from '@/components/payment/DirectPaystackPayment';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { Clock } from 'lucide-react';
+import { CalendarIcon, Clock, MapPin, Phone, Mail, Star } from 'lucide-react';
 
 export const EnhancedPublicBooking = () => {
   const { businessId } = useParams();
@@ -29,27 +30,18 @@ export const EnhancedPublicBooking = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [bookingReference, setBookingReference] = useState('');
 
-  // Fetch business details - support both direct ID and subdomain
+  // Fetch business details
   const { data: business, isLoading: isLoadingBusiness, error: businessError } = useQuery({
     queryKey: ['public-business', businessId],
     queryFn: async () => {
       console.log('Fetching business details for:', businessId);
       
-      let query = supabase
+      const { data, error } = await supabase
         .from('businesses')
         .select('*')
-        .eq('is_active', true);
-
-      // Check if businessId is a UUID or subdomain
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(businessId);
-      
-      if (isUUID) {
-        query = query.eq('id', businessId);
-      } else {
-        query = query.eq('subdomain', businessId);
-      }
-
-      const { data, error } = await query.single();
+        .eq('id', businessId)
+        .eq('is_active', true)
+        .single();
 
       if (error) {
         console.error('Business fetch error:', error);
@@ -65,16 +57,14 @@ export const EnhancedPublicBooking = () => {
 
   // Fetch business services
   const { data: services, isLoading: isLoadingServices } = useQuery({
-    queryKey: ['public-services', business?.id],
+    queryKey: ['public-services', businessId],
     queryFn: async () => {
-      if (!business?.id) return [];
-      
-      console.log('Fetching services for business:', business.id);
+      console.log('Fetching services for business:', businessId);
       
       const { data, error } = await supabase
         .from('services')
         .select('*')
-        .eq('business_id', business.id)
+        .eq('business_id', businessId)
         .eq('is_active', true)
         .order('created_at', { ascending: true });
 
@@ -86,7 +76,7 @@ export const EnhancedPublicBooking = () => {
       console.log('Services loaded:', data);
       return data || [];
     },
-    enabled: !!business?.id
+    enabled: !!businessId
   });
 
   const validateBookingForm = () => {
@@ -120,7 +110,7 @@ export const EnhancedPublicBooking = () => {
   const handleProceedToPayment = () => {
     if (!validateBookingForm()) return;
 
-    const reference = `BK_${business.id?.slice(0, 8)}_${Date.now()}`;
+    const reference = `BK_${businessId?.slice(0, 8)}_${Date.now()}`;
     setBookingReference(reference);
     setShowPayment(true);
     
@@ -135,7 +125,7 @@ export const EnhancedPublicBooking = () => {
       const { data: booking, error } = await supabase
         .from('bookings')
         .insert({
-          business_id: business.id,
+          business_id: businessId,
           service_id: selectedService.id,
           customer_name: customerName,
           customer_phone: customerPhone,
@@ -146,10 +136,7 @@ export const EnhancedPublicBooking = () => {
           payment_status: 'paid',
           payment_reference: paymentReference,
           notes: notes,
-          total_amount: selectedService.price,
-          duration_minutes: selectedService.duration_minutes,
-          // Create a temporary client entry for the booking
-          client_id: '00000000-0000-0000-0000-000000000000' // Placeholder, will be handled by backend
+          total_amount: selectedService.price
         })
         .select()
         .single();
@@ -253,7 +240,7 @@ export const EnhancedPublicBooking = () => {
                 }}
                 metadata={{
                   booking_reference: bookingReference,
-                  business_id: business.id,
+                  business_id: businessId,
                   service_id: selectedService.id,
                   customer_name: customerName,
                   customer_phone: customerPhone

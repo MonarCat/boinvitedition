@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,30 +10,26 @@ import { toast } from 'sonner';
 interface BoinvitQRGeneratorProps {
   businessId: string;
   businessName: string;
-  subdomain?: string;
 }
 
 export const BoinvitQRGenerator: React.FC<BoinvitQRGeneratorProps> = ({
   businessId,
-  businessName,
-  subdomain
+  businessName
 }) => {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Generate the booking URL - use subdomain if available, otherwise use business ID
-  const bookingUrl = subdomain 
-    ? `${window.location.protocol}//${subdomain}.boinvit.com/book`
-    : `${window.location.origin}/book/${businessId}`;
+  // Generate the booking URL - use the current domain
+  const bookingUrl = `${window.location.origin}/book/${businessId}`;
 
   // Generate QR code on component mount
   useEffect(() => {
     if (businessId) {
       generateQRCode();
     }
-  }, [businessId, subdomain]);
+  }, [businessId]);
 
   const generateQRCode = async () => {
     if (!businessId) {
@@ -126,12 +121,9 @@ export const BoinvitQRGenerator: React.FC<BoinvitQRGeneratorProps> = ({
         ctx.fillText('2. Point at the QR code', canvas.width / 2, 460);
         ctx.fillText('3. Tap to book appointment', canvas.width / 2, 480);
 
-        // Footer with subdomain info
+        // Footer
         ctx.fillStyle = '#d1d5db';
         ctx.font = '10px Arial';
-        if (subdomain) {
-          ctx.fillText(`Visit: ${subdomain}.boinvit.com`, canvas.width / 2, 495);
-        }
         ctx.fillText('Powered by Boinvit', canvas.width / 2, 505);
 
         resolve();
@@ -236,11 +228,6 @@ export const BoinvitQRGenerator: React.FC<BoinvitQRGeneratorProps> = ({
             <p className="text-sm text-gray-600 break-all">
               <strong>Booking URL:</strong> {bookingUrl}
             </p>
-            {subdomain && (
-              <p className="text-sm text-blue-600">
-                <strong>Custom Domain:</strong> {subdomain}.boinvit.com
-              </p>
-            )}
           </div>
 
           {/* Custom Message Input */}
@@ -315,9 +302,6 @@ export const BoinvitQRGenerator: React.FC<BoinvitQRGeneratorProps> = ({
                 <li>• Share digitally on social media or website</li>
                 <li>• Customers scan with their phone camera</li>
                 <li>• They'll be redirected to your booking page</li>
-                {subdomain && (
-                  <li>• Custom domain: {subdomain}.boinvit.com</li>
-                )}
               </ul>
             </div>
           </CardContent>

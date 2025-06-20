@@ -10,6 +10,12 @@ interface NotificationData {
   message: string;
 }
 
+interface NotificationChannels {
+  email?: boolean;
+  sms?: boolean;
+  whatsapp?: boolean;
+}
+
 export class NotificationService {
   static async sendBookingReminder(bookingId: string) {
     try {
@@ -42,7 +48,7 @@ export class NotificationService {
       const service = booking.services;
 
       // Check subscription notification preferences
-      const notificationChannels = subscription?.notification_channels || { email: true, sms: false, whatsapp: false };
+      const notificationChannels = (subscription?.notification_channels as NotificationChannels) || { email: true, sms: false, whatsapp: false };
 
       const reminderMessage = `
         Hi ${client.name},

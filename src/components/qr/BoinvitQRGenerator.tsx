@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +21,7 @@ export const BoinvitQRGenerator: React.FC<BoinvitQRGeneratorProps> = ({
   const [customMessage, setCustomMessage] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Generate the booking URL
+  // Generate the booking URL - use the current domain
   const bookingUrl = `${window.location.origin}/book/${businessId}`;
 
   // Generate QR code on component mount

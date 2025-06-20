@@ -12,6 +12,7 @@ import SubscriptionPage from '@/pages/SubscriptionPage';
 import StaffDashboardPage from '@/pages/StaffDashboardPage';
 import StaffAttendancePage from '@/pages/StaffAttendancePage';
 import BusinessDiscoveryPage from '@/pages/BusinessDiscoveryPage';
+import ProductionCheckPage from '@/pages/ProductionCheckPage';
 import NotFound from '@/pages/NotFound';
 
 const AuthenticatedApp = () => {
@@ -32,6 +33,7 @@ const AuthenticatedApp = () => {
       <Route path="staff-dashboard" element={<StaffDashboardPage />} />
       <Route path="staff-attendance" element={<StaffAttendancePage />} />
       <Route path="discover" element={<BusinessDiscoveryPage />} />
+      <Route path="production-check" element={<ProductionCheckPage />} />
       
       {/* Catch all for unmatched routes within /app */}
       <Route path="*" element={<NotFound />} />

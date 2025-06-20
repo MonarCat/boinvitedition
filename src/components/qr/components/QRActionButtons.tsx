@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Copy, Share2, ExternalLink } from 'lucide-react';
+import { Download, Copy, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface QRActionButtonsProps {
@@ -42,29 +42,9 @@ export const QRActionButtons: React.FC<QRActionButtonsProps> = ({
     }
   };
 
-  const shareUrl = async () => {
-    if (validationStatus !== 'valid') {
-      toast.error('Cannot share invalid booking URL');
-      return;
-    }
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Book ${businessName}`,
-          text: `Book services with ${businessName}`,
-          url: bookingUrl,
-        });
-      } catch (error) {
-        // User cancelled sharing or share failed
-      }
-    } else {
-      copyUrl();
-    }
-  };
-
   const testBooking = () => {
     if (validationStatus === 'valid') {
+      console.log('QR Debug: Testing booking URL:', bookingUrl);
       window.open(bookingUrl, '_blank');
     } else {
       toast.error('Cannot test invalid booking URL');
@@ -76,44 +56,37 @@ export const QRActionButtons: React.FC<QRActionButtonsProps> = ({
   return (
     <div className="grid grid-cols-1 gap-2">
       <Button 
-        onClick={shareUrl} 
+        onClick={copyUrl} 
         variant="default" 
         size="sm"
         disabled={isDisabled}
-      >
-        <Share2 className="w-4 h-4 mr-2" />
-        Share Booking Link
-      </Button>
-      
-      <Button 
-        onClick={copyUrl} 
-        variant="outline" 
-        size="sm"
-        disabled={isDisabled}
+        className="bg-blue-600 hover:bg-blue-700"
       >
         <Copy className="w-4 h-4 mr-2" />
-        Copy Link
+        Copy Clean URL
       </Button>
       
-      <Button 
-        onClick={downloadQR} 
-        variant="outline" 
-        size="sm"
-        disabled={isDisabled}
-      >
-        <Download className="w-4 h-4 mr-2" />
-        Download QR Code
-      </Button>
-      
-      <Button 
-        onClick={testBooking} 
-        variant="outline" 
-        size="sm"
-        disabled={isDisabled}
-      >
-        <ExternalLink className="w-4 h-4 mr-2" />
-        Test Booking
-      </Button>
+      <div className="grid grid-cols-2 gap-2">
+        <Button 
+          onClick={downloadQR} 
+          variant="outline" 
+          size="sm"
+          disabled={isDisabled}
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Download QR
+        </Button>
+        
+        <Button 
+          onClick={testBooking} 
+          variant="outline" 
+          size="sm"
+          disabled={isDisabled}
+        >
+          <ExternalLink className="w-4 h-4 mr-2" />
+          Test Booking
+        </Button>
+      </div>
     </div>
   );
 };

@@ -3,16 +3,18 @@ import React, { useRef, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { AlertCircle } from 'lucide-react';
 
-interface QRCodeCanvasProps {
+interface QRCodeDisplayProps {
   bookingUrl: string;
   validationStatus: 'pending' | 'valid' | 'invalid';
   isValidating: boolean;
+  onQRGenerated: (canvas: HTMLCanvasElement) => void;
 }
 
-export const QRCodeCanvas: React.FC<QRCodeCanvasProps> = ({
+export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
   bookingUrl,
   validationStatus,
-  isValidating
+  isValidating,
+  onQRGenerated
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -20,7 +22,7 @@ export const QRCodeCanvas: React.FC<QRCodeCanvasProps> = ({
     const generateQR = async () => {
       if (validationStatus === 'valid' && canvasRef.current) {
         await QRCode.toCanvas(canvasRef.current, bookingUrl, {
-          width: 500,
+          width: 300,
           margin: 2,
           errorCorrectionLevel: 'H',
           color: {
@@ -28,19 +30,21 @@ export const QRCodeCanvas: React.FC<QRCodeCanvasProps> = ({
             light: '#FFFFFF'
           }
         });
+        onQRGenerated(canvasRef.current);
       }
     };
 
     generateQR();
-  }, [bookingUrl, validationStatus]);
+  }, [bookingUrl, validationStatus, onQRGenerated]);
 
   if (validationStatus === 'valid') {
     return (
-      <canvas 
-        ref={canvasRef} 
-        className="border rounded-lg shadow-sm max-w-full h-auto"
-        style={{ maxWidth: '300px' }}
-      />
+      <div className="p-4 bg-white rounded-lg shadow-sm border-2 border-green-200">
+        <canvas 
+          ref={canvasRef} 
+          className="rounded max-w-full h-auto"
+        />
+      </div>
     );
   }
 
@@ -49,12 +53,13 @@ export const QRCodeCanvas: React.FC<QRCodeCanvasProps> = ({
       {isValidating ? (
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-sm text-gray-600">Validating...</p>
+          <p className="text-sm text-gray-600">Validating business...</p>
         </div>
       ) : (
         <div className="text-center p-4">
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-          <p className="text-sm text-red-600">Invalid business ID</p>
+          <p className="text-sm text-red-600">Business validation failed</p>
+          <p className="text-xs text-red-500 mt-1">Check business status and try again</p>
         </div>
       )}
     </div>

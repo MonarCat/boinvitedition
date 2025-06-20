@@ -49,6 +49,7 @@ export type Database = {
       }
       bookings: {
         Row: {
+          auto_payment_required: boolean | null
           booking_date: string
           booking_time: string
           business_id: string
@@ -58,9 +59,13 @@ export type Database = {
           id: string
           invoice_generated: boolean | null
           notes: string | null
+          original_booking_date: string | null
+          original_booking_time: string | null
           payment_method: string | null
           payment_status: string | null
           reminder_sent_at: string | null
+          reschedule_count: number | null
+          reschedule_deadline: string | null
           service_id: string
           staff_id: string | null
           status: string
@@ -70,6 +75,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          auto_payment_required?: boolean | null
           booking_date: string
           booking_time: string
           business_id: string
@@ -79,9 +85,13 @@ export type Database = {
           id?: string
           invoice_generated?: boolean | null
           notes?: string | null
+          original_booking_date?: string | null
+          original_booking_time?: string | null
           payment_method?: string | null
           payment_status?: string | null
           reminder_sent_at?: string | null
+          reschedule_count?: number | null
+          reschedule_deadline?: string | null
           service_id: string
           staff_id?: string | null
           status?: string
@@ -91,6 +101,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          auto_payment_required?: boolean | null
           booking_date?: string
           booking_time?: string
           business_id?: string
@@ -100,9 +111,13 @@ export type Database = {
           id?: string
           invoice_generated?: boolean | null
           notes?: string | null
+          original_booking_date?: string | null
+          original_booking_time?: string | null
           payment_method?: string | null
           payment_status?: string | null
           reminder_sent_at?: string | null
+          reschedule_count?: number | null
+          reschedule_deadline?: string | null
           service_id?: string
           staff_id?: string | null
           status?: string
@@ -617,6 +632,85 @@ export type Database = {
           },
         ]
       }
+      payment_transactions: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          business_amount: number | null
+          business_id: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          metadata: Json | null
+          payment_method: string | null
+          paystack_reference: string | null
+          platform_amount: number | null
+          split_amount: number | null
+          status: string | null
+          subscription_id: string | null
+          transaction_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          business_amount?: number | null
+          business_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          paystack_reference?: string | null
+          platform_amount?: number | null
+          split_amount?: number | null
+          status?: string | null
+          subscription_id?: string | null
+          transaction_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          business_amount?: number | null
+          business_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          paystack_reference?: string | null
+          platform_amount?: number | null
+          split_amount?: number | null
+          status?: string | null
+          subscription_id?: string | null
+          transaction_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_transactions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_transactions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -810,8 +904,30 @@ export type Database = {
           },
         ]
       }
+      subscription_discounts: {
+        Row: {
+          created_at: string | null
+          discount_percentage: number
+          id: string
+          payment_interval: string
+        }
+        Insert: {
+          created_at?: string | null
+          discount_percentage?: number
+          id?: string
+          payment_interval: string
+        }
+        Update: {
+          created_at?: string | null
+          discount_percentage?: number
+          id?: string
+          payment_interval?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
+          auto_split_enabled: boolean | null
           bookings_limit: number | null
           business_id: string | null
           created_at: string
@@ -819,7 +935,10 @@ export type Database = {
           feature_flags: Json | null
           id: string
           notification_channels: Json | null
+          payment_interval: string | null
+          paystack_subaccount_id: string | null
           plan_type: string
+          split_percentage: number | null
           staff_limit: number | null
           status: string
           stripe_subscription_id: string | null
@@ -828,6 +947,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          auto_split_enabled?: boolean | null
           bookings_limit?: number | null
           business_id?: string | null
           created_at?: string
@@ -835,7 +955,10 @@ export type Database = {
           feature_flags?: Json | null
           id?: string
           notification_channels?: Json | null
+          payment_interval?: string | null
+          paystack_subaccount_id?: string | null
           plan_type: string
+          split_percentage?: number | null
           staff_limit?: number | null
           status?: string
           stripe_subscription_id?: string | null
@@ -844,6 +967,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          auto_split_enabled?: boolean | null
           bookings_limit?: number | null
           business_id?: string | null
           created_at?: string
@@ -851,7 +975,10 @@ export type Database = {
           feature_flags?: Json | null
           id?: string
           notification_channels?: Json | null
+          payment_interval?: string | null
+          paystack_subaccount_id?: string | null
           plan_type?: string
+          split_percentage?: number | null
           staff_limit?: number | null
           status?: string
           stripe_subscription_id?: string | null
@@ -902,6 +1029,10 @@ export type Database = {
       calculate_distance: {
         Args: { lat1: number; lon1: number; lat2: number; lon2: number }
         Returns: number
+      }
+      calculate_reschedule_deadline: {
+        Args: { booking_date: string; booking_time: string }
+        Returns: string
       }
       create_paid_subscription: {
         Args: {
@@ -966,6 +1097,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      subscription_plan_type:
+        | "trial"
+        | "starter"
+        | "medium"
+        | "premium"
+        | "payasyougo"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1082,6 +1219,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      subscription_plan_type: [
+        "trial",
+        "starter",
+        "medium",
+        "premium",
+        "payasyougo",
+      ],
     },
   },
 } as const

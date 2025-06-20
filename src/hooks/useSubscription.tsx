@@ -9,10 +9,14 @@ interface SubscriptionData {
   id: string;
   user_id: string;
   business_id: string;
-  plan_type: 'trial' | 'starter' | 'medium' | 'premium';
+  plan_type: 'trial' | 'starter' | 'medium' | 'premium' | 'payasyougo';
   status: 'active' | 'expired' | 'cancelled';
   trial_ends_at: string | null;
   current_period_end: string;
+  payment_interval?: string;
+  paystack_subaccount_id?: string;
+  auto_split_enabled?: boolean;
+  split_percentage?: number;
   stripe_subscription_id?: string;
   staff_limit?: number;
   bookings_limit?: number;
@@ -61,11 +65,15 @@ export const useSubscription = () => {
 
   // Create or upgrade subscription
   const createSubscriptionMutation = useMutation({
-    mutationFn: async ({ planType, businessId }: { planType: string; businessId: string }) => {
+    mutationFn: async ({ planType, businessId, interval = 'monthly' }: { 
+      planType: string; 
+      businessId: string; 
+      interval?: string; 
+    }) => {
       if (planType === 'trial') {
-        // Create trial subscription directly - reduced to 7 days
+        // Create trial subscription directly - 7 days
         const trialEndDate = new Date();
-        trialEndDate.setDate(trialEndDate.getDate() + 7); // Changed from 14 to 7 days
+        trialEndDate.setDate(trialEndDate.getDate() + 7);
         
         const { data, error } = await supabase
           .from('subscriptions')
@@ -76,8 +84,50 @@ export const useSubscription = () => {
             status: 'active',
             trial_ends_at: trialEndDate.toISOString(),
             current_period_end: trialEndDate.toISOString(),
-            staff_limit: null, // Unlimited during trial
-            bookings_limit: null, // Unlimited during trial
+            payment_interval: 'monthly',
+            staff_limit: null,
+            bookings_limit: null,
+            notification_channels: {
+              email: true,
+              sms: true,
+              whatsapp: true
+            },
+            feature_flags: {
+              can_add_clients: true,
+              client_data_retention: true
+            }
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        return data;
+      } else if (planType === 'payasyougo') {
+        // Create pay-as-you-go subscription with Paystack subaccount
+        const { data: subaccountData, error: subaccountError } = await supabase.functions.invoke('create-paystack-subaccount', {
+          body: { 
+            businessId,
+            businessEmail: user?.email,
+            splitPercentage: 7.5
+          }
+        });
+        
+        if (subaccountError) throw subaccountError;
+        
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .insert({
+            user_id: user?.id,
+            business_id: businessId,
+            plan_type: 'payasyougo',
+            status: 'active',
+            current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year
+            payment_interval: 'monthly',
+            paystack_subaccount_id: subaccountData?.subaccount_code,
+            auto_split_enabled: true,
+            split_percentage: 7.5,
+            staff_limit: null,
+            bookings_limit: null,
             notification_channels: {
               email: true,
               sms: true,
@@ -94,28 +144,28 @@ export const useSubscription = () => {
         if (error) throw error;
         return data;
       } else {
-        // For paid plans, redirect to Paystack checkout
-        const { data, error } = await supabase.functions.invoke('create-paystack-checkout', {
+        // For paid plans, redirect to payment
+        const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
           body: { 
             planType,
             businessId,
-            customerEmail: user?.email
+            customerEmail: user?.email,
+            interval: interval
           }
         });
         
         if (error) throw error;
         
-        // Redirect to Paystack checkout
-        if (data.url) {
-          window.location.href = data.url;
-        }
-        
+        // Return checkout URL for frontend to handle
         return data;
       }
     },
     onSuccess: (data, variables) => {
       if (variables.planType === 'trial') {
         toast.success('Free trial started! You have 7 days of full access.');
+        queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      } else if (variables.planType === 'payasyougo') {
+        toast.success('Pay-as-you-go plan activated! You\'ll earn 92.5% from each booking.');
         queryClient.invalidateQueries({ queryKey: ['subscription'] });
       }
     },
@@ -127,7 +177,7 @@ export const useSubscription = () => {
 
   // Check subscription limits and feature access
   const checkLimits = async (businessId: string) => {
-    if (!subscription || subscription.plan_type === 'premium') {
+    if (!subscription || subscription.plan_type === 'premium' || subscription.plan_type === 'payasyougo') {
       return { 
         canAddStaff: true, 
         canAddBooking: true, 
@@ -182,7 +232,8 @@ export const useSubscription = () => {
         canSendWhatsApp: false,
         clientDataRetention: false,
         maxStaff: 0,
-        maxBookings: 0
+        maxBookings: 0,
+        payAsYouGo: false
       };
     }
 
@@ -195,7 +246,9 @@ export const useSubscription = () => {
       canSendWhatsApp: notificationChannels.whatsapp === true,
       clientDataRetention: featureFlags.client_data_retention !== false,
       maxStaff: subscription.staff_limit,
-      maxBookings: subscription.bookings_limit
+      maxBookings: subscription.bookings_limit,
+      payAsYouGo: subscription.plan_type === 'payasyougo',
+      autoSplitEnabled: subscription.auto_split_enabled || false
     };
   };
 

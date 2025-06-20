@@ -20,32 +20,55 @@ export const useBusinessPaymentSettings = (businessId: string) => {
     queryFn: async () => {
       if (!businessId) return null;
       
-      const { data, error } = await supabase
-        .from('business_payment_settings')
-        .select('*')
+      // First try to get from business_settings table as fallback
+      const { data: businessSettings, error: businessError } = await supabase
+        .from('business_settings')
+        .select('require_payment')
         .eq('business_id', businessId)
         .single();
-      
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+
+      // Get payment methods
+      const { data: paymentMethods, error: paymentError } = await supabase
+        .from('payment_methods')
+        .select('*')
+        .eq('business_id', businessId);
+
+      if (businessError && businessError.code !== 'PGRST116') {
+        console.error('Error fetching business settings:', businessError);
       }
       
-      return data;
+      if (paymentError) {
+        console.error('Error fetching payment methods:', paymentError);
+      }
+      
+      return {
+        id: businessId,
+        business_id: businessId,
+        require_payment: businessSettings?.require_payment || false,
+        paystack_public_key: '',
+        payment_methods: paymentMethods || []
+      };
     },
     enabled: !!businessId,
   });
 
   const updatePaymentSettingsMutation = useMutation({
     mutationFn: async (settings: Partial<BusinessPaymentSettings>) => {
-      const { error } = await supabase
-        .from('business_payment_settings')
-        .upsert({
-          business_id: businessId,
-          ...settings,
-          updated_at: new Date().toISOString()
-        });
-      
-      if (error) throw error;
+      // Update business_settings for require_payment
+      if (settings.require_payment !== undefined) {
+        const { error: businessError } = await supabase
+          .from('business_settings')
+          .upsert({
+            business_id: businessId,
+            require_payment: settings.require_payment,
+            updated_at: new Date().toISOString()
+          });
+        
+        if (businessError) {
+          console.error('Error updating business settings:', businessError);
+          throw businessError;
+        }
+      }
     },
     onSuccess: () => {
       toast.success('Payment settings updated successfully');

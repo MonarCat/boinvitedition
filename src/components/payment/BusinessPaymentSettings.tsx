@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { CreditCard, Banknote, Smartphone, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePaymentMethods } from '@/hooks/usePaymentMethods';
+import { useBusinessPaymentSettings } from '@/hooks/useBusinessPaymentSettings';
 
 interface BusinessPaymentSettingsProps {
   businessId: string;
@@ -19,23 +20,24 @@ export const BusinessPaymentSettings: React.FC<BusinessPaymentSettingsProps> = (
   businessId,
   subscriptionPlan
 }) => {
-  const [requirePayment, setRequirePayment] = useState(false);
   const [paystackPublicKey, setPaystackPublicKey] = useState('');
   const [bankAccount, setBankAccount] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   
   const { paymentMethods, addPaymentMethod, isAdding } = usePaymentMethods(businessId);
+  const { paymentSettings, updatePaymentSettings, isUpdating } = useBusinessPaymentSettings(businessId);
   
   // Disable payment requirement for Pay-As-You-Go users
   const isPayAsYouGo = subscriptionPlan === 'payasyougo';
+  const requirePayment = paymentSettings?.require_payment || isPayAsYouGo;
   
   const handleRequirePaymentToggle = (checked: boolean) => {
-    if (isPayAsYouGo && checked) {
-      toast.error('Payment requirement is disabled for Pay-As-You-Go subscribers. Clients must pay upfront.');
+    if (isPayAsYouGo && !checked) {
+      toast.error('Payment requirement cannot be disabled for Pay-As-You-Go subscribers. Clients must pay upfront.');
       return;
     }
-    setRequirePayment(checked);
-    toast.success(`Payment requirement ${checked ? 'enabled' : 'disabled'}`);
+    
+    updatePaymentSettings({ require_payment: checked });
   };
 
   const addBankAccount = () => {
@@ -102,7 +104,7 @@ export const BusinessPaymentSettings: React.FC<BusinessPaymentSettingsProps> = (
                 <div>
                   <h4 className="font-medium text-orange-900">Pay-As-You-Go Plan</h4>
                   <p className="text-sm text-orange-800 mt-1">
-                    Clients must pay upfront when booking. Payment requirement cannot be disabled.
+                    Clients must pay upfront when booking. Payment requirement is always enabled.
                   </p>
                 </div>
               </div>
@@ -121,13 +123,13 @@ export const BusinessPaymentSettings: React.FC<BusinessPaymentSettingsProps> = (
             </div>
             <Switch
               id="require-payment"
-              checked={isPayAsYouGo || requirePayment}
+              checked={requirePayment}
               onCheckedChange={handleRequirePaymentToggle}
-              disabled={isPayAsYouGo}
+              disabled={isPayAsYouGo || isUpdating}
             />
           </div>
           
-          {(requirePayment || isPayAsYouGo) && (
+          {requirePayment && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-800">
                 ✓ Payment is required. Clients will need to pay before confirming bookings.

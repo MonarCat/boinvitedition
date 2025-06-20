@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { CreditCard, Banknote, Smartphone, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useClientPayments } from '@/hooks/useClientPayments';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PaymentMethod {
   id: string;
@@ -45,8 +45,38 @@ export const ClientPaymentModal: React.FC<ClientPaymentModalProps> = ({
   const [clientEmail, setClientEmail] = useState('');
   const [paymentProof, setPaymentProof] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  const { recordPayment } = useClientPayments(businessId);
+
+  const recordPayment = async (paymentData: {
+    serviceId: string;
+    clientEmail: string;
+    amount: number;
+    currency: string;
+    paystackReference: string;
+  }) => {
+    try {
+      // Record payment transaction
+      const { error } = await supabase
+        .from('payment_transactions')
+        .insert({
+          business_id: businessId,
+          amount: paymentData.amount,
+          currency: paymentData.currency,
+          paystack_reference: paymentData.paystackReference,
+          status: 'completed',
+          transaction_type: 'service_payment',
+          metadata: {
+            serviceId: paymentData.serviceId,
+            clientEmail: paymentData.clientEmail,
+            serviceName: service.name
+          }
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error recording payment:', error);
+      throw error;
+    }
+  };
 
   const handlePayment = async () => {
     if (!selectedMethod) {
@@ -89,7 +119,7 @@ export const ClientPaymentModal: React.FC<ClientPaymentModalProps> = ({
     const reference = `PAY-${Date.now()}`;
     
     // Record payment attempt
-    recordPayment({
+    await recordPayment({
       serviceId: service.id,
       clientEmail,
       amount: service.price * 100, // Convert to kobo/cents
@@ -109,7 +139,7 @@ export const ClientPaymentModal: React.FC<ClientPaymentModalProps> = ({
     }
 
     // Record manual payment
-    recordPayment({
+    await recordPayment({
       serviceId: service.id,
       clientEmail,
       amount: service.price,

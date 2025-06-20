@@ -6,6 +6,7 @@ import { usePublicBookingData } from '@/hooks/usePublicBookingData';
 import { PublicBookingErrorPage } from '@/components/booking/PublicBookingErrorPage';
 import { PublicBookingLoadingPage } from '@/components/booking/PublicBookingLoadingPage';
 import { PublicBookingContent } from '@/components/booking/PublicBookingContent';
+import { LoadingScreen } from '@/components/ui/loading-screen';
 
 const PublicBookingPage = () => {
   const { businessId } = useParams<{ businessId: string }>();
@@ -17,12 +18,13 @@ const PublicBookingPage = () => {
       console.log('QR Code Debug: Current URL:', window.location.href);
       console.log('QR Code Debug: UUID Valid:', isValidUUID(businessId));
       console.log('QR Code Debug: Referrer:', document.referrer || 'Direct access (likely QR scan)');
+      console.log('QR Code Debug: User Agent:', navigator.userAgent);
       
-      // Track QR code usage
+      // Track QR code usage with enhanced debugging
       const trackQRAccess = async () => {
         try {
-          // Optional: Log QR code access for analytics
           console.log('QR Code Access: Business ID accessed via QR/Direct link');
+          console.log('QR Code Debug: Starting business lookup...');
         } catch (error) {
           console.log('QR Code Debug: Analytics tracking failed (non-critical)');
         }
@@ -31,16 +33,20 @@ const PublicBookingPage = () => {
       if (!document.referrer) {
         trackQRAccess();
       }
+    } else {
+      console.error('QR Code Error: No business ID found in URL parameters');
     }
   }, [businessId]);
 
   // Check for missing business ID
   if (!businessId) {
+    console.error('QR Code Error: Business ID parameter is missing from URL');
     return <PublicBookingErrorPage type="no-business-id" />;
   }
 
   // Validate UUID format before making database calls
   if (!isValidUUID(businessId)) {
+    console.error('QR Code Error: Invalid UUID format:', businessId);
     return (
       <PublicBookingErrorPage 
         type="invalid-uuid" 
@@ -49,35 +55,37 @@ const PublicBookingPage = () => {
     );
   }
 
-  const { business, services, businessLoading, servicesLoading, businessError } = usePublicBookingData(
+  const { business, services, businessLoading, servicesLoading, businessError, refetchBusiness } = usePublicBookingData(
     businessId, 
     true
   );
 
-  // Loading state
+  // Loading state with branded loading screen
   if (businessLoading || servicesLoading) {
-    return (
-      <PublicBookingLoadingPage
-        businessId={businessId}
-        businessLoading={businessLoading}
-        servicesLoading={servicesLoading}
-      />
-    );
+    return <LoadingScreen />;
   }
 
-  // Error state
+  // Error state with retry option
   if (businessError || !business) {
+    console.error('QR Code Error: Final error state reached:', {
+      businessError: businessError?.message,
+      businessExists: !!business,
+      businessId
+    });
+    
     return (
       <PublicBookingErrorPage
         type="business-not-found"
         businessId={businessId}
         error={businessError?.message}
+        onRetry={() => refetchBusiness()}
       />
     );
   }
 
   // Success state
   const isDirectAccess = !document.referrer;
+  console.log('QR Code Debug: Rendering successful booking page for:', business.name);
 
   return (
     <PublicBookingContent

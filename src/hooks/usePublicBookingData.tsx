@@ -37,6 +37,7 @@ export const usePublicBookingData = (businessId: string | undefined, isValidUUID
       }
       
       console.log('QR Code Debug: Fetching business with ID:', businessId);
+      console.log('QR Code Debug: Database query starting...');
       
       const { data, error } = await supabase
         .from('businesses')
@@ -57,27 +58,49 @@ export const usePublicBookingData = (businessId: string | undefined, isValidUUID
           user_id
         `)
         .eq('id', businessId)
-        .eq('is_active', true)
-        .maybeSingle();
+        .single(); // Changed from maybeSingle to single for better error handling
       
       if (error) {
-        console.error('QR Code Error: Database error:', error);
+        console.error('QR Code Error: Database error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        
+        // Provide more specific error messages
+        if (error.code === 'PGRST116') {
+          throw new Error('Business not found - ID does not exist in database');
+        }
         throw new Error(`Database error: ${error.message}`);
       }
       
       if (!data) {
-        console.error('QR Code Error: Business not found for ID:', businessId);
-        throw new Error('Business not found or inactive');
+        console.error('QR Code Error: No business data returned for ID:', businessId);
+        throw new Error('Business not found in database');
+      }
+
+      if (!data.is_active) {
+        console.error('QR Code Error: Business found but inactive:', data.name);
+        throw new Error('Business account is currently inactive');
       }
       
-      console.log('QR Code Debug: Business found:', data.name);
+      console.log('QR Code Debug: Business successfully found:', {
+        name: data.name,
+        id: data.id,
+        isActive: data.is_active
+      });
+      
       return data as Business;
     },
     enabled: !!businessId && isValidUUID,
     retry: (failureCount, error) => {
-      // Only retry on network errors, not on business not found
+      console.log('QR Code Debug: Query retry attempt:', failureCount, error.message);
+      // Retry twice for network errors, but not for business not found
       return failureCount < 2 && !error.message.includes('not found');
-    }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 
   const servicesQuery = useQuery({
@@ -102,7 +125,8 @@ export const usePublicBookingData = (businessId: string | undefined, isValidUUID
       console.log('QR Code Debug: Services found:', data?.length || 0);
       return (data || []) as Service[];
     },
-    enabled: !!businessId && !!businessQuery.data,
+    enabled: !!businessId && !!businessQuery.data && !businessQuery.error,
+    staleTime: 5 * 60 * 1000,
   });
 
   return {
@@ -111,5 +135,6 @@ export const usePublicBookingData = (businessId: string | undefined, isValidUUID
     businessLoading: businessQuery.isLoading,
     servicesLoading: servicesQuery.isLoading,
     businessError: businessQuery.error,
+    refetchBusiness: businessQuery.refetch,
   };
 };

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { EnhancedSubscriptionPlans } from '@/components/subscription/EnhancedSubscriptionPlans';
@@ -10,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { toast } from 'sonner';
+import { CheckCircle } from 'lucide-react';
 
 const SubscriptionPage = () => {
   const { user } = useAuth();
@@ -135,6 +135,38 @@ const SubscriptionPage = () => {
             businessId={business?.id || ''}
           />
         </div>
+
+        {/* Enhanced Payment Integration Notice */}
+        <Card className="max-w-4xl mx-auto border-green-200 bg-green-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-800">
+              <CheckCircle className="w-5 h-5" />
+              Enhanced Payment Options Available
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="space-y-2">
+                <h4 className="font-semibold text-green-900">Direct M-Pesa STK Push</h4>
+                <ul className="space-y-1 text-green-700">
+                  <li>• Instant payment prompts on your phone</li>
+                  <li>• No need to leave the platform</li>
+                  <li>• Secure Safaricom integration</li>
+                  <li>• Real-time payment confirmation</li>
+                </ul>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-semibold text-green-900">Paystack Gateway</h4>
+                <ul className="space-y-1 text-green-700">
+                  <li>• Multiple payment options</li>
+                  <li>• International card support</li>
+                  <li>• Bank transfers available</li>
+                  <li>• Mobile money integration</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="max-w-4xl mx-auto">
           <CardHeader>

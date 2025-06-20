@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { BoinvitQRGenerator } from './BoinvitQRGenerator';
 
 type QRCodeGeneratorProps = {
@@ -8,6 +10,26 @@ type QRCodeGeneratorProps = {
 };
 
 export const QRCodeGenerator = ({ businessId, businessName }: QRCodeGeneratorProps) => {
+  // Fetch business details to get subdomain
+  const { data: business } = useQuery({
+    queryKey: ['business-subdomain', businessId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('subdomain')
+        .eq('id', businessId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching business subdomain:', error);
+        return null;
+      }
+
+      return data;
+    },
+    enabled: !!businessId
+  });
+
   return (
     <div className="space-y-4">
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -19,13 +41,17 @@ export const QRCodeGenerator = ({ businessId, businessName }: QRCodeGeneratorPro
           <li>• View all your available services</li>
           <li>• Select their preferred service</li>
           <li>• Choose appointment date and time</li>
-          <li>• Complete their booking</li>
+          <li>• Complete their booking with payment</li>
+          {business?.subdomain && (
+            <li>• Accessed via your custom domain: {business.subdomain}.boinvit.com</li>
+          )}
         </ul>
       </div>
       
       <BoinvitQRGenerator 
         businessId={businessId} 
-        businessName={businessName} 
+        businessName={businessName}
+        subdomain={business?.subdomain}
       />
     </div>
   );

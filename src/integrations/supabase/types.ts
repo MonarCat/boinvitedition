@@ -55,6 +55,9 @@ export type Database = {
           business_id: string
           client_id: string
           created_at: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
           duration_minutes: number
           id: string
           invoice_generated: boolean | null
@@ -62,6 +65,7 @@ export type Database = {
           original_booking_date: string | null
           original_booking_time: string | null
           payment_method: string | null
+          payment_reference: string | null
           payment_status: string | null
           reminder_sent_at: string | null
           reschedule_count: number | null
@@ -81,6 +85,9 @@ export type Database = {
           business_id: string
           client_id: string
           created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           duration_minutes: number
           id?: string
           invoice_generated?: boolean | null
@@ -88,6 +95,7 @@ export type Database = {
           original_booking_date?: string | null
           original_booking_time?: string | null
           payment_method?: string | null
+          payment_reference?: string | null
           payment_status?: string | null
           reminder_sent_at?: string | null
           reschedule_count?: number | null
@@ -107,6 +115,9 @@ export type Database = {
           business_id?: string
           client_id?: string
           created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           duration_minutes?: number
           id?: string
           invoice_generated?: boolean | null
@@ -114,6 +125,7 @@ export type Database = {
           original_booking_date?: string | null
           original_booking_time?: string | null
           payment_method?: string | null
+          payment_reference?: string | null
           payment_status?: string | null
           reminder_sent_at?: string | null
           reschedule_count?: number | null
@@ -209,6 +221,7 @@ export type Database = {
           contact_preferences: Json | null
           created_at: string | null
           currency: string | null
+          custom_domain: string | null
           default_tax_rate: number | null
           id: string
           map_description: string | null
@@ -218,6 +231,7 @@ export type Database = {
           require_payment: boolean | null
           send_reminders: boolean | null
           show_on_map: boolean | null
+          subdomain_enabled: boolean | null
           timezone: string | null
           updated_at: string | null
         }
@@ -230,6 +244,7 @@ export type Database = {
           contact_preferences?: Json | null
           created_at?: string | null
           currency?: string | null
+          custom_domain?: string | null
           default_tax_rate?: number | null
           id?: string
           map_description?: string | null
@@ -239,6 +254,7 @@ export type Database = {
           require_payment?: boolean | null
           send_reminders?: boolean | null
           show_on_map?: boolean | null
+          subdomain_enabled?: boolean | null
           timezone?: string | null
           updated_at?: string | null
         }
@@ -251,6 +267,7 @@ export type Database = {
           contact_preferences?: Json | null
           created_at?: string | null
           currency?: string | null
+          custom_domain?: string | null
           default_tax_rate?: number | null
           id?: string
           map_description?: string | null
@@ -260,6 +277,7 @@ export type Database = {
           require_payment?: boolean | null
           send_reminders?: boolean | null
           show_on_map?: boolean | null
+          subdomain_enabled?: boolean | null
           timezone?: string | null
           updated_at?: string | null
         }

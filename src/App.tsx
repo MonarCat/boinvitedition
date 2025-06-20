@@ -2,83 +2,82 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
-import AuthenticatedApp from "@/pages/AuthenticatedApp";
-import LandingPage from "@/pages/LandingPage";
-import AuthPage from "@/pages/AuthPage";
-import DemoPage from "@/pages/DemoPage";
-import PublicBookingPage from "@/pages/PublicBookingPage";
-import TermsOfService from "@/pages/TermsOfService";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import CookiePolicy from "@/pages/CookiePolicy";
-import SafetyTips from "@/pages/SafetyTips";
-import NotFound from "@/pages/NotFound";
-import InstallPrompt from "@/components/pwa/InstallPrompt";
-import PWAStatus from "@/components/pwa/PWAStatus";
-import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
-import { useSystemDarkMode } from "@/lib/useSystemDarkMode";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/lib/ThemeProvider";
+import Index from "./pages/Index";
+import AuthPage from "./pages/AuthPage";
+import Dashboard from "./pages/Dashboard";
+import BookingPage from "./pages/BookingPage";
+import ServicesPage from "./pages/ServicesPage";
+import StaffPage from "./pages/StaffPage";
+import ClientsPage from "./pages/ClientsPage";
+import SettingsPage from "./pages/SettingsPage";
+import SubscriptionPage from "./pages/SubscriptionPage";
+import InvoicesPage from "./pages/InvoicesPage";
+import BookingManagementPage from "./pages/BookingManagementPage";
+import StaffDashboardPage from "./pages/StaffDashboardPage";
+import StaffAttendancePage from "./pages/StaffAttendancePage";
+import BusinessDiscoveryPage from "./pages/BusinessDiscoveryPage";
+import PublicBookingPage from "./pages/PublicBookingPage";
+import ProductionCheckPage from "./pages/ProductionCheckPage";
+import AuthenticatedApp from "./pages/AuthenticatedApp";
+import AdminPage from "./pages/AdminPage";
+import FirstAdminPage from "./pages/FirstAdminPage";
+import DemoPage from "./pages/DemoPage";
+import LandingPage from "./pages/LandingPage";
+import NotFound from "./pages/NotFound";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import CookiePolicy from "./pages/CookiePolicy";
+import SafetyTips from "./pages/SafetyTips";
 
 const queryClient = new QueryClient();
 
-const App = () => {
-  useSystemDarkMode();
-  
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <BrowserRouter>
-          <AuthProvider>
-            <div className="relative">
-              <Routes>
-                {/* Landing page as default */}
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/demo" element={<DemoPage />} />
-                
-                {/* Business Discovery Map */}
-                <Route path="/discover" element={<BusinessDiscoveryPage />} />
-                
-                {/* QR Code booking routes - Multiple variations for reliability */}
-                <Route path="/book/:businessId" element={<PublicBookingPage />} />
-                <Route path="/booking/:businessId" element={<PublicBookingPage />} />
-                <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
-                
-                {/* Authenticated app routes */}
-                <Route path="/app/*" element={<AuthenticatedApp />} />
-                
-                {/* Legal pages */}
-                <Route path="/terms" element={<TermsOfService />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/cookies" element={<CookiePolicy />} />
-                <Route path="/safety" element={<SafetyTips />} />
-                
-                {/* Legacy route redirects */}
-                <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
-                <Route path="/services" element={<Navigate to="/app/services" replace />} />
-                <Route path="/booking-management" element={<Navigate to="/app/bookings" replace />} />
-                <Route path="/clients" element={<Navigate to="/app/clients" replace />} />
-                <Route path="/staff" element={<Navigate to="/app/staff" replace />} />
-                <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
-                <Route path="/invoices" element={<Navigate to="/app/invoices" replace />} />
-                <Route path="/subscription" element={<Navigate to="/app/subscription" replace />} />
-                
-                {/* Catch all - 404 page */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+        <TooltipProvider>
+          <Toaster />
+          <BrowserRouter>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/landing" element={<LandingPage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/demo" element={<DemoPage />} />
+              <Route path="/book/:businessId" element={<PublicBookingPage />} />
+              <Route path="/discover" element={<BusinessDiscoveryPage />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/cookies" element={<CookiePolicy />} />
+              <Route path="/safety" element={<SafetyTips />} />
+              <Route path="/admin-setup" element={<FirstAdminPage />} />
               
-              {/* PWA Components */}
-              <InstallPrompt />
-              <div className="fixed top-4 right-4 z-40">
-                <PWAStatus />
-              </div>
-            </div>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+              {/* Protected routes */}
+              <Route path="/app/*" element={<AuthenticatedApp />}>
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="bookings" element={<BookingPage />} />
+                <Route path="services" element={<ServicesPage />} />
+                <Route path="staff" element={<StaffPage />} />
+                <Route path="clients" element={<ClientsPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="subscription" element={<SubscriptionPage />} />
+                <Route path="invoices" element={<InvoicesPage />} />
+                <Route path="booking-management" element={<BookingManagementPage />} />
+                <Route path="staff-dashboard" element={<StaffDashboardPage />} />
+                <Route path="staff-attendance" element={<StaffAttendancePage />} />
+                <Route path="admin" element={<AdminPage />} />
+                <Route path="production-check" element={<ProductionCheckPage />} />
+              </Route>
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;

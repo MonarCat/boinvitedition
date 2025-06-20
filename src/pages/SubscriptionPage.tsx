@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { EnhancedSubscriptionPlans } from '@/components/subscription/EnhancedSubscriptionPlans';
 import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus';
+import { DirectPaystackSTK } from '@/components/payment/DirectPaystackSTK';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -65,6 +67,17 @@ const SubscriptionPage = () => {
     if (plansSection) {
       plansSection.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handlePaymentSuccess = (reference: string) => {
+    toast.success('Payment completed successfully!');
+    // Redirect to success page or handle success
+    window.location.href = `/payment-success?reference=${reference}&method=direct_paystack`;
+  };
+
+  const handlePaymentError = (error: any) => {
+    console.error('Payment error:', error);
+    toast.error('Payment failed. Please try again.');
   };
 
   if (isLoading || isBusinessLoading) {
@@ -136,38 +149,40 @@ const SubscriptionPage = () => {
           />
         </div>
 
-        {/* Enhanced Payment Integration Notice */}
+        {/* Direct Payment Demo Section */}
         <Card className="max-w-4xl mx-auto border-green-200 bg-green-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-800">
               <CheckCircle className="w-5 h-5" />
-              Enhanced Payment Options Available
+              Enhanced Direct Payment Integration
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="space-y-2">
-                <h4 className="font-semibold text-green-900">Direct M-Pesa STK Push</h4>
-                <ul className="space-y-1 text-green-700">
-                  <li>• Instant payment prompts on your phone</li>
-                  <li>• No need to leave the platform</li>
-                  <li>• Secure Safaricom integration</li>
-                  <li>• Real-time payment confirmation</li>
-                </ul>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-semibold text-green-900">Paystack Gateway</h4>
-                <ul className="space-y-1 text-green-700">
-                  <li>• Multiple payment options</li>
-                  <li>• International card support</li>
-                  <li>• Bank transfers available</li>
-                  <li>• Mobile money integration</li>
-                </ul>
-              </div>
+            <div className="space-y-4">
+              <p className="text-green-700">
+                Experience our new direct payment integration with Paystack STK Push and enhanced payment options.
+              </p>
+              
+              {user?.email && (
+                <div className="max-w-md mx-auto">
+                  <DirectPaystackSTK
+                    amount={1000}
+                    email={user.email}
+                    description="Test Payment"
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                    metadata={{
+                      test: true,
+                      businessId: business?.id
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
+        {/* Plan Comparison */}
         <Card className="max-w-4xl mx-auto">
           <CardHeader>
             <CardTitle>Plan Comparison & Features</CardTitle>

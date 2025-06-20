@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Clock, TrendingUp, Users, CheckCircle } from 'lucide-react';
+import { CheckCircle, Smartphone, CreditCard, TrendingUp, Users } from 'lucide-react';
 
 const SubscriptionPage = () => {
   const { user } = useAuth();
@@ -61,7 +61,7 @@ const SubscriptionPage = () => {
       <DashboardLayout>
         <div className="space-y-8">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Subscription Plans</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
             <Card className="border-orange-200 bg-orange-50 max-w-2xl mx-auto">
               <CardHeader>
                 <CardTitle className="text-orange-800">Business Setup Required</CardTitle>
@@ -72,9 +72,9 @@ const SubscriptionPage = () => {
                 </p>
                 <button
                   onClick={() => window.location.href = '/app/settings'}
-                  className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
+                  className="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors"
                 >
-                  Set Up Business
+                  Set Up Business Profile
                 </button>
               </CardContent>
             </Card>
@@ -88,10 +88,10 @@ const SubscriptionPage = () => {
     <DashboardLayout>
       <div className="space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Perfect Plan</h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Flexible pricing options to match your business needs. Start with a free trial, 
-            pay as you grow, or choose a subscription plan with great discounts for longer commitments.
+            Flexible pricing designed for businesses of all sizes. Start with a free trial, 
+            pay only when you earn, or choose a subscription with fantastic long-term discounts.
           </p>
         </div>
 
@@ -105,37 +105,37 @@ const SubscriptionPage = () => {
           </div>
         )}
 
-        {/* Payment Method Information */}
-        <div className="max-w-4xl mx-auto">
-          <Card>
+        {/* Payment Methods Information */}
+        <div className="max-w-5xl mx-auto">
+          <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                Enhanced Payment Options
+              <CardTitle className="flex items-center gap-2 text-center justify-center">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+                Multiple Secure Payment Options
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-blue-600 mt-1" />
-                  <div>
-                    <h4 className="font-medium">M-Pesa STK Push</h4>
-                    <p className="text-sm text-gray-600">Direct payment from your M-Pesa account</p>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Smartphone className="w-8 h-8 text-green-600" />
                   </div>
+                  <h4 className="font-semibold mb-2">M-Pesa Mobile Money</h4>
+                  <p className="text-sm text-gray-600">Pay instantly using your M-Pesa account - most popular option</p>
                 </div>
-                <div className="flex items-start gap-3">
-                  <TrendingUp className="w-5 h-5 text-purple-600 mt-1" />
-                  <div>
-                    <h4 className="font-medium">Multiple Options</h4>
-                    <p className="text-sm text-gray-600">Cards, bank transfer, USSD via Paystack</p>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CreditCard className="w-8 h-8 text-blue-600" />
                   </div>
+                  <h4 className="font-semibold mb-2">Cards & Bank Transfer</h4>
+                  <p className="text-sm text-gray-600">Visa, Mastercard, and direct bank transfers supported</p>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Users className="w-5 h-5 text-green-600 mt-1" />
-                  <div>
-                    <h4 className="font-medium">Auto-Split Payments</h4>
-                    <p className="text-sm text-gray-600">Automatic revenue sharing for pay-as-you-go</p>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <TrendingUp className="w-8 h-8 text-purple-600" />
                   </div>
+                  <h4 className="font-semibold mb-2">Auto-Split Payments</h4>
+                  <p className="text-sm text-gray-600">Automatic revenue sharing for pay-as-you-go plans</p>
                 </div>
               </div>
             </CardContent>
@@ -150,60 +150,53 @@ const SubscriptionPage = () => {
           isLoading={isCreatingSubscription}
         />
 
-        {/* Plan Comparison Details */}
+        {/* Plan Comparison and Features */}
         <Card className="max-w-6xl mx-auto">
           <CardHeader>
-            <CardTitle>Plan Details & Features</CardTitle>
+            <CardTitle className="text-center">What's Included in Every Plan</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
               <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-orange-600" />
-                  <h4 className="font-semibold">Free Trial</h4>
-                </div>
+                <h4 className="font-semibold text-orange-600">Free Trial Benefits</h4>
                 <ul className="space-y-1 text-gray-600">
-                  <li>• KES 10 initialization fee</li>
-                  <li>• 14 days full access</li>
-                  <li>• All features unlocked</li>
+                  <li>• KES 10 one-time setup fee</li>
+                  <li>• 14 days complete access</li>
+                  <li>• All premium features</li>
                   <li>• Perfect for testing</li>
-                  <li>• No monthly charges</li>
+                  <li>• No monthly charges during trial</li>
                 </ul>
               </div>
               
               <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-purple-600" />
-                  <h4 className="font-semibold">Pay As You Go</h4>
-                </div>
+                <h4 className="font-semibold text-purple-600">Pay As You Go</h4>
                 <ul className="space-y-1 text-gray-600">
-                  <li>• KES 10 initialization fee</li>
+                  <li>• KES 10 one-time setup fee</li>
                   <li>• 7% commission per booking</li>
+                  <li>• You receive 93% instantly</li>
                   <li>• Prepaid bookings only</li>
-                  <li>• Automatic settlements</li>
                   <li>• Perfect for low volume</li>
                 </ul>
               </div>
 
               <div className="space-y-3">
-                <Badge className="bg-blue-100 text-blue-800 mb-2">Popular Choice</Badge>
-                <h4 className="font-semibold">Subscription Plans</h4>
+                <h4 className="font-semibold text-blue-600">Subscription Plans</h4>
                 <ul className="space-y-1 text-gray-600">
                   <li>• Starter: 5 staff, 1K bookings</li>
                   <li>• Business: 15 staff, 3K bookings</li>
-                  <li>• Enterprise: Unlimited</li>
-                  <li>• Up to 30% discount</li>
+                  <li>• Enterprise: Unlimited everything</li>
+                  <li>• Up to 30% long-term discounts</li>
                   <li>• Predictable monthly costs</li>
                 </ul>
               </div>
 
               <div className="space-y-3">
-                <h4 className="font-semibold">All Plans Include</h4>
+                <h4 className="font-semibold text-green-600">Core Features</h4>
                 <ul className="space-y-1 text-gray-600">
                   <li>• QR code booking system</li>
                   <li>• WhatsApp notifications</li>
                   <li>• Online booking calendar</li>
-                  <li>• Client management</li>
+                  <li>• Client management system</li>
                   <li>• Payment processing</li>
                   <li>• Analytics dashboard</li>
                 </ul>

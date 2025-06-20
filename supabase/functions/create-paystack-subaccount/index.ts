@@ -11,7 +11,7 @@ serve(async (req) => {
   try {
     const { businessId, businessName, businessEmail, settlementBank, accountNumber } = await req.json()
 
-    console.log('Creating subaccount for:', { businessId, businessName, businessEmail })
+    console.log('Creating Paystack subaccount for:', { businessId, businessName, businessEmail })
 
     // Get Paystack secret key
     const paystackKey = Deno.env.get('PAYSTACK_SECRET_KEY')
@@ -24,22 +24,25 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Create Paystack subaccount
+    // Create Paystack subaccount with automatic split
     const subaccountData = {
       business_name: businessName,
-      settlement_bank: settlementBank || 'test-bank', // Default for testing
-      account_number: accountNumber || '0123456789', // Default for testing
-      percentage_charge: 7.0, // Platform takes 7%
-      description: `Subaccount for ${businessName}`,
+      settlement_bank: settlementBank || 'test-bank', // For testing - in production use real bank codes
+      account_number: accountNumber || '0123456789', // For testing - in production use real account numbers
+      percentage_charge: 7.0, // Platform takes 7% commission
+      description: `Auto-split subaccount for ${businessName} - 93% to business, 7% to platform`,
       primary_contact_email: businessEmail,
       primary_contact_name: businessName,
       primary_contact_phone: null,
       metadata: {
-        business_id: businessId
+        business_id: businessId,
+        split_type: 'automatic',
+        business_percentage: 93,
+        platform_percentage: 7
       }
     }
 
-    console.log('Subaccount data:', subaccountData)
+    console.log('Subaccount data being sent:', subaccountData)
 
     const subaccountResponse = await fetch('https://api.paystack.co/subaccount', {
       method: 'POST',
@@ -52,12 +55,12 @@ serve(async (req) => {
 
     if (!subaccountResponse.ok) {
       const errorText = await subaccountResponse.text()
-      console.error('Paystack subaccount error:', errorText)
+      console.error('Paystack subaccount creation error:', errorText)
       throw new Error(`Subaccount creation failed: ${errorText}`)
     }
 
     const subaccountResult = await subaccountResponse.json()
-    console.log('Subaccount created:', subaccountResult.data.subaccount_code)
+    console.log('Paystack subaccount created successfully:', subaccountResult.data)
 
     // Update business with subaccount information
     const { error: updateError } = await supabase
@@ -70,10 +73,10 @@ serve(async (req) => {
 
     if (updateError) {
       console.error('Database update error:', updateError)
-      throw new Error('Failed to save subaccount information')
+      throw new Error('Failed to save subaccount information to business record')
     }
 
-    // Update subscription to enable auto-split
+    // Update subscription to enable auto-split payments
     const { error: subscriptionError } = await supabase
       .from('subscriptions')
       .update({
@@ -86,13 +89,17 @@ serve(async (req) => {
 
     if (subscriptionError) {
       console.warn('Subscription update warning:', subscriptionError)
+      // This is not a critical error, subaccount was created successfully
     }
 
     return new Response(
       JSON.stringify({ 
         success: true,
         subaccount_code: subaccountResult.data.subaccount_code,
-        message: 'Subaccount created successfully'
+        settlement_bank: subaccountResult.data.settlement_bank,
+        account_number: subaccountResult.data.account_number,
+        percentage_charge: subaccountResult.data.percentage_charge,
+        message: 'Paystack subaccount created successfully with automatic split configuration'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -101,11 +108,11 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error in create-paystack-subaccount:', error)
+    console.error('Error in create-paystack-subaccount function:', error)
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message || 'Subaccount creation failed'
+        error: error.message || 'Failed to create Paystack subaccount'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

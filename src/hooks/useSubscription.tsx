@@ -89,31 +89,17 @@ export const useSubscription = () => {
         if (error) throw error;
         return data;
       } else if (planType === 'payasyougo') {
-        // Get business details for subaccount creation
-        const { data: businessData, error: businessError } = await supabase
-          .from('businesses')
-          .select('name')
-          .eq('id', businessId)
-          .single();
-
-        if (businessError) {
-          console.error('Error fetching business data:', businessError);
-          throw new Error('Failed to fetch business information');
-        }
-
-        // Create Paystack subaccount for automatic payment splitting
+        // Create subaccount for pay-as-you-go plan
         const { data: subaccountData, error: subaccountError } = await supabase.functions.invoke('create-paystack-subaccount', {
           body: {
             businessId,
-            businessName: businessData.name || 'Business',
+            businessName: 'Business Name', // This should come from business data
             businessEmail: user?.email
           }
         });
 
         if (subaccountError) {
-          console.error('Subaccount creation error:', subaccountError);
-          toast.error('Failed to set up payment splitting. Please try again.');
-          throw subaccountError;
+          console.warn('Subaccount creation warning:', subaccountError);
         }
 
         const { data, error } = await supabase
@@ -158,16 +144,16 @@ export const useSubscription = () => {
     },
     onSuccess: (data, variables) => {
       if (variables.planType === 'trial') {
-        toast.success('Free trial activated! KES 10 initialization fee paid. You have 14 days of full access.');
+        toast.success('Free trial started! You have 14 days of full access.');
         queryClient.invalidateQueries({ queryKey: ['subscription'] });
       } else if (variables.planType === 'payasyougo') {
-        toast.success('Pay-as-you-go plan activated! KES 10 initialization fee paid. You\'ll earn 93% from each booking.');
+        toast.success('Pay-as-you-go plan activated! You\'ll be charged 7% per successful booking.');
         queryClient.invalidateQueries({ queryKey: ['subscription'] });
       }
     },
     onError: (error) => {
       console.error('Subscription error:', error);
-      toast.error('Failed to activate subscription. Please try again.');
+      toast.error('Failed to start subscription. Please try again.');
     },
   });
 

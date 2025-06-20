@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -65,7 +66,10 @@ export const SignUpForm = ({ loading, authError, onError, onSignUpSuccess, onTab
     }
     
     try {
-      const { error } = await signUp(email, password, firstName.trim(), lastName.trim());
+      const { error } = await signUp(email, password, {
+        firstName: firstName.trim(),
+        lastName: lastName.trim()
+      });
       
       if (error) {
         if (error.message.includes('User already registered')) {

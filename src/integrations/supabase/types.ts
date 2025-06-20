@@ -169,44 +169,6 @@ export type Database = {
           },
         ]
       }
-      business_payment_settings: {
-        Row: {
-          business_id: string
-          created_at: string
-          id: string
-          payment_methods: Json | null
-          paystack_public_key: string | null
-          require_payment: boolean
-          updated_at: string
-        }
-        Insert: {
-          business_id: string
-          created_at?: string
-          id?: string
-          payment_methods?: Json | null
-          paystack_public_key?: string | null
-          require_payment?: boolean
-          updated_at?: string
-        }
-        Update: {
-          business_id?: string
-          created_at?: string
-          id?: string
-          payment_methods?: Json | null
-          paystack_public_key?: string | null
-          require_payment?: boolean
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "business_payment_settings_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: true
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       business_reviews: {
         Row: {
           booking_id: string

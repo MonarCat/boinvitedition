@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { ClientPaymentSection } from "@/components/payment/ClientPaymentSection";
 import { PaymentReceipt } from "@/components/payment/PaymentReceipt";
 import { useClientPayments } from "@/hooks/useClientPayments";
+import { BusinessPaymentInstructions } from "@/components/business/BusinessPaymentInstructions";
 
 const BookingPage = () => {
   const { businessId } = useParams();
@@ -28,7 +28,7 @@ const BookingPage = () => {
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [bookingDetails, setBookingDetails] = useState<any>(null);
 
-  const { services, business, servicesLoading, recordPayment } = useClientPayments(businessId || '');
+  const { services, business, servicesLoading } = useClientPayments(businessId || '');
 
   const timeSlots = [
     "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
@@ -41,36 +41,6 @@ const BookingPage = () => {
       return;
     }
     setShowPayment(true);
-  };
-
-  const handlePaymentSuccess = (reference: string, serviceId: string) => {
-    const service = services.find(s => s.id === serviceId);
-    if (service) {
-      recordPayment({
-        serviceId,
-        clientEmail,
-        amount: service.price,
-        currency: service.currency || business?.currency || 'KES',
-        paystackReference: reference
-      });
-
-      // Create booking details for receipt
-      const bookingData = {
-        id: `booking_${Date.now()}`,
-        service_name: service.name,
-        booking_date: selectedDate?.toISOString().split('T')[0] || '',
-        booking_time: selectedTime,
-        total_amount: service.price,
-        currency: service.currency || business?.currency || 'KES',
-        customer_name: clientName,
-        customer_email: clientEmail,
-        payment_reference: reference,
-        ticket_number: `TKT-${Date.now()}`
-      };
-
-      setBookingDetails(bookingData);
-      setPaymentCompleted(true);
-    }
   };
 
   const handleReceiptClose = () => {
@@ -139,14 +109,17 @@ const BookingPage = () => {
       </header>
 
       {/* Booking Form */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+        {/*Payment Instructions Section */}
+        {business && <BusinessPaymentInstructions business={business} />}
+
         {showPayment && clientEmail ? (
           <ClientPaymentSection
-            services={services}
+            services={services.filter(s => s.id === selectedService)}
             clientEmail={clientEmail}
             businessName={business?.name || 'Business'}
             businessCurrency={business?.currency}
-            onPaymentSuccess={handlePaymentSuccess}
+            paymentInstructions={business?.payment_instructions}
           />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -335,11 +308,11 @@ const BookingPage = () => {
                     disabled={!selectedService || !selectedDate || !selectedTime || !clientEmail || !clientName}
                     onClick={handleBookingSubmit}
                   >
-                    Proceed to Payment
+                    View Payment Instructions
                   </Button>
 
                   <p className="text-xs text-gray-500 text-center">
-                    Secure payment processing via Paystack
+                    Payment instructions will be provided after booking confirmation
                   </p>
                 </CardContent>
               </Card>

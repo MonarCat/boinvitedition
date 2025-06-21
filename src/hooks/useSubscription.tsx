@@ -9,7 +9,7 @@ interface SubscriptionData {
   id: string;
   user_id: string;
   business_id: string;
-  plan_type: 'trial' | 'starter' | 'medium' | 'premium' | 'payasyougo';
+  plan_type: 'trial' | 'starter' | 'medium' | 'premium';
   status: 'active' | 'expired' | 'cancelled';
   trial_ends_at: string | null;
   current_period_end: string;
@@ -17,9 +17,6 @@ interface SubscriptionData {
   staff_limit?: number;
   bookings_limit?: number;
   payment_interval?: string;
-  auto_split_enabled?: boolean;
-  split_percentage?: number;
-  paystack_subaccount_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -88,40 +85,6 @@ export const useSubscription = () => {
         
         if (error) throw error;
         return data;
-      } else if (planType === 'payasyougo') {
-        // Create subaccount for pay-as-you-go plan
-        const { data: subaccountData, error: subaccountError } = await supabase.functions.invoke('create-paystack-subaccount', {
-          body: {
-            businessId,
-            businessName: 'Business Name', // This should come from business data
-            businessEmail: user?.email
-          }
-        });
-
-        if (subaccountError) {
-          console.warn('Subaccount creation warning:', subaccountError);
-        }
-
-        const { data, error } = await supabase
-          .from('subscriptions')
-          .insert({
-            user_id: user?.id,
-            business_id: businessId,
-            plan_type: 'payasyougo',
-            status: 'active',
-            current_period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
-            payment_interval: 'commission',
-            auto_split_enabled: true,
-            split_percentage: 7.0,
-            paystack_subaccount_id: subaccountData?.subaccount_code,
-            staff_limit: null,
-            bookings_limit: null
-          })
-          .select()
-          .single();
-        
-        if (error) throw error;
-        return data;
       } else {
         // Handle subscription plans with Paystack checkout
         const { data, error } = await supabase.functions.invoke('create-paystack-checkout', {
@@ -145,9 +108,6 @@ export const useSubscription = () => {
     onSuccess: (data, variables) => {
       if (variables.planType === 'trial') {
         toast.success('Free trial started! You have 14 days of full access.');
-        queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      } else if (variables.planType === 'payasyougo') {
-        toast.success('Pay-as-you-go plan activated! You\'ll be charged 7% per successful booking.');
         queryClient.invalidateQueries({ queryKey: ['subscription'] });
       }
     },

@@ -1,11 +1,9 @@
 
 import React from 'react';
 import { GeneralSettingsContainer } from './general/GeneralSettingsContainer';
-import { PaymentAccountSettings } from '@/components/payment/PaymentAccountSettings';
 import { PaystackIntegrationSection } from './PaystackIntegrationSection';
 import { GeneralSettingsForm } from './general/GeneralSettingsForm';
 import { useGeneralSettings } from '@/hooks/useGeneralSettings';
-import { usePaymentMethods } from '@/hooks/usePaymentMethods';
 
 export const GeneralSettings = () => {
   const { 
@@ -16,14 +14,6 @@ export const GeneralSettings = () => {
     isUpdating, 
     handleSubmit 
   } = useGeneralSettings();
-  
-  const {
-    paymentMethods,
-    addPaymentMethod,
-    updatePaymentMethod,
-    removePaymentMethod,
-    isLoading: paymentMethodsLoading
-  } = usePaymentMethods(business?.id || '');
 
   if (!business) {
     return (
@@ -45,15 +35,6 @@ export const GeneralSettings = () => {
       </GeneralSettingsContainer>
       
       <PaystackIntegrationSection />
-      
-      {!paymentMethodsLoading && (
-        <PaymentAccountSettings
-          paymentAccounts={paymentMethods}
-          onAddAccount={addPaymentMethod}
-          onUpdateAccount={(id: string, updates: any) => updatePaymentMethod({ id, updates })}
-          onRemoveAccount={removePaymentMethod}
-        />
-      )}
     </div>
   );
 };

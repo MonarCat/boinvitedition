@@ -1,11 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { CreditCard, DollarSign, CheckCircle } from 'lucide-react';
-import { PaystackPayment, loadPaystackScript } from './PaystackPayment';
-import { toast } from 'sonner';
+import { CreditCard, DollarSign, CheckCircle, Info } from 'lucide-react';
 
 interface Service {
   id: string;
@@ -19,6 +16,7 @@ interface ClientPaymentSectionProps {
   clientEmail: string;
   businessName: string;
   businessCurrency?: string;
+  paymentInstructions?: string;
   onPaymentSuccess?: (reference: string, serviceId: string) => void;
 }
 
@@ -27,23 +25,8 @@ export const ClientPaymentSection: React.FC<ClientPaymentSectionProps> = ({
   clientEmail,
   businessName,
   businessCurrency = 'KES',
-  onPaymentSuccess
+  paymentInstructions
 }) => {
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [paystackLoaded, setPaystackLoaded] = useState(false);
-
-  useEffect(() => {
-    loadPaystackScript()
-      .then(() => setPaystackLoaded(true))
-      .catch(() => toast.error('Failed to load payment system'));
-  }, []);
-
-  const handlePaymentSuccess = (reference: string) => {
-    toast.success('Payment completed successfully!');
-    onPaymentSuccess?.(reference, selectedService?.id || '');
-    setSelectedService(null);
-  };
-
   const formatPrice = (price: number, currency: string) => {
     if (currency === 'KES') {
       return `KES ${price.toLocaleString()}`;
@@ -51,31 +34,18 @@ export const ClientPaymentSection: React.FC<ClientPaymentSectionProps> = ({
     return `$${price.toLocaleString()}`;
   };
 
-  if (!paystackLoaded) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading payment system...</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CreditCard className="w-5 h-5" />
-          Pay for Services
+          Service Payment - {businessName}
         </CardTitle>
         <p className="text-gray-600">
-          Select a service and make a secure payment to {businessName}
+          Please follow the payment instructions below to complete your booking.
         </p>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         {services.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <DollarSign className="w-12 h-12 mx-auto mb-3 text-gray-300" />
@@ -83,20 +53,17 @@ export const ClientPaymentSection: React.FC<ClientPaymentSectionProps> = ({
           </div>
         ) : (
           <>
-            <div className="grid gap-3">
+            <div className="space-y-3">
+              <h4 className="font-medium">Selected Services</h4>
               {services.map((service) => (
                 <div
                   key={service.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedService?.id === service.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => setSelectedService(service)}
+                  className="p-4 border rounded-lg bg-blue-50 border-blue-200"
                 >
                   <div className="flex justify-between items-center">
                     <div>
                       <h4 className="font-medium">{service.name}</h4>
+                      <p className="text-sm text-gray-600">Service for {clientEmail}</p>
                     </div>
                     <div className="text-right">
                       <span className="text-lg font-bold">
@@ -108,41 +75,32 @@ export const ClientPaymentSection: React.FC<ClientPaymentSectionProps> = ({
               ))}
             </div>
 
-            {selectedService && (
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium mb-2">Payment Summary</h4>
-                <div className="flex justify-between items-center mb-4">
-                  <span>Service: {selectedService.name}</span>
-                  <span className="font-bold">
-                    {formatPrice(selectedService.price, selectedService.currency || businessCurrency)}
-                  </span>
+            {paymentInstructions && (
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-start gap-2 mb-2">
+                  <Info className="w-4 h-4 text-orange-600 mt-1 flex-shrink-0" />
+                  <h4 className="font-medium text-orange-800">Payment Instructions</h4>
                 </div>
-                
-                <PaystackPayment
-                  amount={selectedService.price}
-                  email={clientEmail}
-                  currency={selectedService.currency || businessCurrency}
-                  onSuccess={handlePaymentSuccess}
-                  metadata={{
-                    service_id: selectedService.id,
-                    service_name: selectedService.name,
-                    business_name: businessName
-                  }}
-                />
+                <p className="text-orange-700 text-sm leading-relaxed">
+                  {paymentInstructions}
+                </p>
               </div>
             )}
+
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center gap-2 text-green-800 mb-2">
+                <CheckCircle className="w-4 h-4" />
+                <span className="font-medium">Next Steps</span>
+              </div>
+              <ol className="text-sm text-green-700 space-y-1 list-decimal list-inside">
+                <li>Follow the payment instructions above</li>
+                <li>Complete your payment using the specified method</li>
+                <li>Keep your payment reference for confirmation</li>
+                <li>Your booking will be confirmed once payment is verified</li>
+              </ol>
+            </div>
           </>
         )}
-
-        <div className="mt-6 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center gap-2 text-green-800">
-            <CheckCircle className="w-4 h-4" />
-            <span className="text-sm font-medium">Secure Payment</span>
-          </div>
-          <p className="text-xs text-green-700 mt-1">
-            Your payment is processed securely by Paystack. Multiple payment options including M-Pesa available.
-          </p>
-        </div>
       </CardContent>
     </Card>
   );

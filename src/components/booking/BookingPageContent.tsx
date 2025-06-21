@@ -4,6 +4,7 @@ import { EnhancedBusinessHeader } from './EnhancedBusinessHeader';
 import { ServicesList } from './ServicesList';
 import { EmptyServiceSelection } from './EmptyServiceSelection';
 import { PublicBookingCalendar } from './PublicBookingCalendar';
+import { BusinessPaymentInstructions } from '@/components/business/BusinessPaymentInstructions';
 
 interface Service {
   id: string;
@@ -40,7 +41,10 @@ export const BookingPageContent: React.FC<BookingPageContentProps> = ({
       <div className="max-w-4xl mx-auto py-8 px-4">
         <EnhancedBusinessHeader business={business} />
         
-        <div className="mt-8">
+        <div className="mt-8 space-y-6">
+          {/* Payment Instructions - Always visible */}
+          <BusinessPaymentInstructions business={business} />
+          
           {!selectedService ? (
             <>
               {!services || services.length === 0 ? (

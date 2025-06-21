@@ -21,7 +21,7 @@ const ClientsPage = () => {
     setIsFormOpen(true);
   };
 
-  const handle FormClose = () => {
+  const handleFormClose = () => {
     setIsFormOpen(false);
     setEditingClient(null);
   };

@@ -22,6 +22,7 @@ interface ClientPaymentSectionProps {
   businessCurrency?: string;
   paymentInstructions?: string;
   business?: {
+    id?: string;
     phone?: string;
     whatsapp?: string;
     facebook?: string;

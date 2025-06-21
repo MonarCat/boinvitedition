@@ -45,7 +45,9 @@ export const useClientPayments = (businessId: string) => {
         mpesa_number: data.phone,
         bank_account: '',
         bank_name: '',
-        phone_number: data.phone
+        phone_number: data.phone,
+        whatsapp: data.phone, // Use phone as WhatsApp for now
+        facebook: data.website // Use website as Facebook for now
       };
       
       return businessWithSettings;

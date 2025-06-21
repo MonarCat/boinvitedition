@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,12 +10,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Phone, MessageCircle, Mail, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ClientPaymentSection } from "@/components/payment/ClientPaymentSection";
 import { PaymentReceipt } from "@/components/payment/PaymentReceipt";
 import { useClientPayments } from "@/hooks/useClientPayments";
 import { BusinessPaymentInstructions } from "@/components/business/BusinessPaymentInstructions";
+import { MobileBookingHeader } from "@/components/booking/MobileBookingHeader";
 
 const BookingPage = () => {
   const { businessId } = useParams();
@@ -57,10 +57,29 @@ const BookingPage = () => {
   };
 
   const formatPrice = (price: number, currency: string) => {
-    if (currency === 'KES') {
-      return `KES ${price.toLocaleString()}`;
+    if (currency === 'KES' || currency === 'KSH') {
+      return `KSh ${price.toLocaleString()}`;
     }
-    return `$${price.toLocaleString()}`;
+    return `${currency} ${price.toLocaleString()}`;
+  };
+
+  const openGoogleMaps = () => {
+    if (business?.latitude && business?.longitude) {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`;
+      window.open(url, '_blank');
+    } else if (business?.address) {
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(business.address)}`;
+      window.open(url, '_blank');
+    }
+  };
+
+  const openWhatsApp = () => {
+    if (business?.whatsapp || business?.phone) {
+      const number = business?.whatsapp || business?.phone;
+      const cleanNumber = number?.replace(/\D/g, '');
+      const url = `https://wa.me/${cleanNumber}`;
+      window.open(url, '_blank');
+    }
   };
 
   if (servicesLoading) {
@@ -83,79 +102,127 @@ const BookingPage = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Business Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-xl font-bold">
-                {business?.name?.charAt(0) || 'B'}
-              </span>
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {business?.name || 'Business Services'}
-              </h1>
-              <p className="text-gray-600">Professional services and booking</p>
-              <div className="flex items-center space-x-4 mt-2">
-                <Badge variant="outline" className="bg-green-50 text-green-700">
-                  Available for Booking
-                </Badge>
-              </div>
-            </div>
-          </div>
+  const BookingContent = () => (
+    <>
+      {/* Payment Instructions Section - Always visible */}
+      {business && !showPayment && (
+        <div className="mb-6">
+          <BusinessPaymentInstructions business={business} />
         </div>
-      </header>
+      )}
 
-      {/* Booking Form */}
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
-        {/* Payment Instructions Section */}
-        {business && <BusinessPaymentInstructions business={business} />}
+      {/* Business Contact Section */}
+      {business && !showPayment && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Contact & Location</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {business?.phone && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(`tel:${business.phone}`, '_self')}
+                  className="flex items-center gap-2"
+                >
+                  <Phone className="w-4 h-4" />
+                  Call
+                </Button>
+              )}
+              {(business?.whatsapp || business?.phone) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openWhatsApp}
+                  className="flex items-center gap-2 text-green-600 border-green-300"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  WhatsApp
+                </Button>
+              )}
+              {business?.email && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(`mailto:${business.email}`, '_self')}
+                  className="flex items-center gap-2"
+                >
+                  <Mail className="w-4 h-4" />
+                  Email
+                </Button>
+              )}
+              {business?.facebook && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(business.facebook, '_blank')}
+                  className="flex items-center gap-2 text-blue-600 border-blue-300"
+                >
+                  Facebook
+                </Button>
+              )}
+              {(business?.address || (business?.latitude && business?.longitude)) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openGoogleMaps}
+                  className="flex items-center gap-2 text-red-600 border-red-300"
+                >
+                  <MapPin className="w-4 h-4" />
+                  Get Directions
+                </Button>
+              )}
+            </div>
+            {business?.address && (
+              <p className="text-sm text-gray-600">{business.address}</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
-        {showPayment && clientEmail ? (
-          <ClientPaymentSection
-            services={services.filter(s => s.id === selectedService)}
-            clientEmail={clientEmail}
-            businessName={business?.name || 'Business'}
-            businessCurrency={business?.currency}
-            paymentInstructions={business?.payment_instructions}
-          />
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Services Selection */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Select a Service</CardTitle>
-                  <CardDescription>Choose from our available services</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {services.map((service) => (
-                      <div
-                        key={service.id}
-                        className={cn(
-                          "p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md",
-                          selectedService === service.id
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        )}
-                        onClick={() => setSelectedService(service.id)}
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-medium">{service.name}</h3>
-                          <Badge variant="outline">
-                            {formatPrice(service.price, service.currency || business?.currency || 'KES')}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600">{service.description}</p>
+      {showPayment && clientEmail ? (
+        <ClientPaymentSection
+          services={services.filter(s => s.id === selectedService)}
+          clientEmail={clientEmail}
+          businessName={business?.name || 'Business'}
+          businessCurrency={business?.currency}
+          paymentInstructions={business?.payment_instructions}
+          business={business}
+        />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Services Selection */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Select a Service</CardTitle>
+                <CardDescription>Choose from our available services</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {services.map((service) => (
+                    <div
+                      key={service.id}
+                      className={cn(
+                        "p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md",
+                        selectedService === service.id
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      )}
+                      onClick={() => setSelectedService(service.id)}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-medium">{service.name}</h3>
+                        <Badge variant="outline">
+                          {formatPrice(service.price, service.currency || business?.currency || 'KES')}
+                        </Badge>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      <p className="text-sm text-gray-600">{service.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
 
               <Card>
                 <CardHeader>
@@ -240,7 +307,7 @@ const BookingPage = () => {
 
                   {selectedDate && (
                     <div className="text-sm">
-                      <span className="font-medium">Date: </span>
+                      <span className="font-medium">Date: </span> 
                       {format(selectedDate, "EEEE, MMMM d, yyyy")}
                     </div>
                   )}
@@ -320,6 +387,43 @@ const BookingPage = () => {
             </div>
           </div>
         )}
+      </>
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Mobile Header with Menu */}
+      <MobileBookingHeader business={business}>
+        <BookingContent />
+      </MobileBookingHeader>
+
+      {/* Desktop Header */}
+      <header className="hidden lg:block bg-white border-b border-gray-200 px-6 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
+              <span className="text-white text-xl font-bold">
+                {business?.name?.charAt(0) || 'B'}
+              </span>
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {business?.name || 'Business Services'}
+              </h1>
+              <p className="text-gray-600">Professional services and booking</p>
+              <div className="flex items-center space-x-4 mt-2">
+                <Badge variant="outline" className="bg-green-50 text-green-700">
+                  Available for Booking
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6 hidden lg:block">
+        <BookingContent />
       </div>
     </div>
   );

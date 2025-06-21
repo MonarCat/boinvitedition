@@ -23,6 +23,10 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
+        // Add hash to filenames for cache busting
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]',
         manualChunks: {
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
@@ -30,5 +34,7 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
+    // Generate manifest for asset versioning
+    manifest: true,
   },
 }));

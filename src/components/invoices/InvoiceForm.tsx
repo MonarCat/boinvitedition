@@ -103,7 +103,7 @@ export const InvoiceForm = ({ invoice, onSuccess, onCancel }: InvoiceFormProps) 
         throw new Error('Missing required information');
       }
 
-      const currency = business?.currency || 'USD';
+      const currency = business?.currency || 'KES';
       const invoiceData = {
         business_id: business.id,
         client_id: selectedClient,
@@ -147,7 +147,7 @@ export const InvoiceForm = ({ invoice, onSuccess, onCancel }: InvoiceFormProps) 
     createInvoiceMutation.mutate(data);
   };
 
-  const currency = business?.currency || 'USD';
+  const currency = business?.currency || 'KES';
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-6">

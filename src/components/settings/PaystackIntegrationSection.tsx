@@ -33,19 +33,6 @@ export const PaystackIntegrationSection = () => {
           </Badge>
         </div>
 
-        {/* Public Key Display */}
-        <div className="space-y-3">
-          <h4 className="font-medium text-gray-900">Public Key Configuration</h4>
-          <div className="p-3 bg-gray-50 border rounded-lg">
-            <div className="flex items-center justify-between">
-              <code className="text-sm font-mono text-gray-800">
-                {publicKey.substring(0, 20)}...{publicKey.substring(publicKey.length - 8)}
-              </code>
-              <Badge variant="outline">Live</Badge>
-            </div>
-          </div>
-        </div>
-
         {/* Features */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">

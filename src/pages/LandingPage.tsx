@@ -96,8 +96,8 @@ const LandingPage = () => {
   const pricingPlans = [
     {
       name: "Free Trial",
-      price: "$0",
-      period: "/14 days",
+      price: "KES 10 One-time fee",
+      period: "/7 days",
       features: [
         "Full Medium Plan access",
         "All premium features",
@@ -108,23 +108,37 @@ const LandingPage = () => {
       popular: true
     },
     {
-      name: "Medium Plan",
-      price: "$29",
+      name: "Starter Plan",
+      price: "KES 1020",
       period: "/month",
       features: [
-        "Up to 15 staff members",
-        "3,000 bookings/month",
-        "Payment gateway integration",
-        "Advanced analytics",
-        "SMS & WhatsApp notifications",
-        "Invoice generation",
-        "Staff management"
+        "Up to 5 staff members",
+        "1,000 bookings/month",
+        "QR code booking system",
+        "WhatApp notifications",
+        "Basic analytics",
+        "Email support"
       ],
       popular: false
     },
     {
-      name: "Premium Plan",
-      price: "$99",
+      name: "Business Plan",
+      price: "KES 2900",
+      period: "/month",
+      features: [
+        "Up to 15 staff members",
+        "3,000 bookings/month",
+        "QR code booking system",
+        "WhatsApp notifications",
+        "Advanced analytics",
+        "Priority email support",
+        "Custom branding"
+      ],
+      popular: false
+    },
+    {
+      name: "Enterprise Plan",
+      price: "KES 9900",
       period: "/month",
       features: [
         "Unlimited staff & bookings",
@@ -420,7 +434,7 @@ const LandingPage = () => {
                 </li>
                 <li className="flex items-center gap-2">
                   <Phone className="h-4 w-4" />
-                  +254 700 000 000
+                  +254 769 829 304
                 </li>
                 <li className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
@@ -431,7 +445,7 @@ const LandingPage = () => {
           </div>
           
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Boinvit. All rights reserved.</p>
+            <p>&copy; 2025 Boinvit. All rights reserved.</p>
           </div>
         </div>
       </footer>

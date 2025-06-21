@@ -171,7 +171,7 @@ const Index = () => {
               Exclusive Feature
             </Badge>
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Revolutionary QR Code Business Profiles
+              Revolutionary QR Code Booking System
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               The only platform that generates unique QR codes for your business. Customers simply scan to access your booking page, services, and make instant payments.
@@ -248,11 +248,11 @@ const Index = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li>• Custom subdomain: yourname.boinvit.com</li>
                 <li>• Service selection & staff assignment</li>
                 <li>• Real-time availability tracking</li>
-                <li>• WhatsApp/SMS confirmations</li>
+                <li>• WhatsApp/Email confirmations</li>
                 <li>• Calendar integration & sync</li>
+                <li>• Location services using Google Maps</li>
                 <li>• QR code instant booking</li>
               </ul>
             </CardContent>
@@ -294,7 +294,6 @@ const Index = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li>• QR code service tickets</li>
                 <li>• Digital check-in system</li>
                 <li>• Anti-fraud validation</li>
                 <li>• Customer service history</li>
@@ -331,7 +330,7 @@ const Index = () => {
                 2
               </div>
               <h3 className="font-semibold mb-2">Share Booking Link</h3>
-              <p className="text-sm text-gray-600">Clients book services through your custom subdomain</p>
+              <p className="text-sm text-gray-600">Clients book services through your booking URL</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-royal-red text-royal-red-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
@@ -358,7 +357,7 @@ const Index = () => {
             Simple, Transparent Pricing
           </h2>
           <p className="text-lg text-gray-600">
-            Only pay for what you need. Your clients book for free.
+            Only pay for your most suited plans. Your clients book for free.
           </p>
         </div>
 
@@ -371,7 +370,7 @@ const Index = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">
-                <li>• Up to 50 bookings/month</li>
+                <li>• Up to 1000 bookings/month</li>
                 <li>• Basic booking page</li>
                 <li>• Watermarked invoices</li>
                 <li>• Email notifications</li>
@@ -386,14 +385,14 @@ const Index = () => {
               Most Popular
             </Badge>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Pro Tier</CardTitle>
+              <CardTitle className="text-2xl">Business Plan</CardTitle>
               <CardDescription className="text-lg">For growing businesses</CardDescription>
-              <div className="text-3xl font-bold text-gray-900 mt-4">$29/month</div>
+              <div className="text-3xl font-bold text-gray-900 mt-4">KES 2900/month</div>
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">
-                <li>• Unlimited bookings</li>
-                <li>• Custom subdomain</li>
+                <li>• Up to 15 staff members</li>
+                <li>• 3,000 bookings/month</li>
                 <li>• Branded invoices</li>
                 <li>• WhatsApp + Email notifications</li>
                 <li>• Analytics dashboard</li>

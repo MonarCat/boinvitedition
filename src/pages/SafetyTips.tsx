@@ -29,7 +29,7 @@ const SafetyTips = () => {
       icon: <CreditCard className="h-6 w-6" />,
       title: 'Payment Security',
       tips: [
-        'Never pay outside the platform for protection',
+        'Pay through the platforms verified payment details/system',
         'Use verified payment methods with fraud protection',
         'Keep records of all transactions and receipts',
         'Report unauthorized charges immediately'
@@ -97,12 +97,11 @@ const SafetyTips = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-orange-800">
-                <li>• Requests for payment outside the platform</li>
                 <li>• Unusual location changes or meeting points</li>
                 <li>• Pressure to complete transactions quickly</li>
                 <li>• Unwillingness to provide proper identification</li>
                 <li>• Services significantly below market rate</li>
-                <li>• Communication only through external channels</li>
+                <li>• Communication only through contacts not listed on Boinvit</li>
                 <li>• Requests for personal financial information</li>
               </ul>
             </CardContent>
@@ -136,7 +135,7 @@ const SafetyTips = () => {
             <div className="text-center space-y-4">
               <h2 className="text-2xl font-bold text-blue-900">Global Safety Commitment</h2>
               <p className="text-blue-800 max-w-3xl mx-auto">
-                As a platform competing globally with services like Booking.com and regional leaders like Buupass, 
+                As a platform competing globally with other popular services and regional leaders, 
                 we maintain the highest safety standards across all markets. Our 24/7 safety team monitors activities 
                 and responds to incidents worldwide.
               </p>
@@ -152,10 +151,6 @@ const SafetyTips = () => {
                 <div className="bg-white rounded-lg p-4 shadow-sm">
                   <p className="font-semibold text-blue-900">Secure Payments</p>
                   <p className="text-sm text-blue-700">Bank-level encryption</p>
-                </div>
-                <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <p className="font-semibold text-blue-900">Insurance Coverage</p>
-                  <p className="text-sm text-blue-700">Protection for all bookings</p>
                 </div>
               </div>
             </div>

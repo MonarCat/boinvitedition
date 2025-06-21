@@ -50,14 +50,9 @@ export const DashboardTabs: React.FC<Props> = ({
               {[1, 2, 3, 4].map((booking) => (
                 <div key={booking} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-medium text-blue-600">JD</span>
-                    </div>
+                    
                     <div>
-                      <p className="font-medium">John Doe</p>
-                      <p className="text-sm text-gray-600">Haircut & Styling</p>
-                      <p className="text-xs text-gray-500">Today, 2:30 PM</p>
-                    </div>
+                     
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge className="bg-green-100 text-green-800">Confirmed</Badge>

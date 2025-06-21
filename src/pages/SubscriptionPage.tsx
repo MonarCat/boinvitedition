@@ -117,24 +117,10 @@ const SubscriptionPage = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-blue-600 mt-1" />
-                  <div>
-                    <h4 className="font-medium">M-Pesa STK Push</h4>
-                    <p className="text-sm text-gray-600">Direct payment from your M-Pesa account</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
                   <TrendingUp className="w-5 h-5 text-purple-600 mt-1" />
                   <div>
                     <h4 className="font-medium">Multiple Options</h4>
                     <p className="text-sm text-gray-600">Cards, bank transfer, USSD via Paystack</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Users className="w-5 h-5 text-green-600 mt-1" />
-                  <div>
-                    <h4 className="font-medium">Auto-Split Payments</h4>
-                    <p className="text-sm text-gray-600">Automatic revenue sharing for pay-as-you-go</p>
                   </div>
                 </div>
               </div>
@@ -164,27 +150,13 @@ const SubscriptionPage = () => {
                 </div>
                 <ul className="space-y-1 text-gray-600">
                   <li>• KES 10 initialization fee</li>
-                  <li>• 14 days full access</li>
+                  <li>• 7 days full access</li>
                   <li>• All features unlocked</li>
                   <li>• Perfect for testing</li>
                   <li>• No monthly charges</li>
                 </ul>
               </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-purple-600" />
-                  <h4 className="font-semibold">Pay As You Go</h4>
-                </div>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• KES 10 initialization fee</li>
-                  <li>• 7% commission per booking</li>
-                  <li>• Prepaid bookings only</li>
-                  <li>• Automatic settlements</li>
-                  <li>• Perfect for low volume</li>
-                </ul>
-              </div>
-
+             
               <div className="space-y-3">
                 <Badge className="bg-blue-100 text-blue-800 mb-2">Popular Choice</Badge>
                 <h4 className="font-semibold">Subscription Plans</h4>

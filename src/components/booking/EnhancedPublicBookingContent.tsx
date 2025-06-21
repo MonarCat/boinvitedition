@@ -16,13 +16,13 @@ interface Service {
   currency?: string;
 }
 
-interface BookingPageContentProps {
+interface EnhancedPublicBookingContentProps {
   business: any;
   services: Service[];
   businessId: string;
 }
 
-export const BookingPageContent: React.FC<BookingPageContentProps> = ({
+export const EnhancedPublicBookingContent: React.FC<EnhancedPublicBookingContentProps> = ({
   business,
   services,
   businessId

@@ -11,13 +11,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
-import { CalendarIcon, Phone, MessageCircle, Mail, MapPin } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ClientPaymentSection } from "@/components/payment/ClientPaymentSection";
 import { PaymentReceipt } from "@/components/payment/PaymentReceipt";
 import { useClientPayments } from "@/hooks/useClientPayments";
 import { BusinessPaymentInstructions } from "@/components/business/BusinessPaymentInstructions";
 import { MobileBookingHeader } from "@/components/booking/MobileBookingHeader";
+import { EnhancedBusinessHeader } from "@/components/booking/EnhancedBusinessHeader";
 
 const BookingPage = () => {
   const { businessId } = useParams();
@@ -64,25 +65,6 @@ const BookingPage = () => {
     return `${currency} ${price.toLocaleString()}`;
   };
 
-  const openGoogleMaps = () => {
-    if (business?.latitude && business?.longitude) {
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`;
-      window.open(url, '_blank');
-    } else if (business?.address) {
-      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(business.address)}`;
-      window.open(url, '_blank');
-    }
-  };
-
-  const openWhatsApp = () => {
-    if (business?.whatsapp || business?.phone) {
-      const number = business?.whatsapp || business?.phone;
-      const cleanNumber = number?.replace(/\D/g, '');
-      const url = `https://wa.me/${cleanNumber}`;
-      window.open(url, '_blank');
-    }
-  };
-
   if (servicesLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -105,81 +87,18 @@ const BookingPage = () => {
 
   const BookingContent = () => (
     <>
+      {/* Enhanced Business Header */}
+      {business && (
+        <div className="mb-6">
+          <EnhancedBusinessHeader business={business} />
+        </div>
+      )}
+
       {/* Payment Instructions Section - Always visible */}
       {business && !showPayment && (
         <div className="mb-6">
           <BusinessPaymentInstructions business={business} />
         </div>
-      )}
-
-      {/* Business Contact Section */}
-      {business && !showPayment && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Contact & Location</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {business?.phone && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(`tel:${business.phone}`, '_self')}
-                  className="flex items-center gap-2"
-                >
-                  <Phone className="w-4 h-4" />
-                  Call
-                </Button>
-              )}
-              {(business?.whatsapp || business?.phone) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={openWhatsApp}
-                  className="flex items-center gap-2 text-green-600 border-green-300"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  WhatsApp
-                </Button>
-              )}
-              {business?.email && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(`mailto:${business.email}`, '_self')}
-                  className="flex items-center gap-2"
-                >
-                  <Mail className="w-4 h-4" />
-                  Email
-                </Button>
-              )}
-              {business?.facebook && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(business.facebook, '_blank')}
-                  className="flex items-center gap-2 text-blue-600 border-blue-300"
-                >
-                  Facebook
-                </Button>
-              )}
-              {(business?.address || (business?.latitude && business?.longitude)) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={openGoogleMaps}
-                  className="flex items-center gap-2 text-red-600 border-red-300"
-                >
-                  <MapPin className="w-4 h-4" />
-                  Get Directions
-                </Button>
-              )}
-            </div>
-            {business?.address && (
-              <p className="text-sm text-gray-600">{business.address}</p>
-            )}
-          </CardContent>
-        </Card>
       )}
 
       {showPayment && clientEmail ? (
@@ -393,37 +312,13 @@ const BookingPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Mobile Header with Menu */}
       <MobileBookingHeader business={business}>
         <BookingContent />
       </MobileBookingHeader>
 
-      {/* Desktop Header */}
-      <header className="hidden lg:block bg-white border-b border-gray-200 px-6 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-xl font-bold">
-                {business?.name?.charAt(0) || 'B'}
-              </span>
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {business?.name || 'Business Services'}
-              </h1>
-              <p className="text-gray-600">Professional services and booking</p>
-              <div className="flex items-center space-x-4 mt-2">
-                <Badge variant="outline" className="bg-green-50 text-green-700">
-                  Available for Booking
-                </Badge>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
+      {/* Desktop Content */}
       <div className="max-w-4xl mx-auto px-6 py-8 space-y-6 hidden lg:block">
         <BookingContent />
       </div>

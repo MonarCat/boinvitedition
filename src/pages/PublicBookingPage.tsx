@@ -3,7 +3,7 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { BookingPageError } from '@/components/booking/BookingPageError';
 import { BookingPageLoading } from '@/components/booking/BookingPageLoading';
-import { BookingPageContent } from '@/components/booking/BookingPageContent';
+import { EnhancedPublicBookingContent } from '@/components/booking/EnhancedPublicBookingContent';
 import { usePublicBookingData } from '@/hooks/usePublicBookingData';
 import { isValidUUID, logQRCodeDebugInfo } from '@/utils/uuidValidation';
 
@@ -54,7 +54,7 @@ const PublicBookingPage = () => {
   }
 
   return (
-    <BookingPageContent 
+    <EnhancedPublicBookingContent 
       business={business}
       services={services || []}
       businessId={businessId}

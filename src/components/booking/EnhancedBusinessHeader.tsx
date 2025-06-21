@@ -142,8 +142,7 @@ export const EnhancedBusinessHeader: React.FC<EnhancedBusinessHeaderProps> = ({ 
               </div>
             </div>
           </CardContent>
-        </div>
-        )}
+        </Card>
       </div>
 
       {/* Description Card */}

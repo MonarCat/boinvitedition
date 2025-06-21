@@ -18,6 +18,7 @@ interface ClientPaymentSectionProps {
   services: Service[];
   clientEmail: string;
   businessName: string;
+  businessCurrency?: string;
   onPaymentSuccess?: (reference: string, serviceId: string) => void;
 }
 
@@ -25,6 +26,7 @@ export const ClientPaymentSection: React.FC<ClientPaymentSectionProps> = ({
   services,
   clientEmail,
   businessName,
+  businessCurrency = 'KES',
   onPaymentSuccess
 }) => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -40,6 +42,13 @@ export const ClientPaymentSection: React.FC<ClientPaymentSectionProps> = ({
     toast.success('Payment completed successfully!');
     onPaymentSuccess?.(reference, selectedService?.id || '');
     setSelectedService(null);
+  };
+
+  const formatPrice = (price: number, currency: string) => {
+    if (currency === 'KES') {
+      return `KES ${price.toLocaleString()}`;
+    }
+    return `$${price.toLocaleString()}`;
   };
 
   if (!paystackLoaded) {
@@ -91,7 +100,7 @@ export const ClientPaymentSection: React.FC<ClientPaymentSectionProps> = ({
                     </div>
                     <div className="text-right">
                       <span className="text-lg font-bold">
-                        {service.currency} {service.price.toLocaleString()}
+                        {formatPrice(service.price, service.currency || businessCurrency)}
                       </span>
                     </div>
                   </div>
@@ -105,14 +114,14 @@ export const ClientPaymentSection: React.FC<ClientPaymentSectionProps> = ({
                 <div className="flex justify-between items-center mb-4">
                   <span>Service: {selectedService.name}</span>
                   <span className="font-bold">
-                    {selectedService.currency} {selectedService.price.toLocaleString()}
+                    {formatPrice(selectedService.price, selectedService.currency || businessCurrency)}
                   </span>
                 </div>
                 
                 <PaystackPayment
                   amount={selectedService.price}
                   email={clientEmail}
-                  currency={selectedService.currency}
+                  currency={selectedService.currency || businessCurrency}
                   onSuccess={handlePaymentSuccess}
                   metadata={{
                     service_id: selectedService.id,
@@ -131,7 +140,7 @@ export const ClientPaymentSection: React.FC<ClientPaymentSectionProps> = ({
             <span className="text-sm font-medium">Secure Payment</span>
           </div>
           <p className="text-xs text-green-700 mt-1">
-            Your payment is processed securely by Paystack. We never store your card details.
+            Your payment is processed securely by Paystack. Multiple payment options including M-Pesa available.
           </p>
         </div>
       </CardContent>

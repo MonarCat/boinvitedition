@@ -37,6 +37,24 @@ export const useClientPayments = (businessId: string) => {
     enabled: !!businessId,
   });
 
+  // Get business details including currency
+  const { data: business } = useQuery({
+    queryKey: ['business-details', businessId],
+    queryFn: async () => {
+      if (!businessId) return null;
+      
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('name, currency')
+        .eq('id', businessId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!businessId,
+  });
+
   // Record payment
   const recordPaymentMutation = useMutation({
     mutationFn: async ({ 
@@ -52,7 +70,7 @@ export const useClientPayments = (businessId: string) => {
       currency: string;
       paystackReference: string;
     }) => {
-      // Create a payment record
+      // Create a booking record with payment
       const { data, error } = await supabase
         .from('bookings')
         .insert({
@@ -64,6 +82,9 @@ export const useClientPayments = (businessId: string) => {
           duration_minutes: 60, // Default duration
           total_amount: amount,
           status: 'confirmed',
+          payment_status: 'completed',
+          payment_reference: paystackReference,
+          customer_email: clientEmail,
           notes: `Payment via Paystack: ${paystackReference}`
         })
         .select()
@@ -84,6 +105,7 @@ export const useClientPayments = (businessId: string) => {
 
   return {
     services,
+    business,
     servicesLoading,
     recordPayment: recordPaymentMutation.mutate,
     isRecordingPayment: recordPaymentMutation.isPending,

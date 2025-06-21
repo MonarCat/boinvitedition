@@ -58,18 +58,18 @@ export const useBusinessMapData = (searchQuery: string) => {
       .select(`
         id, name, description, address, city, country, phone, email, website,
         logo_url, featured_image_url, latitude, longitude, average_rating,
-        total_reviews, business_hours, is_verified, service_radius_km, currency
+        total_reviews, business_hours, is_verified, service_radius_km, currency,
+        business_settings!inner(show_on_map, map_description)
       `)
       .eq('is_active', true)
-      .not('latitude', 'is', null)
-      .not('longitude', 'is', null)
+      .eq('business_settings.show_on_map', true)
       .order('average_rating', { ascending: false });
 
     if (searchQuery) {
-      query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%`);
     }
 
-    const { data, error } = await query.limit(50);
+    const { data, error } = await query.limit(100);
     if (error) {
       console.error('Error fetching businesses:', error);
       return [];
@@ -77,8 +77,8 @@ export const useBusinessMapData = (searchQuery: string) => {
     
     return (data || []).map((business: any) => ({
       ...business,
-      show_on_map: true,
-      map_description: business.description,
+      show_on_map: business.business_settings?.show_on_map ?? true,
+      map_description: business.business_settings?.map_description || business.description,
       service_categories: [],
       service_names: [],
       total_services: 0

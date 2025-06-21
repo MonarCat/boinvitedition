@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -110,7 +111,7 @@ const BookingPage = () => {
 
       {/* Booking Form */}
       <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
-        {/*Payment Instructions Section */}
+        {/* Payment Instructions Section */}
         {business && <BusinessPaymentInstructions business={business} />}
 
         {showPayment && clientEmail ? (

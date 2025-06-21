@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -30,7 +31,7 @@ export const useDashboardData = (businessId?: string) => {
   const actualBusinessId = businessId || business?.id;
 
   // Get dashboard statistics - only count revenue from completed payments
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading, refetch } = useQuery({
     queryKey: ['dashboard-stats', actualBusinessId],
     queryFn: async () => {
       if (!actualBusinessId) return {
@@ -86,6 +87,22 @@ export const useDashboardData = (businessId?: string) => {
     enabled: !!actualBusinessId,
   });
 
+  // Get currency from business data
+  const currency = business?.currency || 'KES';
+
+  // Format price function
+  const formatPrice = (amount: number) => {
+    if (currency === 'KES') {
+      return `KES ${amount.toLocaleString()}`;
+    }
+    return `${amount.toLocaleString()}`;
+  };
+
+  // Handle KPI refresh
+  const handleKpiRefresh = () => {
+    refetch();
+  };
+
   return {
     business,
     stats: stats || {
@@ -95,5 +112,8 @@ export const useDashboardData = (businessId?: string) => {
       totalClients: 0,
     },
     statsLoading,
+    currency,
+    formatPrice,
+    handleKpiRefresh,
   };
 };

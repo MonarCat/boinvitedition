@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUp } from "lucide-react";
 import { DashboardMobileAppSection } from "./DashboardMobileAppSection";
+import { BookingList } from "@/components/booking/BookingList";
 
 type Props = {
   handleCreateInvoice: () => void;
@@ -46,27 +47,7 @@ export const DashboardTabs: React.FC<Props> = ({
             <CardDescription>Manage your upcoming and past appointments</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3, 4].map((booking) => (
-                <div key={booking} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-medium">{booking}</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Sample Booking {booking}</h4>
-                      <p className="text-sm text-gray-600">Today at 2:00 PM</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge className="bg-green-100 text-green-800">Confirmed</Badge>
-                    <Button size="sm" variant="outline" onClick={() => navigate('/app/bookings')}>
-                      View
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <BookingList />
             <div className="mt-4">
               <Button onClick={() => navigate('/app/bookings')} className="w-full">
                 View All Bookings

@@ -27,7 +27,7 @@ export const EnhancedBusinessHeader: React.FC<EnhancedBusinessHeaderProps> = ({ 
   const formatBusinessHours = (hours: any) => {
     if (!hours || typeof hours !== 'object') return 'Hours not specified';
     
-    const today = new Date().toLocaleLowerCase().slice(0, 3); // mon, tue, etc.
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase(); // Fix: use toLocaleDateString instead of toLocaleLowerCase
     const todayHours = hours[today];
     
     if (todayHours && todayHours.open && todayHours.close) {

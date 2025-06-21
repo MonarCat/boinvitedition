@@ -214,33 +214,35 @@ export const PrintableQRCode: React.FC<PrintableQRCodeProps> = ({
         </div>
       </div>
 
-      <style jsx>{`
-        @media print {
-          body * {
-            visibility: hidden;
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            .print-container, .print-container * {
+              visibility: visible;
+            }
+            .print-container {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100% !important;
+              max-width: none !important;
+              margin: 0 !important;
+              padding: 20px !important;
+              border: none !important;
+              border-radius: 0 !important;
+              box-shadow: none !important;
+              page-break-inside: avoid;
+            }
+            @page {
+              margin: 0.5in;
+              size: auto;
+            }
           }
-          .print-container, .print-container * {
-            visibility: visible;
-          }
-          .print-container {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100% !important;
-            max-width: none !important;
-            margin: 0 !important;
-            padding: 20px !important;
-            border: none !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            page-break-inside: avoid;
-          }
-          @page {
-            margin: 0.5in;
-            size: auto;
-          }
-        }
-      `}</style>
+        `
+      }} />
     </div>
   );
 };

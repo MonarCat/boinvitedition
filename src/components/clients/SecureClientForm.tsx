@@ -12,6 +12,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
+interface ClientFormData {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  notes: string;
+}
+
 interface SecureClientFormProps {
   client?: any;
   onSuccess?: () => void;
@@ -28,7 +36,7 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
     validateRequired 
   } = useInputSanitizer();
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<ClientFormData>({
     defaultValues: {
       name: client?.name || '',
       email: client?.email || '',
@@ -62,33 +70,41 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
   const watchedValues = watch();
 
   React.useEffect(() => {
-    // Sanitize inputs in real-time
-    const sanitizeAndSet = (field: string, value: string, sanitizeFunc: (val: string) => string) => {
-      const sanitized = sanitizeFunc(value);
-      if (sanitized !== value) {
-        setValue(field, sanitized);
-      }
-    };
-
+    // Sanitize inputs in real-time with proper typing
     if (watchedValues.email) {
-      sanitizeAndSet('email', watchedValues.email, sanitizeEmail);
+      const sanitized = sanitizeEmail(watchedValues.email);
+      if (sanitized !== watchedValues.email) {
+        setValue('email', sanitized);
+      }
     }
     if (watchedValues.phone) {
-      sanitizeAndSet('phone', watchedValues.phone, sanitizePhone);
+      const sanitized = sanitizePhone(watchedValues.phone);
+      if (sanitized !== watchedValues.phone) {
+        setValue('phone', sanitized);
+      }
     }
     if (watchedValues.name) {
-      sanitizeAndSet('name', watchedValues.name, (val) => sanitizeText(val, { maxLength: 100 }));
+      const sanitized = sanitizeText(watchedValues.name, { maxLength: 100 });
+      if (sanitized !== watchedValues.name) {
+        setValue('name', sanitized);
+      }
     }
     if (watchedValues.address) {
-      sanitizeAndSet('address', watchedValues.address, (val) => sanitizeText(val, { maxLength: 200 }));
+      const sanitized = sanitizeText(watchedValues.address, { maxLength: 200 });
+      if (sanitized !== watchedValues.address) {
+        setValue('address', sanitized);
+      }
     }
     if (watchedValues.notes) {
-      sanitizeAndSet('notes', watchedValues.notes, (val) => sanitizeText(val, { maxLength: 500 }));
+      const sanitized = sanitizeText(watchedValues.notes, { maxLength: 500 });
+      if (sanitized !== watchedValues.notes) {
+        setValue('notes', sanitized);
+      }
     }
   }, [watchedValues, setValue, sanitizeText, sanitizeEmail, sanitizePhone]);
 
   const createClientMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: ClientFormData) => {
       if (!business) {
         throw new Error('No business found');
       }
@@ -150,7 +166,7 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
     },
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: ClientFormData) => {
     if (!hasAccess) {
       toast.error('Access denied: Invalid business access');
       return;

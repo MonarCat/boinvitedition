@@ -1,141 +1,99 @@
-
-import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { format } from 'date-fns';
 
-export const useDashboardData = () => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [realTimeStats, setRealTimeStats] = useState({
-    activeBookings: 0,
-    todayRevenue: 0,
-    monthlyBookings: 0,
-    totalClients: 0
-  });
+interface DashboardStats {
+  activeBookings: number;
+  todayRevenue: number;
+  monthlyBookings: number;
+  totalClients: number;
+}
 
-  // Fetch business data
+export const useDashboardData = (businessId?: string) => {
+  // Get business data
   const { data: business } = useQuery({
-    queryKey: ['user-business', user?.id],
+    queryKey: ['business-data', businessId],
     queryFn: async () => {
-      if (!user) return null;
-      
+      if (!businessId) return null;
+
       const { data, error } = await supabase
         .from('businesses')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', businessId)
         .single();
-      
+
       if (error) throw error;
       return data;
     },
-    enabled: !!user,
+    enabled: !!businessId,
   });
 
-  // Fetch dashboard statistics
-  const { data: stats } = useQuery({
-    queryKey: ['dashboard-stats', business?.id],
+  const actualBusinessId = businessId || business?.id;
+
+  // Get dashboard statistics - only count revenue from completed payments
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['dashboard-stats', actualBusinessId],
     queryFn: async () => {
-      if (!business) return null;
+      if (!actualBusinessId) return {
+        activeBookings: 0,
+        todayRevenue: 0,
+        monthlyBookings: 0,
+        totalClients: 0,
+      };
 
-      const today = format(new Date(), 'yyyy-MM-dd');
-      const currentMonth = format(new Date(), 'yyyy-MM');
+      const today = new Date().toISOString().split('T')[0];
+      const thisMonth = new Date().toISOString().slice(0, 7);
 
-      // Get active bookings for today
+      // Get today's confirmed bookings
       const { data: todayBookings } = await supabase
         .from('bookings')
-        .select('total_amount')
-        .eq('business_id', business.id)
+        .select('*')
+        .eq('business_id', actualBusinessId)
         .eq('booking_date', today)
-        .neq('status', 'cancelled');
+        .in('status', ['confirmed', 'completed']);
 
-      // Get monthly bookings
+      // Get today's revenue from completed payments only
+      const { data: todayPayments } = await supabase
+        .from('bookings')
+        .select('total_amount')
+        .eq('business_id', actualBusinessId)
+        .eq('booking_date', today)
+        .eq('payment_status', 'completed')
+        .in('status', ['confirmed', 'completed']);
+
+      // Get this month's bookings
       const { data: monthlyBookings } = await supabase
         .from('bookings')
-        .select('id')
-        .eq('business_id', business.id)
-        .gte('booking_date', `${currentMonth}-01`)
-        .neq('status', 'cancelled');
+        .select('*')
+        .eq('business_id', actualBusinessId)
+        .gte('booking_date', `${thisMonth}-01`)
+        .in('status', ['confirmed', 'completed']);
 
       // Get total clients
       const { data: clients } = await supabase
         .from('clients')
         .select('id')
-        .eq('business_id', business.id);
+        .eq('business_id', actualBusinessId);
 
-      const todayRevenue = todayBookings?.reduce((sum, booking) => sum + Number(booking.total_amount), 0) || 0;
+      const todayRevenue = todayPayments?.reduce((sum, booking) => sum + Number(booking.total_amount || 0), 0) || 0;
 
       return {
         activeBookings: todayBookings?.length || 0,
         todayRevenue,
         monthlyBookings: monthlyBookings?.length || 0,
-        totalClients: clients?.length || 0
+        totalClients: clients?.length || 0,
       };
     },
-    enabled: !!business,
-    refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
+    enabled: !!actualBusinessId,
   });
-
-  // Set up real-time subscriptions
-  useEffect(() => {
-    if (!business) return;
-
-    const channels = [
-      supabase
-        .channel('bookings-changes')
-        .on('postgres_changes', { 
-          event: '*', 
-          schema: 'public', 
-          table: 'bookings',
-          filter: `business_id=eq.${business.id}`
-        }, () => {
-          queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-        })
-        .subscribe(),
-
-      supabase
-        .channel('clients-changes')
-        .on('postgres_changes', { 
-          event: '*', 
-          schema: 'public', 
-          table: 'clients',
-          filter: `business_id=eq.${business.id}`
-        }, () => {
-          queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-        })
-        .subscribe()
-    ];
-
-    return () => {
-      channels.forEach(channel => supabase.removeChannel(channel));
-    };
-  }, [business, queryClient]);
-
-  // Update local state when stats change
-  useEffect(() => {
-    if (stats) {
-      setRealTimeStats(stats);
-    }
-  }, [stats]);
-
-  const currency = business?.currency || 'USD';
-  const formatPrice = (amount: number) => {
-    if (currency === 'KES') {
-      return `KES ${amount}`;
-    }
-    return `$${amount}`;
-  };
-
-  const handleKpiRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-  };
 
   return {
     business,
-    stats: realTimeStats,
-    currency,
-    formatPrice,
-    handleKpiRefresh
+    stats: stats || {
+      activeBookings: 0,
+      todayRevenue: 0,
+      monthlyBookings: 0,
+      totalClients: 0,
+    },
+    statsLoading,
   };
 };

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CreditCard, ExternalLink, Smartphone } from 'lucide-react';
+import { CreditCard, ExternalLink } from 'lucide-react';
 
 interface PaystackPlan {
   id: string;
@@ -59,9 +59,6 @@ export const PaystackIntegration = () => {
               <p className="text-2xl font-bold text-blue-600">
                 KES {plan.price.toLocaleString()}<span className="text-sm font-normal">/month</span>
               </p>
-              <p className="text-xs text-gray-500">
-                ≈ USD ${Math.round(plan.price / 145)}
-              </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-600 text-sm">{plan.description}</p>
@@ -90,23 +87,6 @@ export const PaystackIntegration = () => {
           <li>✓ Instant account activation after payment</li>
           <li>✓ Local payment methods for Kenya</li>
         </ul>
-      </div>
-
-      {/* Alternative Payment Method - Only M-Pesa */}
-      <div className="border-t pt-6">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <Smartphone className="w-5 h-5" />
-          Alternative Payment Method
-        </h3>
-        
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="font-medium mb-2">Mobile Payment: M-Pesa Paybill</h4>
-          <div className="text-sm space-y-1">
-            <p>Lipa na M-pesa</p>
-            <p>Business No.: <strong>400222</strong></p>
-            <p>Account No.: <strong>1852604#</strong></p>
-          </div>
-        </div>
       </div>
     </div>
   );

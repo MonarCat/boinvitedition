@@ -44,7 +44,7 @@ export const EnhancedPaymentFlow: React.FC<EnhancedPaymentFlowProps> = ({
     if (currency === 'KES') {
       return `KES ${amount.toLocaleString()}`;
     }
-    return `$${amount.toLocaleString()}`;
+    return `${amount.toLocaleString()}`;
   };
 
   return (
@@ -61,7 +61,7 @@ export const EnhancedPaymentFlow: React.FC<EnhancedPaymentFlowProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="bg-blue-50 p-3 rounded-lg">
-          <h4 className="font-medium text-blue-900 mb-1">Multiple Payment Options</h4>
+          <h4 className="font-medium text-blue-900 mb-1">Cards & More</h4>
           <p className="text-sm text-blue-700">Cards, Bank Transfer, M-Pesa, USSD & more via Paystack</p>
         </div>
 

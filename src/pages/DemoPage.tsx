@@ -35,9 +35,10 @@ const DemoPage = () => {
       <div className="space-y-8">
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold text-gray-900">Boinvit Platform Demo</h1>
+          <h2 className="text-2xl text-gray-700">Coming Soon!</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Experience the future of business management with our comprehensive booking and service platform.
-            Compete globally with Booking.com and local leaders like Buupass.
+            Compete global and local leaders.
           </p>
         </div>
 

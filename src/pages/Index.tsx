@@ -366,7 +366,7 @@ const Index = () => {
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">Free Tier</CardTitle>
               <CardDescription className="text-lg">Perfect for getting started</CardDescription>
-              <div className="text-3xl font-bold text-gray-900 mt-4">$0/month</div>
+              <div className="text-3xl font-bold text-gray-900 mt-4">KES 0/month</div>
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">

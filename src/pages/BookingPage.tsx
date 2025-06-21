@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ClientPaymentSection } from "@/components/payment/ClientPaymentSection";
+import { PaymentReceipt } from "@/components/payment/PaymentReceipt";
 import { useClientPayments } from "@/hooks/useClientPayments";
 
 const BookingPage = () => {
@@ -22,7 +23,10 @@ const BookingPage = () => {
   const [selectedService, setSelectedService] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [clientEmail, setClientEmail] = useState("");
+  const [clientName, setClientName] = useState("");
   const [showPayment, setShowPayment] = useState(false);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState<any>(null);
 
   const { services, business, servicesLoading, recordPayment } = useClientPayments(businessId || '');
 
@@ -33,7 +37,7 @@ const BookingPage = () => {
   ];
 
   const handleBookingSubmit = () => {
-    if (!selectedService || !selectedDate || !selectedTime || !clientEmail) {
+    if (!selectedService || !selectedDate || !selectedTime || !clientEmail || !clientName) {
       return;
     }
     setShowPayment(true);
@@ -49,7 +53,36 @@ const BookingPage = () => {
         currency: service.currency || business?.currency || 'KES',
         paystackReference: reference
       });
+
+      // Create booking details for receipt
+      const bookingData = {
+        id: `booking_${Date.now()}`,
+        service_name: service.name,
+        booking_date: selectedDate?.toISOString().split('T')[0] || '',
+        booking_time: selectedTime,
+        total_amount: service.price,
+        currency: service.currency || business?.currency || 'KES',
+        customer_name: clientName,
+        customer_email: clientEmail,
+        payment_reference: reference,
+        ticket_number: `TKT-${Date.now()}`
+      };
+
+      setBookingDetails(bookingData);
+      setPaymentCompleted(true);
     }
+  };
+
+  const handleReceiptClose = () => {
+    setPaymentCompleted(false);
+    setShowPayment(false);
+    // Reset form
+    setSelectedDate(undefined);
+    setSelectedService("");
+    setSelectedTime("");
+    setClientEmail("");
+    setClientName("");
+    setBookingDetails(null);
   };
 
   const formatPrice = (price: number, currency: string) => {
@@ -63,6 +96,18 @@ const BookingPage = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Show payment receipt after successful payment
+  if (paymentCompleted && bookingDetails) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
+        <PaymentReceipt 
+          booking={bookingDetails} 
+          onClose={handleReceiptClose}
+        />
       </div>
     );
   }
@@ -254,7 +299,12 @@ const BookingPage = () => {
                 <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" placeholder="Enter your full name" />
+                    <Input 
+                      id="name" 
+                      placeholder="Enter your full name"
+                      value={clientName}
+                      onChange={(e) => setClientName(e.target.value)}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="phone">Phone Number</Label>
@@ -282,7 +332,7 @@ const BookingPage = () => {
 
                   <Button 
                     className="w-full bg-blue-600 hover:bg-blue-700"
-                    disabled={!selectedService || !selectedDate || !selectedTime || !clientEmail}
+                    disabled={!selectedService || !selectedDate || !selectedTime || !clientEmail || !clientName}
                     onClick={handleBookingSubmit}
                   >
                     Proceed to Payment

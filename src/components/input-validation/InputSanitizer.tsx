@@ -84,3 +84,36 @@ export const useRateLimit = (maxRequests: number = 10, windowMs: number = 60000)
 
   return { checkRateLimit };
 };
+
+// Input sanitizer hook - this was missing and causing the import error
+export const useInputSanitizer = () => {
+  const sanitizeText = (input: string, options?: { maxLength?: number }) => {
+    let sanitized = input.replace(/[<>'"]/g, '').trim();
+    if (options?.maxLength) {
+      sanitized = sanitized.substring(0, options.maxLength);
+    }
+    return sanitized;
+  };
+
+  const sanitizeEmail = (email: string) => {
+    return email.toLowerCase().trim().replace(/[<>'"]/g, '');
+  };
+
+  const sanitizePhone = (phone: string) => {
+    return phone.replace(/[^+\d\s()-]/g, '').trim();
+  };
+
+  const validateRequired = (value: string, fieldName: string) => {
+    if (!value || value.trim().length === 0) {
+      return `${fieldName} is required`;
+    }
+    return null;
+  };
+
+  return {
+    sanitizeText,
+    sanitizeEmail,
+    sanitizePhone,
+    validateRequired
+  };
+};

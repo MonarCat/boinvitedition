@@ -5,96 +5,74 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SecurityHeaders } from "@/components/security/SecurityHeaders";
+import { ThemeProvider } from "@/lib/ThemeProvider";
 import AuthenticatedApp from "@/pages/AuthenticatedApp";
+import Index from "@/pages/Index";
 import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
-import DemoPage from "@/pages/DemoPage";
 import PublicBookingPage from "@/pages/PublicBookingPage";
+import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
+import DemoPage from "@/pages/DemoPage";
 import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import CookiePolicy from "@/pages/CookiePolicy";
 import SafetyTips from "@/pages/SafetyTips";
 import NotFound from "@/pages/NotFound";
-import InstallPrompt from "@/components/pwa/InstallPrompt";
-import PWAStatus from "@/components/pwa/PWAStatus";
-import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
-import { useSystemDarkMode } from "@/lib/useSystemDarkMode";
+import "./App.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
       retry: (failureCount, error: any) => {
-        // Don't retry on auth errors or client errors
-        if (error?.status >= 400 && error?.status < 500) {
+        // Don't retry on auth errors
+        if (error?.message?.includes('JWT') || error?.message?.includes('auth')) {
           return false;
         }
-        return failureCount < 3;
+        return failureCount < 2;
       },
-      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+    mutations: {
+      retry: false, // Don't retry mutations by default
     },
   },
 });
 
 const App = () => {
-  useSystemDarkMode();
-  
   return (
-    <>
-      <SecurityHeaders />
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
         <TooltipProvider>
-          <Toaster />
           <BrowserRouter>
             <AuthProvider>
-              <div className="relative">
+              <SecurityHeaders />
+              <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+                <Toaster />
                 <Routes>
-                  {/* Landing page as default */}
-                  <Route path="/" element={<LandingPage />} />
+                  {/* Public routes */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/landing" element={<LandingPage />} />
                   <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/demo" element={<DemoPage />} />
-                  
-                  {/* Business Discovery Map */}
-                  <Route path="/discover" element={<BusinessDiscoveryPage />} />
-                  
-                  {/* QR Code booking routes - Multiple variations for reliability */}
                   <Route path="/book/:businessId" element={<PublicBookingPage />} />
-                  <Route path="/booking/:businessId" element={<PublicBookingPage />} />
-                  <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
-                  
-                  {/* Authenticated app routes */}
-                  <Route path="/app/*" element={<AuthenticatedApp />} />
-                  
-                  {/* Legal pages */}
+                  <Route path="/businesses" element={<BusinessDiscoveryPage />} />
+                  <Route path="/demo" element={<DemoPage />} />
                   <Route path="/terms" element={<TermsOfService />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/cookies" element={<CookiePolicy />} />
                   <Route path="/safety" element={<SafetyTips />} />
                   
-                  {/* Legacy route redirects */}
-                  <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
-                  <Route path="/services" element={<Navigate to="/app/services" replace />} />
-                  <Route path="/booking-management" element={<Navigate to="/app/bookings" replace />} />
-                  <Route path="/clients" element={<Navigate to="/app/clients" replace />} />
-                  <Route path="/staff" element={<Navigate to="/app/staff" replace />} />
-                  <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
-                  <Route path="/invoices" element={<Navigate to="/app/invoices" replace />} />
-                  <Route path="/subscription" element={<Navigate to="/app/subscription" replace />} />
+                  {/* Authenticated app routes */}
+                  <Route path="/app/*" element={<AuthenticatedApp />} />
                   
-                  {/* Catch all - 404 page */}
+                  {/* Catch all route */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-                
-                {/* PWA Components */}
-                <InstallPrompt />
-                <div className="fixed top-4 right-4 z-40">
-                  <PWAStatus />
-                </div>
               </div>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
-      </QueryClientProvider>
-    </>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 };
 

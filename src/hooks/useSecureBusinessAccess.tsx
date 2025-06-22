@@ -2,66 +2,115 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
 
 export const useSecureBusinessAccess = (businessId?: string) => {
   const { user } = useAuth();
+  const { handleError } = useErrorHandler();
 
+  // Verify business ownership with enhanced security
   const { data: hasAccess, isLoading, error } = useQuery({
     queryKey: ['business-access', businessId, user?.id],
     queryFn: async () => {
-      if (!user?.id || !businessId) return false;
-
-      // Validate business ID format (UUID)
-      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      if (!uuidPattern.test(businessId)) {
-        throw new Error('Invalid business ID format');
-      }
+      if (!businessId || !user) return false;
 
       try {
-        const { data, error } = await supabase
+        // First check if the business exists and user has access
+        const { data: business, error: businessError } = await supabase
           .from('businesses')
-          .select('id, user_id, name')
+          .select('id, user_id, is_active')
           .eq('id', businessId)
           .eq('user_id', user.id)
           .single();
 
-        if (error) {
-          if (error.code === 'PGRST116') {
+        if (businessError) {
+          if (businessError.code === 'PGRST116') {
             // No rows returned - user doesn't own this business
             return false;
           }
-          throw error;
+          throw businessError;
         }
 
-        return !!data;
-      } catch (err) {
-        console.error('Business access check failed:', err);
-        throw err;
+        // Additional security check - ensure business is active
+        if (!business.is_active) {
+          handleError(new Error('Business is not active'), 'business-access');
+          return false;
+        }
+
+        // Log access attempt (in production, this could go to audit log)
+        console.log('Business access granted:', {
+          businessId,
+          userId: user.id,
+          timestamp: new Date().toISOString()
+        });
+
+        return true;
+      } catch (error) {
+        handleError(error, 'business-access-check');
+        return false;
       }
     },
-    enabled: !!user?.id && !!businessId,
-    retry: false,
+    enabled: !!(businessId && user),
+    retry: false, // Don't retry on auth failures
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
-  const validateBusinessAccess = (requiredBusinessId: string): boolean => {
-    if (!user?.id) {
-      toast.error('Authentication required');
-      return false;
-    }
-
-    if (!hasAccess) {
-      toast.error('Access denied: You do not own this business');
-      return false;
-    }
-
-    return true;
-  };
-
   return {
-    hasAccess: hasAccess || false,
+    hasAccess: hasAccess === true,
     isLoading,
-    error,
-    validateBusinessAccess
+    error
   };
+};
+
+// Hook for validating business operations
+export const useBusinessOperationValidator = () => {
+  const { handleError } = useErrorHandler();
+
+  const validateBusinessOperation = async (
+    businessId: string, 
+    operation: string,
+    data?: any
+  ): Promise<boolean> => {
+    try {
+      // Rate limiting check
+      const rateLimitKey = `business_${businessId}_${operation}`;
+      const lastOperation = localStorage.getItem(rateLimitKey);
+      const now = Date.now();
+      
+      if (lastOperation && (now - parseInt(lastOperation)) < 1000) {
+        throw new Error('Operation rate limit exceeded. Please wait before trying again.');
+      }
+      
+      localStorage.setItem(rateLimitKey, now.toString());
+
+      // Validate data based on operation type
+      if (operation === 'create_service' || operation === 'update_service') {
+        if (!data?.name || data.name.length < 2 || data.name.length > 100) {
+          throw new Error('Service name must be between 2 and 100 characters');
+        }
+        if (!data?.price || data.price <= 0 || data.price > 10000) {
+          throw new Error('Service price must be between $0.01 and $10,000');
+        }
+        if (!data?.duration_minutes || data.duration_minutes < 5 || data.duration_minutes > 480) {
+          throw new Error('Service duration must be between 5 minutes and 8 hours');
+        }
+      }
+
+      if (operation === 'create_staff' || operation === 'update_staff') {
+        if (!data?.name || data.name.length < 2 || data.name.length > 100) {
+          throw new Error('Staff name must be between 2 and 100 characters');
+        }
+        if (!data?.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+          throw new Error('Valid email address is required');
+        }
+      }
+
+      return true;
+    } catch (error) {
+      handleError(error, `business-operation-${operation}`);
+      return false;
+    }
+  };
+
+  return { validateBusinessOperation };
 };

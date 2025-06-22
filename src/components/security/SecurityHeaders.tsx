@@ -3,49 +3,45 @@ import { useEffect } from 'react';
 
 export const SecurityHeaders = () => {
   useEffect(() => {
-    // Set security headers via meta tags where possible
-    const setMetaTag = (name: string, content: string) => {
-      let meta = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement;
-      if (!meta) {
-        meta = document.createElement('meta');
+    // Set security headers via meta tags for CSP and other security policies
+    const addMetaTag = (name: string, content: string) => {
+      const existingTag = document.querySelector(`meta[name="${name}"]`);
+      if (existingTag) {
+        existingTag.setAttribute('content', content);
+      } else {
+        const meta = document.createElement('meta');
         meta.name = name;
+        meta.content = content;
         document.head.appendChild(meta);
       }
-      meta.content = content;
     };
 
     // Content Security Policy
-    setMetaTag('Content-Security-Policy', 
+    addMetaTag('Content-Security-Policy', 
       "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co; " +
-      "style-src 'self' 'unsafe-inline'; " +
-      "img-src 'self' data: https:; " +
-      "connect-src 'self' https://api.paystack.co https://*.supabase.co wss://*.supabase.co; " +
-      "font-src 'self' data:; " +
-      "frame-src https://js.paystack.co;"
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://maps.googleapis.com; " +
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+      "font-src 'self' https://fonts.gstatic.com; " +
+      "img-src 'self' data: https: blob:; " +
+      "connect-src 'self' https://prfowczgawhjapsdpncq.supabase.co wss://prfowczgawhjapsdpncq.supabase.co https://api.stripe.com https://maps.googleapis.com; " +
+      "frame-src 'self' https://js.stripe.com;"
     );
 
-    // Prevent clickjacking
-    setMetaTag('X-Frame-Options', 'DENY');
+    // X-Frame-Options
+    addMetaTag('X-Frame-Options', 'DENY');
 
-    // Prevent MIME type sniffing
-    setMetaTag('X-Content-Type-Options', 'nosniff');
-
-    // XSS Protection
-    setMetaTag('X-XSS-Protection', '1; mode=block');
+    // X-Content-Type-Options
+    addMetaTag('X-Content-Type-Options', 'nosniff');
 
     // Referrer Policy
-    setMetaTag('Referrer-Policy', 'strict-origin-when-cross-origin');
+    addMetaTag('referrer', 'strict-origin-when-cross-origin');
 
     // Permissions Policy
-    setMetaTag('Permissions-Policy', 
-      'camera=(), microphone=(), geolocation=(self), payment=(self)'
+    addMetaTag('Permissions-Policy', 
+      'geolocation=(), microphone=(), camera=(), payment=(), usb=()'
     );
 
-    return () => {
-      // Cleanup is not necessary for meta tags as they should persist
-    };
   }, []);
 
-  return null; // This component doesn't render anything
+  return null;
 };

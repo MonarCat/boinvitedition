@@ -1,89 +1,86 @@
 
-import { useCallback } from 'react';
+import React from 'react';
+import DOMPurify from 'dompurify';
 
-interface SanitizationOptions {
-  allowHtml?: boolean;
-  maxLength?: number;
-  pattern?: RegExp;
+interface SanitizedHtmlProps {
+  html: string;
+  className?: string;
+  allowedTags?: string[];
 }
 
-export const useInputSanitizer = () => {
-  const sanitizeText = useCallback((
-    input: string, 
-    options: SanitizationOptions = {}
-  ): string => {
-    if (typeof input !== 'string') return '';
-    
-    let sanitized = input;
-    
-    // Basic XSS prevention - remove potentially dangerous characters
-    if (!options.allowHtml) {
-      sanitized = sanitized
-        .replace(/[<>]/g, '') // Remove < and >
-        .replace(/javascript:/gi, '') // Remove javascript: protocol
-        .replace(/on\w+=/gi, '') // Remove event handlers like onclick=
-        .replace(/script/gi, ''); // Remove script tags
+export const SanitizedHtml: React.FC<SanitizedHtmlProps> = ({ 
+  html, 
+  className,
+  allowedTags = ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li']
+}) => {
+  const sanitizedHtml = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: allowedTags,
+    ALLOWED_ATTR: ['class'],
+    ALLOW_DATA_ATTR: false,
+  });
+
+  return (
+    <div 
+      className={className}
+      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+    />
+  );
+};
+
+// Input validation utilities
+export const validateInput = {
+  email: (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.length <= 255;
+  },
+
+  phone: (phone: string): boolean => {
+    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+    return phoneRegex.test(phone.replace(/\s/g, ''));
+  },
+
+  businessName: (name: string): boolean => {
+    return name.length >= 2 && name.length <= 100 && !/[<>]/.test(name);
+  },
+
+  url: (url: string): boolean => {
+    try {
+      new URL(url);
+      return url.startsWith('http://') || url.startsWith('https://');
+    } catch {
+      return false;
     }
+  },
+
+  sanitizeString: (input: string): string => {
+    return input.replace(/[<>'"]/g, '').trim();
+  },
+
+  sanitizeNumber: (input: string): number | null => {
+    const num = parseFloat(input);
+    return isNaN(num) ? null : num;
+  }
+};
+
+// Rate limiting hook
+export const useRateLimit = (maxRequests: number = 10, windowMs: number = 60000) => {
+  const [requests, setRequests] = React.useState<number[]>([]);
+
+  const checkRateLimit = (): boolean => {
+    const now = Date.now();
+    const windowStart = now - windowMs;
     
-    // Length validation
-    if (options.maxLength && sanitized.length > options.maxLength) {
-      sanitized = sanitized.substring(0, options.maxLength);
-    }
+    // Filter requests within the current window
+    const recentRequests = requests.filter(time => time > windowStart);
     
-    // Pattern validation
-    if (options.pattern && !options.pattern.test(sanitized)) {
-      return ''; // Return empty string if pattern doesn't match
+    if (recentRequests.length >= maxRequests) {
+      return false; // Rate limit exceeded
     }
-    
-    // Trim whitespace
-    return sanitized.trim();
-  }, []);
 
-  const sanitizeEmail = useCallback((email: string): string => {
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const sanitized = sanitizeText(email, { 
-      maxLength: 254,
-      pattern: emailPattern 
-    });
-    return sanitized.toLowerCase();
-  }, [sanitizeText]);
-
-  const sanitizePhone = useCallback((phone: string): string => {
-    // Remove all non-digit characters except + for international numbers
-    const cleaned = phone.replace(/[^\d+]/g, '');
-    return sanitizeText(cleaned, { maxLength: 20 });
-  }, [sanitizeText]);
-
-  const sanitizeBusinessId = useCallback((businessId: string): string => {
-    // UUID pattern validation
-    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return sanitizeText(businessId, { pattern: uuidPattern });
-  }, [sanitizeText]);
-
-  const sanitizeCurrency = useCallback((amount: string): string => {
-    // Only allow numbers and decimal point
-    const cleaned = amount.replace(/[^\d.]/g, '');
-    // Ensure only one decimal point
-    const parts = cleaned.split('.');
-    if (parts.length > 2) {
-      return parts[0] + '.' + parts.slice(1).join('');
-    }
-    return cleaned;
-  }, []);
-
-  const validateRequired = useCallback((value: string, fieldName: string): string | null => {
-    if (!value || value.trim() === '') {
-      return `${fieldName} is required`;
-    }
-    return null;
-  }, []);
-
-  return {
-    sanitizeText,
-    sanitizeEmail,
-    sanitizePhone,
-    sanitizeBusinessId,
-    sanitizeCurrency,
-    validateRequired
+    // Add current request
+    setRequests([...recentRequests, now]);
+    return true; // Request allowed
   };
+
+  return { checkRateLimit };
 };

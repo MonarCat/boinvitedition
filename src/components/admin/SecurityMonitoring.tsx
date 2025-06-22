@@ -1,308 +1,218 @@
 
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Shield, 
-  Activity, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock, 
-  Globe,
-  Database,
-  Server,
-  Lock,
-  Eye
-} from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Shield, AlertTriangle, Eye, Clock } from 'lucide-react';
+import { format } from 'date-fns';
 
-interface SecurityMetric {
-  name: string;
-  value: string;
-  status: 'good' | 'warning' | 'critical';
-  lastChecked: string;
+interface AuditLogEntry {
+  id: string;
+  user_id: string | null;
+  action: string;
+  table_name: string;
+  record_id: string | null;
+  old_values: any;
+  new_values: any;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: string;
 }
 
-interface SystemHealth {
-  uptime: string;
-  responseTime: number;
-  errorRate: number;
+interface SecurityMetrics {
+  failedLogins: number;
+  suspiciousActivities: number;
+  recentAudits: number;
   activeUsers: number;
 }
 
-const SecurityMonitoring = () => {
-  const [securityMetrics] = useState<SecurityMetric[]>([
-    {
-      name: 'SSL Certificate',
-      value: 'Valid',
-      status: 'good',
-      lastChecked: '2 minutes ago'
-    },
-    {
-      name: 'Database Encryption',
-      value: 'Enabled',
-      status: 'good',
-      lastChecked: '5 minutes ago'
-    },
-    {
-      name: 'Rate Limiting',
-      value: 'Active',
-      status: 'good',
-      lastChecked: '1 minute ago'
-    },
-    {
-      name: 'Failed Login Attempts',
-      value: '3 in last hour',
-      status: 'warning',
-      lastChecked: '30 seconds ago'
-    },
-    {
-      name: 'API Rate Limits',
-      value: '95% capacity',
-      status: 'warning',
-      lastChecked: '1 minute ago'
-    },
-    {
-      name: 'Backup Status',
-      value: 'Completed',
-      status: 'good',
-      lastChecked: '6 hours ago'
-    }
-  ]);
-
-  const [systemHealth] = useState<SystemHealth>({
-    uptime: '99.9%',
-    responseTime: 150,
-    errorRate: 0.1,
-    activeUsers: 1247
+export const SecurityMonitoring: React.FC = () => {
+  const { hasRole, isLoading: rolesLoading } = useUserRoles();
+  const [metrics, setMetrics] = useState<SecurityMetrics>({
+    failedLogins: 0,
+    suspiciousActivities: 0,
+    recentAudits: 0,
+    activeUsers: 0
   });
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'good':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
-      case 'critical':
-        return <AlertTriangle className="h-4 w-4 text-red-600" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-600" />;
-    }
-  };
+  // Fetch audit logs (admin only)
+  const { data: auditLogs, isLoading } = useQuery({
+    queryKey: ['audit-logs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('audit_log')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      return data as AuditLogEntry[];
+    },
+    enabled: hasRole('admin'),
+  });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'good':
-        return 'bg-green-100 text-green-800';
-      case 'warning':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'critical':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  // Calculate security metrics
+  useEffect(() => {
+    if (auditLogs) {
+      const now = new Date();
+      const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      
+      const recentLogs = auditLogs.filter(log => 
+        new Date(log.created_at) > last24Hours
+      );
+
+      setMetrics({
+        failedLogins: recentLogs.filter(log => 
+          log.action === 'FAILED_LOGIN'
+        ).length,
+        suspiciousActivities: recentLogs.filter(log => 
+          log.action.includes('SUSPICIOUS') || 
+          log.action === 'MASS_DELETE' || 
+          log.action === 'PRIVILEGE_ESCALATION'
+        ).length,
+        recentAudits: recentLogs.length,
+        activeUsers: new Set(recentLogs.map(log => log.user_id)).size
+      });
     }
+  }, [auditLogs]);
+
+  if (rolesLoading) {
+    return <div>Loading security dashboard...</div>;
+  }
+
+  if (!hasRole('admin')) {
+    return (
+      <Alert>
+        <Shield className="h-4 w-4" />
+        <AlertDescription>
+          Access denied. Administrator privileges required.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  const getActionBadgeColor = (action: string) => {
+    if (action.includes('DELETE') || action.includes('FAILED')) return 'destructive';
+    if (action.includes('UPDATE') || action.includes('MODIFY')) return 'warning';
+    if (action.includes('CREATE') || action.includes('INSERT')) return 'success';
+    return 'secondary';
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Security & Monitoring</h1>
-        <div className="flex items-center gap-2">
-          <Badge className="bg-green-100 text-green-800">
-            <Shield className="h-3 w-3 mr-1" />
-            System Secure
-          </Badge>
-        </div>
+      <div className="flex items-center gap-2">
+        <Shield className="h-6 w-6 text-blue-600" />
+        <h2 className="text-2xl font-bold">Security Monitoring</h2>
       </div>
 
-      {/* System Health Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Security Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Uptime</CardTitle>
-            <Activity className="h-4 w-4 text-green-600" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-red-500" />
+              Failed Logins (24h)
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemHealth.uptime}</div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
+            <div className="text-2xl font-bold text-red-600">
+              {metrics.failedLogins}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Response Time</CardTitle>
-            <Clock className="h-4 w-4 text-blue-600" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Eye className="h-4 w-4 text-orange-500" />
+              Suspicious Activities
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemHealth.responseTime}ms</div>
-            <p className="text-xs text-muted-foreground">Average response</p>
+            <div className="text-2xl font-bold text-orange-600">
+              {metrics.suspiciousActivities}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Error Rate</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Clock className="h-4 w-4 text-blue-500" />
+              Recent Audits
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemHealth.errorRate}%</div>
-            <p className="text-xs text-muted-foreground">Last 24 hours</p>
+            <div className="text-2xl font-bold text-blue-600">
+              {metrics.recentAudits}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <Eye className="h-4 w-4 text-purple-600" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Shield className="h-4 w-4 text-green-500" />
+              Active Users (24h)
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemHealth.activeUsers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Currently online</p>
+            <div className="text-2xl font-bold text-green-600">
+              {metrics.activeUsers}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="security" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="security">Security Status</TabsTrigger>
-          <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
-          <TabsTrigger value="backups">Backups</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="security" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Metrics</CardTitle>
-              <CardDescription>Real-time security status of your application</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {securityMetrics.map((metric, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      {getStatusIcon(metric.status)}
-                      <div>
-                        <p className="font-medium">{metric.name}</p>
-                        <p className="text-sm text-gray-600">Last checked: {metric.lastChecked}</p>
+      {/* Recent Audit Logs */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Audit Logs</CardTitle>
+          <CardDescription>
+            Latest security-relevant activities across the platform
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div>Loading audit logs...</div>
+          ) : auditLogs && auditLogs.length > 0 ? (
+            <div className="space-y-3">
+              {auditLogs.slice(0, 20).map((log) => (
+                <div key={log.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Badge variant={getActionBadgeColor(log.action) as any}>
+                      {log.action}
+                    </Badge>
+                    <div>
+                      <div className="font-medium">{log.table_name}</div>
+                      <div className="text-sm text-gray-500">
+                        {log.user_id ? `User: ${log.user_id.slice(0, 8)}...` : 'System'}
                       </div>
                     </div>
-                    <Badge className={getStatusColor(metric.status)}>
-                      {metric.value}
-                    </Badge>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="monitoring" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Server className="h-5 w-5" />
-                  Server Performance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span>CPU Usage</span>
-                    <span className="font-medium">23%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Memory Usage</span>
-                    <span className="font-medium">67%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Disk Usage</span>
-                    <span className="font-medium">45%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Network I/O</span>
-                    <span className="font-medium">1.2 GB/h</span>
+                  <div className="text-right">
+                    <div className="text-sm">
+                      {format(new Date(log.created_at), 'MMM dd, HH:mm')}
+                    </div>
+                    {log.ip_address && (
+                      <div className="text-xs text-gray-500">
+                        IP: {log.ip_address}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Database className="h-5 w-5" />
-                  Database Performance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span>Active Connections</span>
-                    <span className="font-medium">12/100</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Query Time (avg)</span>
-                    <span className="font-medium">23ms</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Cache Hit Rate</span>
-                    <span className="font-medium">98.7%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Storage Used</span>
-                    <span className="font-medium">2.3 GB</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="backups" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                Backup Status
-              </CardTitle>
-              <CardDescription>Automated database backups and recovery options</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-medium">Daily Backup</p>
-                    <p className="text-sm text-gray-600">Last backup: 6 hours ago</p>
-                  </div>
-                  <Badge className="bg-green-100 text-green-800">Completed</Badge>
-                </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-medium">Weekly Backup</p>
-                    <p className="text-sm text-gray-600">Last backup: 2 days ago</p>
-                  </div>
-                  <Badge className="bg-green-100 text-green-800">Completed</Badge>
-                </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-medium">Monthly Archive</p>
-                    <p className="text-sm text-gray-600">Last backup: 15 days ago</p>
-                  </div>
-                  <Badge className="bg-green-100 text-green-800">Completed</Badge>
-                </div>
-              </div>
-              <div className="mt-6">
-                <Button className="bg-royal-red hover:bg-royal-red-accent">
-                  Create Manual Backup
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              No audit logs found
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
-
-export default SecurityMonitoring;

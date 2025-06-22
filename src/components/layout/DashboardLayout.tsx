@@ -1,126 +1,174 @@
 
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { 
-  LayoutDashboard, 
+  Menu, 
+  Home, 
   Calendar, 
   Users, 
   Settings, 
-  FileText,
-  UserCheck,
-  Clock,
+  FileText, 
+  CreditCard,
+  UserPlus,
+  Building,
   LogOut,
-  User,
-  BarChart3,
+  Bell
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { Link, useLocation } from 'react-router-dom';
+import { BusinessSetupWizard } from '@/components/onboarding/BusinessSetupWizard';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
+  const { user, signOut } = useAuth();
   const location = useLocation();
-  const { user } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success('Signed out successfully');
-    } catch (error) {
-      toast.error('Error signing out');
-    }
-  };
+  const { data: business, isLoading } = useQuery({
+    queryKey: ['user-business', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return null; // No business found
+        }
+        throw error;
+      }
+      return data;
+    },
+    enabled: !!user,
+  });
 
-  const navigation = [
-    { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
+  // Show business setup wizard if no business exists
+  if (!isLoading && !business) {
+    return <BusinessSetupWizard />;
+  }
+
+  const navigationItems = [
+    { name: 'Dashboard', href: '/app/dashboard', icon: Home },
+    { name: 'Services', href: '/app/services', icon: Building },
     { name: 'Bookings', href: '/app/bookings', icon: Calendar },
-    { name: 'Services', href: '/app/services', icon: FileText },
-    { name: 'Staff', href: '/app/staff', icon: Users },
-    { name: 'Attendance', href: '/app/staff-attendance', icon: Clock },
-    { name: 'Staff Dashboard', href: '/app/staff-dashboard', icon: BarChart3 },
-    { name: 'Clients', href: '/app/clients', icon: UserCheck },
+    { name: 'Clients', href: '/app/clients', icon: Users },
+    { name: 'Staff', href: '/app/staff', icon: UserPlus },
     { name: 'Invoices', href: '/app/invoices', icon: FileText },
+    { name: 'Subscription', href: '/app/subscription', icon: CreditCard },
     { name: 'Settings', href: '/app/settings', icon: Settings },
   ];
 
-  const isActive = (href: string) => {
-    if (href === '/app/dashboard') {
-      return location.pathname === '/app/dashboard' || location.pathname === '/app';
-    }
-    return location.pathname.startsWith(href);
-  };
+  const NavigationContent = () => (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-2 p-4 border-b">
+        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+          <span className="text-white font-bold text-sm">B</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <h2 className="font-semibold text-gray-900 truncate text-sm">
+            {business?.name || 'Boinvit'}
+          </h2>
+          <p className="text-xs text-gray-500 truncate">
+            {user?.email}
+          </p>
+        </div>
+      </div>
+      
+      <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+        {navigationItems.map((item) => {
+          const isActive = location.pathname === item.href;
+          const Icon = item.icon;
+          
+          return (
+            <Link
+              key={item.name}
+              to={item.href}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+            >
+              <Icon className="w-5 h-5 flex-shrink-0" />
+              <span className="truncate">{item.name}</span>
+            </Link>
+          );
+        })}
+      </nav>
+      
+      <div className="border-t p-4">
+        <Button
+          variant="ghost"
+          onClick={signOut}
+          className="w-full justify-start gap-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+        >
+          <LogOut className="w-5 h-5" />
+          Sign Out
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg">
-        <div className="flex h-full flex-col">
-          {/* Logo */}
-          <div className="flex h-16 items-center justify-center border-b border-gray-200">
-            <Link to="/" className="flex items-center gap-2 group" tabIndex={0} aria-label="Home">
-              <h1 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">BookingApp</h1>
-            </Link>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 space-y-1 px-2 py-4">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
-                    isActive(item.href)
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon
-                    className={`mr-3 h-5 w-5 transition-colors ${
-                      isActive(item.href) ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
-                    }`}
-                  />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* User info and sign out */}
-          <div className="border-t border-gray-200 p-4">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="flex-shrink-0">
-                <User className="h-8 w-8 text-gray-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {user?.email}
-                </p>
-              </div>
-            </div>
-            <Button
-              onClick={handleSignOut}
-              variant="outline"
-              size="sm"
-              className="w-full"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
+        <div className="flex flex-col flex-grow bg-white border-r border-gray-200 shadow-sm">
+          <NavigationContent />
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="pl-64">
-        <main className="py-6">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            {children}
+      {/* Mobile Menu */}
+      <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+        <SheetTrigger asChild className="lg:hidden">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="fixed top-4 left-4 z-50 p-2 bg-white shadow-md border"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-64 p-0">
+          <NavigationContent />
+        </SheetContent>
+      </Sheet>
+
+      {/* Main Content Area */}
+      <div className="lg:pl-64">
+        {/* Top Header - Mobile */}
+        <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3">
+          <div className="flex items-center justify-between ml-12">
+            <h1 className="text-lg font-semibold text-gray-900 truncate">
+              {business?.name || 'Dashboard'}
+            </h1>
+            <Button variant="ghost" size="sm" className="p-2">
+              <Bell className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Page Content */}
+        <main className="flex-1">
+          <div className="px-4 py-6 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            {isLoading ? (
+              <div className="flex items-center justify-center min-h-[200px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              children
+            )}
           </div>
         </main>
       </div>

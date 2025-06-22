@@ -43,10 +43,19 @@ const App = () => {
       <SecurityHeaders />
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                fontSize: '14px',
+              },
+              className: 'text-sm',
+            }}
+          />
           <BrowserRouter>
             <AuthProvider>
-              <div className="relative">
+              <div className="relative min-h-screen">
                 <Routes>
                   {/* Landing page as default */}
                   <Route path="/" element={<LandingPage />} />
@@ -84,7 +93,7 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 
-                {/* PWA Components */}
+                {/* PWA Components - Mobile Optimized */}
                 <InstallPrompt />
                 <div className="fixed top-4 right-4 z-40">
                   <PWAStatus />

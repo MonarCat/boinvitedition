@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       blocked_time_slots: {
         Row: {
           blocked_date: string
@@ -261,10 +300,14 @@ export type Database = {
           currency: string | null
           custom_domain: string | null
           default_tax_rate: number | null
+          enable_bank_transfer: boolean | null
+          enable_card_payments: boolean | null
+          enable_mpesa: boolean | null
           id: string
           map_description: string | null
           max_bookings_per_slot: number | null
           notification_preferences: Json | null
+          payment_instructions: string | null
           reminder_hours_before: number | null
           require_payment: boolean | null
           send_reminders: boolean | null
@@ -284,10 +327,14 @@ export type Database = {
           currency?: string | null
           custom_domain?: string | null
           default_tax_rate?: number | null
+          enable_bank_transfer?: boolean | null
+          enable_card_payments?: boolean | null
+          enable_mpesa?: boolean | null
           id?: string
           map_description?: string | null
           max_bookings_per_slot?: number | null
           notification_preferences?: Json | null
+          payment_instructions?: string | null
           reminder_hours_before?: number | null
           require_payment?: boolean | null
           send_reminders?: boolean | null
@@ -307,10 +354,14 @@ export type Database = {
           currency?: string | null
           custom_domain?: string | null
           default_tax_rate?: number | null
+          enable_bank_transfer?: boolean | null
+          enable_card_payments?: boolean | null
+          enable_mpesa?: boolean | null
           id?: string
           map_description?: string | null
           max_bookings_per_slot?: number | null
           notification_preferences?: Json | null
+          payment_instructions?: string | null
           reminder_hours_before?: number | null
           require_payment?: boolean | null
           send_reminders?: boolean | null
@@ -333,6 +384,8 @@ export type Database = {
         Row: {
           address: string | null
           average_rating: number | null
+          bank_account: string | null
+          bank_name: string | null
           business_hours: Json | null
           city: string | null
           country: string | null
@@ -347,8 +400,11 @@ export type Database = {
           latitude: number | null
           logo_url: string | null
           longitude: number | null
+          mpesa_number: string | null
           name: string
+          payment_instructions: string | null
           phone: string | null
+          preferred_payment_methods: string[] | null
           search_vector: unknown | null
           service_radius_km: number | null
           subdomain: string | null
@@ -360,6 +416,8 @@ export type Database = {
         Insert: {
           address?: string | null
           average_rating?: number | null
+          bank_account?: string | null
+          bank_name?: string | null
           business_hours?: Json | null
           city?: string | null
           country?: string | null
@@ -374,8 +432,11 @@ export type Database = {
           latitude?: number | null
           logo_url?: string | null
           longitude?: number | null
+          mpesa_number?: string | null
           name: string
+          payment_instructions?: string | null
           phone?: string | null
+          preferred_payment_methods?: string[] | null
           search_vector?: unknown | null
           service_radius_km?: number | null
           subdomain?: string | null
@@ -387,6 +448,8 @@ export type Database = {
         Update: {
           address?: string | null
           average_rating?: number | null
+          bank_account?: string | null
+          bank_name?: string | null
           business_hours?: Json | null
           city?: string | null
           country?: string | null
@@ -401,8 +464,11 @@ export type Database = {
           latitude?: number | null
           logo_url?: string | null
           longitude?: number | null
+          mpesa_number?: string | null
           name?: string
+          payment_instructions?: string | null
           phone?: string | null
+          preferred_payment_methods?: string[] | null
           search_vector?: unknown | null
           service_radius_km?: number | null
           subdomain?: string | null
@@ -652,7 +718,9 @@ export type Database = {
           business_id: string
           created_at: string
           details: string
+          display_name: string | null
           id: string
+          instructions: string | null
           is_active: boolean
           name: string
           type: string
@@ -662,7 +730,9 @@ export type Database = {
           business_id: string
           created_at?: string
           details: string
+          display_name?: string | null
           id?: string
+          instructions?: string | null
           is_active?: boolean
           name: string
           type: string
@@ -672,7 +742,9 @@ export type Database = {
           business_id?: string
           created_at?: string
           details?: string
+          display_name?: string | null
           id?: string
+          instructions?: string | null
           is_active?: boolean
           name?: string
           type?: string
@@ -1149,6 +1221,10 @@ export type Database = {
           total_services: number
           distance_km: number
         }[]
+      }
+      validate_business_ownership: {
+        Args: { business_id: string }
+        Returns: boolean
       }
     }
     Enums: {

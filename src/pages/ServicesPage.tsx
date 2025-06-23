@@ -7,7 +7,7 @@ import { BusinessHours } from '@/components/business/BusinessHours';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { QRCodeGenerator } from '@/components/qr/QRCodeGenerator';
+import { UnifiedQRGenerator } from '@/components/qr/UnifiedQRGenerator';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -94,16 +94,19 @@ const ServicesPage = () => {
           </div>
         )}
 
-        {/* QR Code generator section for in-shop booking */}
+        {/* Unified QR Code Section */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Walk-In / Direct Booking QR Code</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Service Booking QR Code</h2>
           <p className="text-gray-600 mb-4">
-            Display this QR code at your shop. When customers scan it, they will be taken to your services booking page for easy reservations.
+            Display this QR code at your location. Customers can scan it to view and book your services directly.
           </p>
           {!business && isLoadingBusiness ? (
             <div className="text-gray-400">Loading QR code...</div>
           ) : business ? (
-            <QRCodeGenerator businessId={business.id} businessName={business.name} />
+            <UnifiedQRGenerator 
+              businessId={business.id} 
+              businessName={business.name}
+            />
           ) : (
             <div className="text-red-500">Unable to load business QR code</div>
           )}

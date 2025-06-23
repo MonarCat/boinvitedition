@@ -5,7 +5,7 @@ import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardKPISection } from '@/components/dashboard/DashboardKPISection';
 import { DashboardQuickActions } from '@/components/dashboard/DashboardQuickActions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BusinessQRGenerator } from '@/components/business/BusinessQRGenerator';
+import { UnifiedQRGenerator } from '@/components/qr/UnifiedQRGenerator';
 import { SecurityDashboard } from '@/components/security/SecurityDashboard';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,7 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSpreadsheetExport } from '@/hooks/useSpreadsheetExport';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useDashboardHandlers } from '@/hooks/useDashboardHandlers';
-import { QrCode, Download, Shield } from 'lucide-react';
+import { QrCode, Download, Shield, Users, TrendingUp } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -93,6 +93,7 @@ const Dashboard = () => {
           
           {business && (
             <>
+              {/* Export Data Card */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -118,6 +119,36 @@ const Dashboard = () => {
                   />
                 </CardContent>
               </Card>
+
+              {/* Staff Management Card */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Staff Management
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full justify-start"
+                    onClick={() => window.location.href = '/app/staff'}
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Manage Staff
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full justify-start"
+                    onClick={() => window.location.href = '/app/staff-attendance'}
+                  >
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Staff Attendance
+                  </Button>
+                </CardContent>
+              </Card>
             </>
           )}
         </div>
@@ -128,14 +159,18 @@ const Dashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <QrCode className="w-5 h-5" />
-                Business QR Code & Booking Access
+                Service Booking QR Code
               </CardTitle>
+              <p className="text-sm text-gray-600">
+                Display this QR code for customers to easily book your services
+              </p>
             </CardHeader>
             <CardContent>
               <div className="flex justify-center">
-                <BusinessQRGenerator 
+                <UnifiedQRGenerator 
                   businessId={business.id} 
-                  businessName={business.name || 'Your Business'} 
+                  businessName={business.name || 'Your Business'}
+                  showTitle={false}
                 />
               </div>
             </CardContent>

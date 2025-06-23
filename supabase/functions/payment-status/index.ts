@@ -59,14 +59,15 @@ serve(async (req) => {
           const subscriptionEndDate = new Date();
           subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + 1);
 
-          // Plan limits
+          // Harmonized plan limits
           const planLimits: { [key: string]: { staff_limit: number | null; bookings_limit: number | null } } = {
+            trial: { staff_limit: 3, bookings_limit: 100 },
             starter: { staff_limit: 5, bookings_limit: 1000 },
-            medium: { staff_limit: 15, bookings_limit: 3000 },
-            premium: { staff_limit: null, bookings_limit: null }
+            business: { staff_limit: 15, bookings_limit: 5000 },
+            enterprise: { staff_limit: null, bookings_limit: null }
           };
 
-          const limits = planLimits[metadata.plan_id] || { staff_limit: 3, bookings_limit: 500 };
+          const limits = planLimits[metadata.plan_id] || { staff_limit: 3, bookings_limit: 100 };
 
           // Upsert subscription
           await supabase

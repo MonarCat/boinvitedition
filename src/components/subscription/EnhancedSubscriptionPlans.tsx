@@ -39,6 +39,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
+  // Harmonized pricing structure
   const plans: Plan[] = [
     {
       id: 'trial',
@@ -46,18 +47,18 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
       price: 10,
       currency: 'KES',
       interval: '7 days',
-      description: 'Perfect for testing our platform',
+      description: '7-day trial to test our platform',
       features: [
         '7 days full access',
         'Up to 3 staff members',
-        'Up to 500 bookings',
-        'QR code generation',
+        'Up to 100 bookings',
+        'QR code booking system',
         'Basic support',
         'Payment integration'
       ],
       popular: false,
       staffLimit: 3,
-      bookingsLimit: 500,
+      bookingsLimit: 100,
       color: 'border-gray-200'
     },
     {
@@ -66,7 +67,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
       price: 890,
       currency: 'KES',
       interval: 'month',
-      description: 'Great for small businesses',
+      description: 'Perfect for small businesses',
       features: [
         'Up to 5 staff members',
         'Up to 1,000 bookings/month',
@@ -82,7 +83,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
       color: 'border-blue-200'
     },
     {
-      id: 'medium',
+      id: 'business',
       name: 'Business',
       price: 2900,
       currency: 'KES',
@@ -90,8 +91,9 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
       description: 'Most popular for growing businesses',
       features: [
         'Up to 15 staff members',
-        'Up to 3,000 bookings/month',
+        'Up to 5,000 bookings/month',
         'Advanced booking management',
+        'Staff attendance tracking',
         'Multi-location support',
         'Advanced analytics',
         'Priority support',
@@ -99,19 +101,20 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
       ],
       popular: true,
       staffLimit: 15,
-      bookingsLimit: 3000,
+      bookingsLimit: 5000,
       color: 'border-orange-200'
     },
     {
-      id: 'premium',
+      id: 'enterprise',
       name: 'Enterprise',
       price: 5900,
       currency: 'KES',
       interval: 'month',
-      description: 'For large businesses',
+      description: 'For large enterprises',
       features: [
         'Unlimited staff members',
         'Unlimited bookings',
+        'Advanced staff performance tracking',
         'White-label solution',
         'API access',
         'Custom integrations',

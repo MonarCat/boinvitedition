@@ -9,6 +9,44 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_alerts: {
+        Row: {
+          alert_type: string
+          business_id: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+        }
+        Insert: {
+          alert_type: string
+          business_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+        }
+        Update: {
+          alert_type?: string
+          business_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_alerts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -307,6 +345,8 @@ export type Database = {
           map_description: string | null
           max_bookings_per_slot: number | null
           notification_preferences: Json | null
+          operating_hours_end: string | null
+          operating_hours_start: string | null
           payment_instructions: string | null
           reminder_hours_before: number | null
           require_payment: boolean | null
@@ -334,6 +374,8 @@ export type Database = {
           map_description?: string | null
           max_bookings_per_slot?: number | null
           notification_preferences?: Json | null
+          operating_hours_end?: string | null
+          operating_hours_start?: string | null
           payment_instructions?: string | null
           reminder_hours_before?: number | null
           require_payment?: boolean | null
@@ -361,6 +403,8 @@ export type Database = {
           map_description?: string | null
           max_bookings_per_slot?: number | null
           notification_preferences?: Json | null
+          operating_hours_end?: string | null
+          operating_hours_start?: string | null
           payment_instructions?: string | null
           reminder_hours_before?: number | null
           require_payment?: boolean | null
@@ -983,7 +1027,9 @@ export type Database = {
           attendance_date: string
           business_id: string
           created_at: string
+          geolocation: Json | null
           id: string
+          ip_address: string | null
           location_info: Json | null
           notes: string | null
           sign_in_time: string
@@ -991,12 +1037,15 @@ export type Database = {
           staff_id: string
           status: string
           updated_at: string
+          user_agent: string | null
         }
         Insert: {
           attendance_date?: string
           business_id: string
           created_at?: string
+          geolocation?: Json | null
           id?: string
+          ip_address?: string | null
           location_info?: Json | null
           notes?: string | null
           sign_in_time?: string
@@ -1004,12 +1053,15 @@ export type Database = {
           staff_id: string
           status?: string
           updated_at?: string
+          user_agent?: string | null
         }
         Update: {
           attendance_date?: string
           business_id?: string
           created_at?: string
+          geolocation?: Json | null
           id?: string
+          ip_address?: string | null
           location_info?: Json | null
           notes?: string | null
           sign_in_time?: string
@@ -1017,6 +1069,7 @@ export type Database = {
           staff_id?: string
           status?: string
           updated_at?: string
+          user_agent?: string | null
         }
         Relationships: [
           {

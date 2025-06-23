@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Clock, MapPin, Calendar, User } from 'lucide-react';
+import { Clock, MapPin, Calendar, User, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { submitAttendance } from '@/lib/offlineAttendance';
+import { OfflineAttendanceIndicator } from './OfflineAttendanceIndicator';
 
 export const StaffAttendance = () => {
   const { user } = useAuth();
@@ -74,45 +75,6 @@ export const StaffAttendance = () => {
     enabled: !!business,
   });
 
-  const signInMutation = useMutation({
-    mutationFn: async ({ staffId, notes }: { staffId: string; notes?: string }) => {
-      if (!business) throw new Error('No business found');
-
-      // Check if already signed in today
-      const { data: existing } = await supabase
-        .from('staff_attendance')
-        .select('id')
-        .eq('staff_id', staffId)
-        .eq('attendance_date', selectedDate)
-        .eq('status', 'signed_in')
-        .single();
-
-      if (existing) {
-        throw new Error('Staff member is already signed in today');
-      }
-
-      const { error } = await supabase
-        .from('staff_attendance')
-        .insert([{
-          staff_id: staffId,
-          business_id: business.id,
-          attendance_date: selectedDate,
-          notes: notes || null,
-          status: 'signed_in'
-        }]);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success('Staff member signed in successfully');
-      queryClient.invalidateQueries({ queryKey: ['staff-attendance'] });
-      setSignInNotes('');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to sign in staff member');
-    },
-  });
-
   const signOutMutation = useMutation({
     mutationFn: async (attendanceId: string) => {
       const { error } = await supabase
@@ -131,6 +93,32 @@ export const StaffAttendance = () => {
     },
     onError: () => {
       toast.error('Failed to sign out staff member');
+    },
+  });
+
+  const signInMutation = useMutation({
+    mutationFn: async ({ staffId, notes }: { staffId: string; notes?: string }) => {
+      if (!business) throw new Error('No business found');
+
+      // Use the enhanced offline-capable function
+      const result = await submitAttendance(staffId, business.id, 'signed_in', notes);
+      
+      if (!result.success && result.error) {
+        throw new Error(result.error);
+      }
+      
+      return result;
+    },
+    onSuccess: (result) => {
+      if (!result.offline) {
+        toast.success('Staff member signed in successfully');
+        queryClient.invalidateQueries({ queryKey: ['staff-attendance'] });
+      }
+      setSignInNotes('');
+    },
+    onError: (error: any) => {
+      // Don't show error toast here as submitAttendance already handles it
+      console.error('Sign-in error:', error);
     },
   });
 
@@ -169,18 +157,22 @@ export const StaffAttendance = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-gray-500" />
-          <Label htmlFor="date">Date:</Label>
-          <Input
-            id="date"
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-auto"
-          />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-gray-500" />
+            <Label htmlFor="date">Date:</Label>
+            <Input
+              id="date"
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-auto"
+            />
+          </div>
         </div>
+        
+        <OfflineAttendanceIndicator />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -218,6 +210,12 @@ export const StaffAttendance = () => {
                     {todaysAttendance.notes && (
                       <div className="text-sm text-gray-600">
                         Notes: {todaysAttendance.notes}
+                      </div>
+                    )}
+                    {todaysAttendance.geolocation && (
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <MapPin className="h-3 w-3" />
+                        Location tracked
                       </div>
                     )}
                   </div>
@@ -275,10 +273,21 @@ export const StaffAttendance = () => {
                       {format(new Date(record.sign_in_time), 'HH:mm')}
                       {record.sign_out_time && ` - ${format(new Date(record.sign_out_time), 'HH:mm')}`}
                     </p>
+                    {record.ip_address && (
+                      <p className="text-xs text-gray-500">IP: {record.ip_address}</p>
+                    )}
                   </div>
-                  <Badge className={getStatusColor(record.status)}>
-                    {record.status.replace('_', ' ')}
-                  </Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge className={getStatusColor(record.status)}>
+                      {record.status.replace('_', ' ')}
+                    </Badge>
+                    {record.geolocation && (
+                      <Badge variant="outline" className="text-xs">
+                        <MapPin className="h-2 w-2 mr-1" />
+                        Located
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

@@ -3,11 +3,11 @@ import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ServicesList } from '@/components/services/ServicesList';
 import { EnhancedServiceForm } from '@/components/services/EnhancedServiceForm';
+import { BusinessHours } from '@/components/business/BusinessHours';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { QRCodeGenerator } from '@/components/qr/QRCodeGenerator';
-import { QRCodeTester } from '@/components/qr/QRCodeTester';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -82,6 +82,17 @@ const ServicesPage = () => {
         </div>
 
         <ServicesList onEditService={handleEditService} />
+
+        {/* Business Hours Section */}
+        {business && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Business Hours</h2>
+            <BusinessHours 
+              businessId={business.id} 
+              currentHours={business.business_hours || {}}
+            />
+          </div>
+        )}
 
         {/* QR Code generator section for in-shop booking */}
         <div className="mt-12">

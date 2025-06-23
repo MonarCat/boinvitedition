@@ -879,6 +879,7 @@ export type Database = {
           is_transport_service: boolean | null
           name: string
           price: number
+          service_images: string[] | null
           transport_details: Json | null
           updated_at: string | null
         }
@@ -894,6 +895,7 @@ export type Database = {
           is_transport_service?: boolean | null
           name: string
           price: number
+          service_images?: string[] | null
           transport_details?: Json | null
           updated_at?: string | null
         }
@@ -909,6 +911,7 @@ export type Database = {
           is_transport_service?: boolean | null
           name?: string
           price?: number
+          service_images?: string[] | null
           transport_details?: Json | null
           updated_at?: string | null
         }

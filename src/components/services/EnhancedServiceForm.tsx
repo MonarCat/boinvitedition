@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -108,7 +109,7 @@ export const EnhancedServiceForm: React.FC<EnhancedServiceFormProps> = ({
         category: data.category,
         business_id: business.id,
         is_transport_service: data.category?.includes('transport') || false,
-        service_images: serviceImages, // Add images to service data
+        service_images: serviceImages,
         transport_details: data.is_transport_service ? {
           service_type: data.service_type,
           route: data.route,

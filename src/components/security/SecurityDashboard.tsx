@@ -103,16 +103,16 @@ export const SecurityDashboard = () => {
               {securityEvents.slice(0, 10).map((event, index) => (
                 <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
-                    {getEventIcon(event.event_type)}
+                    {getEventIcon(event.event_type || 'DEFAULT')}
                     <div>
-                      <p className="font-medium">{event.description}</p>
+                      <p className="font-medium">{event.description || 'Security event detected'}</p>
                       <p className="text-sm text-gray-600">
                         {new Date(event.created_at).toLocaleString()}
                       </p>
                     </div>
                   </div>
-                  <Badge variant={getEventSeverity(event.event_type) as any}>
-                    {event.event_type.replace(/_/g, ' ')}
+                  <Badge variant={getEventSeverity(event.event_type || 'DEFAULT') as any}>
+                    {(event.event_type || 'SECURITY_EVENT').replace(/_/g, ' ')}
                   </Badge>
                 </div>
               ))}

@@ -13,6 +13,8 @@ interface SecurityEvent {
   new_values: any;
   user_id: string;
   created_at: string;
+  event_type?: string;
+  description?: string;
 }
 
 export const useSecurityMonitoring = () => {
@@ -26,11 +28,16 @@ export const useSecurityMonitoring = () => {
     metadata: Record<string, any> = {}
   ) => {
     try {
-      const { error } = await supabase.rpc('log_security_event', {
-        p_event_type: eventType,
-        p_description: description,
-        p_metadata: metadata
-      });
+      // Use direct insert instead of RPC since the function might not be in types yet
+      const { error } = await supabase
+        .from('audit_log')
+        .insert({
+          action: 'SECURITY_EVENT',
+          table_name: eventType,
+          old_values: { description },
+          new_values: metadata,
+          user_id: user?.id
+        });
       
       if (error) {
         console.error('Failed to log security event:', error);
@@ -63,7 +70,9 @@ export const useSecurityMonitoring = () => {
         old_values: item.old_values,
         new_values: item.new_values,
         user_id: item.user_id,
-        created_at: item.created_at
+        created_at: item.created_at,
+        event_type: item.table_name, // Map table_name to event_type
+        description: item.old_values?.description // Extract description from old_values
       }));
       
       setSecurityEvents(transformedEvents);

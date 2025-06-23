@@ -11,7 +11,7 @@ import { useTheme } from "@/lib/ThemeProvider";
 import { ThemeProvider } from "@/lib/ThemeProvider";
 
 const DashboardContent = () => {
-  const { business, stats, currency, formatPrice, handleKpiRefresh } = useDashboardData();
+  const { business, stats, currency, formatPrice, handleKpiRefresh, timePeriod, setTimePeriod } = useDashboardData();
   const { 
     handleNewBooking, 
     handleCreateInvoice, 
@@ -41,6 +41,8 @@ const DashboardContent = () => {
           formatPrice={formatPrice}
           onRefresh={handleKpiRefresh}
           onEditBusiness={handleUpdateSettings}
+          timePeriod={timePeriod}
+          onTimePeriodChange={setTimePeriod}
         />
 
         <DashboardQuickActions

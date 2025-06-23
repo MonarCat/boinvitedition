@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,22 +10,26 @@ import {
   RefreshCw, 
   Settings,
   Crown,
-  ArrowUp
+  ArrowUp,
+  DollarSign
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { TimePeriodSelector, TimePeriod } from './TimePeriodSelector';
 
 interface DashboardKPISectionProps {
   business: any;
   stats: {
     activeBookings: number;
-    todayRevenue: number;
-    monthlyBookings: number;
+    totalRevenue: number;
+    totalBookings: number;
     totalClients: number;
   };
   currency: string;
   formatPrice: (amount: number) => string;
   onRefresh: () => void;
   onEditBusiness: () => void;
+  timePeriod: TimePeriod;
+  onTimePeriodChange: (period: TimePeriod) => void;
 }
 
 export const DashboardKPISection = ({ 
@@ -33,28 +38,40 @@ export const DashboardKPISection = ({
   currency, 
   formatPrice, 
   onRefresh, 
-  onEditBusiness 
+  onEditBusiness,
+  timePeriod,
+  onTimePeriodChange
 }: DashboardKPISectionProps) => {
   const navigate = useNavigate();
 
+  const getPeriodLabel = (period: TimePeriod) => {
+    switch (period) {
+      case 'today': return "Today's";
+      case 'week': return "This Week's";
+      case 'month': return "This Month's";
+      case 'year': return "This Year's";
+      default: return "Today's";
+    }
+  };
+
   const kpis = [
     {
-      title: "Today's Bookings",
+      title: `${getPeriodLabel(timePeriod)} Bookings`,
       value: stats.activeBookings,
       icon: Calendar,
       color: "text-blue-600",
       bgColor: "bg-blue-50"
     },
     {
-      title: "Today's Revenue",
-      value: formatPrice(stats.todayRevenue),
-      icon: TrendingUp,
+      title: `${getPeriodLabel(timePeriod)} Revenue`,
+      value: formatPrice(stats.totalRevenue),
+      icon: DollarSign,
       color: "text-green-600",
       bgColor: "bg-green-50"
     },
     {
-      title: "Monthly Bookings",
-      value: stats.monthlyBookings,
+      title: `${getPeriodLabel(timePeriod)} Total Bookings`,
+      value: stats.totalBookings,
       icon: TrendingUp,
       color: "text-purple-600",
       bgColor: "bg-purple-50"
@@ -105,6 +122,15 @@ export const DashboardKPISection = ({
         </CardHeader>
       </Card>
 
+      {/* Time Period Selector */}
+      <div className="flex items-center justify-between">
+        <TimePeriodSelector value={timePeriod} onChange={onTimePeriodChange} />
+        <Button variant="outline" size="sm" onClick={onRefresh}>
+          <RefreshCw className="w-4 h-4 mr-1" />
+          Refresh Data
+        </Button>
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {kpis.map((kpi, index) => {
@@ -134,10 +160,6 @@ export const DashboardKPISection = ({
         <div className="text-sm text-gray-600">
           Last updated: {new Date().toLocaleTimeString()}
         </div>
-        <Button variant="outline" size="sm" onClick={onRefresh}>
-          <RefreshCw className="w-4 h-4 mr-1" />
-          Refresh Data
-        </Button>
       </div>
 
       {/* Subscription Notice */}

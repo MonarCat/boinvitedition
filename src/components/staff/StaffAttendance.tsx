@@ -12,12 +12,16 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { submitAttendance } from '@/lib/offlineAttendance';
 import { OfflineAttendanceIndicator } from './OfflineAttendanceIndicator';
+import { ExportButton } from '@/components/ui/ExportButton';
+import { useAttendanceExport } from '@/hooks/useAttendanceExport';
 
 export const StaffAttendance = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [signInNotes, setSignInNotes] = useState('');
+  const [exportStartDate, setExportStartDate] = useState('');
+  const [exportEndDate, setExportEndDate] = useState('');
 
   const { data: business } = useQuery({
     queryKey: ['user-business', user?.id],
@@ -35,6 +39,8 @@ export const StaffAttendance = () => {
     },
     enabled: !!user,
   });
+
+  const { isExporting, exportAttendanceRecords } = useAttendanceExport(business?.id || '');
 
   const { data: staff } = useQuery({
     queryKey: ['staff', business?.id],
@@ -143,6 +149,10 @@ export const StaffAttendance = () => {
     );
   };
 
+  const handleExport = () => {
+    exportAttendanceRecords(exportStartDate || undefined, exportEndDate || undefined);
+  };
+
   if (!staff || staff.length === 0) {
     return (
       <Card>
@@ -174,6 +184,45 @@ export const StaffAttendance = () => {
         
         <OfflineAttendanceIndicator />
       </div>
+
+      {/* Export Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Export Attendance Records</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="export-start">From:</Label>
+              <Input
+                id="export-start"
+                type="date"
+                value={exportStartDate}
+                onChange={(e) => setExportStartDate(e.target.value)}
+                className="w-auto"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="export-end">To:</Label>
+              <Input
+                id="export-end"
+                type="date"
+                value={exportEndDate}
+                onChange={(e) => setExportEndDate(e.target.value)}
+                className="w-auto"
+              />
+            </div>
+            <ExportButton
+              onExport={handleExport}
+              isExporting={isExporting}
+              label="Attendance"
+            />
+          </div>
+          <p className="text-sm text-gray-500 mt-2">
+            Leave dates empty to export all records
+          </p>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {staff.map((member) => {

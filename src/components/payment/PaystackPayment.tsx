@@ -11,8 +11,10 @@ interface PaystackPaymentProps {
   currency?: string;
   onSuccess: (reference: string) => void;
   onError?: (error: any) => void;
+  onClose?: () => void;
   metadata?: Record<string, any>;
   disabled?: boolean;
+  className?: string;
 }
 
 // Paystack public key - safe to store in frontend
@@ -24,8 +26,10 @@ export const PaystackPayment: React.FC<PaystackPaymentProps> = ({
   currency = 'KES',
   onSuccess,
   onError,
+  onClose,
   metadata = {},
-  disabled = false
+  disabled = false,
+  className = ''
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -36,12 +40,14 @@ export const PaystackPayment: React.FC<PaystackPaymentProps> = ({
     }
 
     setIsProcessing(true);
+    const reference = `booking-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     const handler = window.PaystackPop.setup({
       key: PAYSTACK_PUBLIC_KEY,
       email: email,
       amount: amount * 100, // Convert to kobo
       currency: currency,
+      ref: reference,
       metadata: metadata,
       callback: function(response: any) {
         setIsProcessing(false);
@@ -50,7 +56,11 @@ export const PaystackPayment: React.FC<PaystackPaymentProps> = ({
       },
       onClose: function() {
         setIsProcessing(false);
-        toast.info('Payment cancelled');
+        if (onClose) {
+          onClose();
+        } else {
+          toast.info('Payment cancelled');
+        }
       }
     });
 
@@ -61,7 +71,7 @@ export const PaystackPayment: React.FC<PaystackPaymentProps> = ({
     <Button 
       onClick={handlePayment}
       disabled={disabled || isProcessing}
-      className="w-full bg-green-600 hover:bg-green-700"
+      className={`w-full bg-green-600 hover:bg-green-700 ${className}`}
     >
       {isProcessing ? (
         <>

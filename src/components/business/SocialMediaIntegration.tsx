@@ -19,6 +19,7 @@ export const SocialMediaIntegration = ({ businessId, onSave }: SocialMediaIntegr
     twitter: '',
     youtube: '',
     linkedin: '',
+    tiktok: '',
     website: ''
   });
 
@@ -57,6 +58,13 @@ export const SocialMediaIntegration = ({ businessId, onSave }: SocialMediaIntegr
       icon: <Linkedin className="h-4 w-4" />,
       placeholder: 'https://linkedin.com/company/yourbusiness',
       color: 'bg-blue-100 text-blue-900'
+    },
+    {
+      name: 'tiktok',
+      label: 'TikTok',
+      icon: <Share2 className="h-4 w-4" />,
+      placeholder: 'https://tiktok.com/@yourbusiness',
+      color: 'bg-black text-white'
     }
   ];
 
@@ -75,9 +83,9 @@ export const SocialMediaIntegration = ({ businessId, onSave }: SocialMediaIntegr
 
   const generateShareableContent = () => {
     return {
-      text: "Book amazing transport services with us! 🚌✈️🚆",
-      url: `${window.location.origin}/booking/${businessId}`,
-      hashtags: ["Transport", "Booking", "Travel2025"]
+      text: "Book amazing services with us! 🌟",
+      url: `${window.location.origin}/book/${businessId}`,
+      hashtags: ["BookingServices", "Business2025"]
     };
   };
 
@@ -86,10 +94,10 @@ export const SocialMediaIntegration = ({ businessId, onSave }: SocialMediaIntegr
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Share2 className="h-5 w-5" />
-          Social Media & Marketing (2025)
+          Social Media & Sharing
         </CardTitle>
         <p className="text-sm text-gray-600">
-          Connect your social media accounts to promote your transport services and engage with customers
+          Connect your social media accounts and enable customers to share your booking page
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -143,6 +151,10 @@ export const SocialMediaIntegration = ({ businessId, onSave }: SocialMediaIntegr
                     case 'linkedin':
                       shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(content.url)}`;
                       break;
+                    case 'tiktok':
+                      shareUrl = content.url; // TikTok doesn't have direct sharing URL, copy link instead
+                      navigator.clipboard.writeText(content.url);
+                      return;
                   }
                   
                   if (shareUrl) {
@@ -158,11 +170,11 @@ export const SocialMediaIntegration = ({ businessId, onSave }: SocialMediaIntegr
         </div>
 
         <div className="bg-green-50 p-4 rounded-lg">
-          <h4 className="font-medium text-green-900 mb-2">Marketing Benefits</h4>
+          <h4 className="font-medium text-green-900 mb-2">Sharing Benefits</h4>
           <div className="space-y-1 text-sm text-green-800">
             <div>• Increase bookings by up to 40% with social media presence</div>
             <div>• Build customer trust through reviews and testimonials</div>
-            <div>• Showcase your transport fleet and services</div>
+            <div>• Showcase your services and business offerings</div>
             <div>• Engage with customers for repeat business</div>
           </div>
         </div>

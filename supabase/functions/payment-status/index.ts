@@ -59,7 +59,7 @@ serve(async (req) => {
           const subscriptionEndDate = new Date();
           subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + 1);
 
-          // Harmonized plan limits
+          // Updated plan limits with new pricing
           const planLimits: { [key: string]: { staff_limit: number | null; bookings_limit: number | null } } = {
             trial: { staff_limit: 3, bookings_limit: 100 },
             starter: { staff_limit: 5, bookings_limit: 1000 },

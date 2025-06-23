@@ -177,37 +177,35 @@ const SubscriptionPage = () => {
               </div>
              
               <div className="space-y-3">
-                <Badge className="bg-blue-100 text-blue-800 mb-2">Popular Choice</Badge>
-                <h4 className="font-semibold">Subscription Plans</h4>
+                <Badge className="bg-blue-100 text-blue-800 mb-2">Starter</Badge>
+                <h4 className="font-semibold">KES 1,020/month</h4>
                 <ul className="space-y-1 text-gray-600">
-                  <li>• Starter: 5 staff, 1K bookings</li>
-                  <li>• Business: 15 staff, 3K bookings</li>
-                  <li>• Enterprise: Unlimited</li>
-                  <li>• Multi-provider payments</li>
-                  <li>• Predictable monthly costs</li>
+                  <li>• 5 staff members</li>
+                  <li>• 1,000 bookings/month</li>
+                  <li>• Basic features</li>
+                  <li>• Email support</li>
                 </ul>
               </div>
 
               <div className="space-y-3">
-                <h4 className="font-semibold">All Plans Include</h4>
+                <Badge className="bg-orange-100 text-orange-800 mb-2">Most Popular</Badge>
+                <h4 className="font-semibold">Business - KES 2,900/month</h4>
                 <ul className="space-y-1 text-gray-600">
-                  <li>• QR code booking system</li>
-                  <li>• WhatsApp notifications</li>
-                  <li>• Online booking calendar</li>
-                  <li>• Client management</li>
-                  <li>• Multi-provider payments</li>
-                  <li>• Analytics dashboard</li>
+                  <li>• 15 staff members</li>
+                  <li>• 5,000 bookings/month</li>
+                  <li>• Advanced features</li>
+                  <li>• Priority support</li>
                 </ul>
               </div>
 
               <div className="space-y-3">
-                <h4 className="font-semibold">Payment Security</h4>
+                <Badge className="bg-purple-100 text-purple-800 mb-2">Enterprise</Badge>
+                <h4 className="font-semibold">KES 8,900/month</h4>
                 <ul className="space-y-1 text-gray-600">
-                  <li>• Bank-level encryption</li>
-                  <li>• PCI DSS compliant</li>
-                  <li>• Real-time verification</li>
-                  <li>• Instant confirmations</li>
-                  <li>• 24/7 monitoring</li>
+                  <li>• Unlimited staff</li>
+                  <li>• Unlimited bookings</li>
+                  <li>• White-label solution</li>
+                  <li>• 24/7 support</li>
                 </ul>
               </div>
             </div>

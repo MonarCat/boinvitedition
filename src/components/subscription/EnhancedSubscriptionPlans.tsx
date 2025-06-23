@@ -39,7 +39,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  // Harmonized pricing structure
+  // Updated pricing structure
   const plans: Plan[] = [
     {
       id: 'trial',
@@ -64,7 +64,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
     {
       id: 'starter',
       name: 'Starter',
-      price: 890,
+      price: 1020,
       currency: 'KES',
       interval: 'month',
       description: 'Perfect for small businesses',
@@ -107,7 +107,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
     {
       id: 'enterprise',
       name: 'Enterprise',
-      price: 5900,
+      price: 8900,
       currency: 'KES',
       interval: 'month',
       description: 'For large enterprises',

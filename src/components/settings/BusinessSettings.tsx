@@ -17,7 +17,6 @@ export const BusinessSettings = () => {
     <BusinessSettingsContainer isLoading={isLoading} business={business}>
       <BusinessSettingsForm
         business={business}
-        businessId={business?.id}
         errors={errors}
         isLoading={isUpdating}
         onSubmit={handleSubmit}

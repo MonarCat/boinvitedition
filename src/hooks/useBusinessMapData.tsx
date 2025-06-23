@@ -52,65 +52,56 @@ export const useBusinessMapData = (searchQuery: string) => {
     }
   }, []);
 
-  const fetchRegularBusinesses = async (): Promise<Business[]> => {
-    let query = supabase
-      .from('businesses')
-      .select(`
-        id, name, description, address, city, country, phone, email, website,
-        logo_url, featured_image_url, latitude, longitude, average_rating,
-        total_reviews, business_hours, is_verified, service_radius_km, currency,
-        business_settings!inner(show_on_map, map_description)
-      `)
-      .eq('is_active', true)
-      .eq('business_settings.show_on_map', true)
-      .order('average_rating', { ascending: false });
+  const fetchBusinesses = async (): Promise<Business[]> => {
+    try {
+      console.log('Fetching businesses with search query:', searchQuery);
+      
+      // Build the query
+      let query = supabase
+        .from('businesses')
+        .select(`
+          id, name, description, address, city, country, phone, email, website,
+          logo_url, featured_image_url, latitude, longitude, average_rating,
+          total_reviews, business_hours, is_verified, service_radius_km, currency,
+          business_settings!inner(show_on_map, map_description),
+          services!inner(name, category)
+        `)
+        .eq('is_active', true)
+        .eq('business_settings.show_on_map', true);
 
-    if (searchQuery) {
-      query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%`);
-    }
+      // Add search filter if provided
+      if (searchQuery && searchQuery.trim()) {
+        const searchTerm = searchQuery.trim();
+        query = query.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,city.ilike.%${searchTerm}%,services.name.ilike.%${searchTerm}%,services.category.ilike.%${searchTerm}%`);
+      }
 
-    const { data, error } = await query.limit(100);
-    if (error) {
-      console.error('Error fetching businesses:', error);
+      const { data, error } = await query.limit(50);
+      
+      if (error) {
+        console.error('Error fetching businesses:', error);
+        return [];
+      }
+      
+      console.log('Fetched businesses:', data?.length || 0);
+      
+      // Transform the data to match our interface
+      return (data || []).map((business: any) => ({
+        ...business,
+        show_on_map: business.business_settings?.show_on_map ?? true,
+        map_description: business.business_settings?.map_description || business.description,
+        service_categories: business.services?.map((s: any) => s.category).filter(Boolean) || [],
+        service_names: business.services?.map((s: any) => s.name).filter(Boolean) || [],
+        total_services: business.services?.length || 0
+      }));
+    } catch (error) {
+      console.error('Error in fetchBusinesses:', error);
       return [];
     }
-    
-    return (data || []).map((business: any) => ({
-      ...business,
-      show_on_map: business.business_settings?.show_on_map ?? true,
-      map_description: business.business_settings?.map_description || business.description,
-      service_categories: [],
-      service_names: [],
-      total_services: 0
-    }));
   };
 
   const { data: businesses = [], isLoading } = useQuery({
     queryKey: ['businesses-map', searchQuery, userLocation],
-    queryFn: async () => {
-      try {
-        if (userLocation && searchQuery) {
-          const { data, error } = await supabase
-            .rpc('search_businesses_by_location', {
-              search_lat: userLocation.lat,
-              search_lng: userLocation.lng,
-              search_radius_km: 50,
-              search_query: searchQuery || null
-            });
-          
-          if (error) {
-            console.error('RPC Error:', error);
-            return await fetchRegularBusinesses();
-          }
-          return (data || []) as Business[];
-        } else {
-          return await fetchRegularBusinesses();
-        }
-      } catch (error) {
-        console.error('Error fetching businesses:', error);
-        return [] as Business[];
-      }
-    },
+    queryFn: fetchBusinesses,
     enabled: true,
   });
 

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { PrintableQRCode } from './PrintableQRCode';
+import { ReliableQRGenerator } from './ReliableQRGenerator';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -26,11 +26,18 @@ export const QRCodeGenerator = ({ businessId, businessName }: QRCodeGeneratorPro
   });
 
   return (
-    <PrintableQRCode 
-      businessId={businessId} 
-      businessName={businessName}
-      businessAddress={business?.address}
-      businessPhone={business?.phone}
-    />
+    <div className="space-y-4">
+      <ReliableQRGenerator 
+        businessId={businessId} 
+        businessName={businessName}
+      />
+      
+      {business?.address && (
+        <div className="text-center text-sm text-gray-600">
+          <p>📍 {business.address}</p>
+          {business.phone && <p>📞 {business.phone}</p>}
+        </div>
+      )}
+    </div>
   );
 };

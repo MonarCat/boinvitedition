@@ -1,166 +1,302 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { Form } from '@/components/ui/form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { CURRENCIES } from '@/components/business/GlobalBusinessSettings';
-import { EnhancedTransportForm } from '@/components/transport/EnhancedTransportForm';
-import { ServiceFormFields } from './ServiceFormFields';
-import { ServiceCurrencyField } from './ServiceCurrencyField';
-import { ServiceFormActions } from './ServiceFormActions';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { SERVICE_CATEGORIES } from './ServiceCategories';
+import { ServiceImageUpload } from './ServiceImageUpload';
 
-interface ServiceFormData {
-  name: string;
-  description: string;
-  price: number;
-  duration_minutes: number;
-  category: string;
-  currency: string;
-  is_active: boolean;
-  is_transport_service: boolean;
-  transport_details?: any;
-}
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: 'Service name must be at least 2 characters.',
+  }),
+  description: z.string().optional(),
+  price: z.string().refine(value => !isNaN(parseFloat(value)), {
+    message: 'Price must be a valid number.',
+  }),
+  duration_minutes: z.string().refine(value => !isNaN(parseInt(value)) && parseInt(value) > 0, {
+    message: 'Duration must be a valid number greater than 0.',
+  }),
+  currency: z.string().min(1, {
+    message: 'Currency is required.',
+  }),
+  category: z.string().min(1, {
+    message: 'Category is required.',
+  }),
+  is_transport_service: z.boolean().default(false).optional(),
+  service_type: z.string().optional(),
+  route: z.string().optional(),
+  departure_time: z.string().optional(),
+  arrival_time: z.string().optional(),
+  vehicle_capacity: z.string().optional(),
+  pickup_location: z.string().optional(),
+  dropoff_location: z.string().optional(),
+  external_booking_url: z.string().optional(),
+  booking_instructions: z.string().optional()
+});
 
 interface EnhancedServiceFormProps {
   service?: any;
-  onSuccess: () => void;
-  onCancel: () => void;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export const EnhancedServiceForm = ({ service, onSuccess, onCancel }: EnhancedServiceFormProps) => {
-  const { user } = useAuth();
+export const EnhancedServiceForm: React.FC<EnhancedServiceFormProps> = ({
+  service,
+  onSuccess,
+  onCancel
+}) => {
+  const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
-  const [isTransportService, setIsTransportService] = useState(
-    service?.category?.includes('transport') || service?.category === 'bus' || service?.category === 'train' || service?.category === 'flight' || false
-  );
-  const [transportDetails, setTransportDetails] = useState(service?.transport_details || null);
-
-  const { data: business } = useQuery({
-    queryKey: ['user-business', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('businesses')
-        .select('id, currency')
-        .eq('user_id', user?.id)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id,
-  });
-
-  const form = useForm<ServiceFormData>({
+  
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: service?.name || '',
       description: service?.description || '',
-      price: service?.price || 0,
-      duration_minutes: service?.duration_minutes || 60,
+      price: service?.price?.toString() || '',
+      duration_minutes: service?.duration_minutes?.toString() || '',
+      currency: service?.currency || 'KES',
       category: service?.category || '',
-      currency: service?.currency || business?.currency || 'USD',
-      is_active: service?.is_active ?? true,
-      is_transport_service: isTransportService,
-      transport_details: service?.transport_details || null,
+      is_transport_service: service?.is_transport_service || false,
+      service_type: service?.transport_details?.service_type || '',
+      route: service?.transport_details?.route || '',
+      departure_time: service?.transport_details?.departure_time || '',
+      arrival_time: service?.transport_details?.arrival_time || '',
+      vehicle_capacity: service?.transport_details?.vehicle_capacity || '',
+      pickup_location: service?.transport_details?.pickup_location || '',
+      dropoff_location: service?.transport_details?.dropoff_location || '',
+      external_booking_url: service?.transport_details?.external_booking_url || '',
+      booking_instructions: service?.transport_details?.booking_instructions || ''
     },
   });
-
-  const watchedCategory = form.watch('category');
-  const watchedCurrency = form.watch('currency');
-
-  React.useEffect(() => {
-    const isTransport = ['bus', 'train', 'taxi', 'flight', 'ride-sharing', 'courier', 'car-rental'].includes(watchedCategory);
-    setIsTransportService(isTransport);
-    form.setValue('is_transport_service', isTransport);
-  }, [watchedCategory, form]);
-
-  const getCurrencySymbol = (currency: string) => {
-    const currencyData = CURRENCIES.find(c => c.code === currency);
-    return currencyData?.symbol || '$';
-  };
-
-  const onSubmit = async (data: ServiceFormData) => {
-    if (!business?.id) {
-      toast.error('Business not found');
-      return;
-    }
-
+  
+  const [serviceImages, setServiceImages] = useState<string[]>(
+    service?.service_images || []
+  );
+  
+  const onSubmit = async (data: any) => {
+    console.log('Form submission data:', data);
+    setIsLoading(true);
+    
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: business } = await supabase
+        .from('businesses')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!business) throw new Error('Business not found');
+
       const serviceData = {
-        ...data,
+        name: data.name,
+        description: data.description,
+        price: parseFloat(data.price),
+        duration_minutes: parseInt(data.duration_minutes),
+        currency: data.currency,
+        category: data.category,
         business_id: business.id,
-        transport_details: isTransportService ? transportDetails : null,
+        is_transport_service: data.category?.includes('transport') || false,
+        service_images: serviceImages, // Add images to service data
+        transport_details: data.is_transport_service ? {
+          service_type: data.service_type,
+          route: data.route,
+          departure_time: data.departure_time,
+          arrival_time: data.arrival_time,
+          vehicle_capacity: data.vehicle_capacity,
+          pickup_location: data.pickup_location,
+          dropoff_location: data.dropoff_location,
+          external_booking_url: data.external_booking_url,
+          booking_instructions: data.booking_instructions
+        } : null
       };
 
+      let result;
       if (service) {
-        const { error } = await supabase
+        result = await supabase
           .from('services')
           .update(serviceData)
-          .eq('id', service.id);
-
-        if (error) {
-          console.error('Service update error:', error);
-          throw error;
-        }
-        toast.success('Service updated successfully');
+          .eq('id', service.id)
+          .select()
+          .single();
       } else {
-        const { error } = await supabase
+        result = await supabase
           .from('services')
-          .insert([serviceData]);
-
-        if (error) {
-          console.error('Service creation error:', error);
-          throw error;
-        }
-        toast.success('Service created successfully');
+          .insert([serviceData])
+          .select()
+          .single();
       }
 
+      if (result.error) throw result.error;
+
+      toast.success(service ? 'Service updated successfully!' : 'Service created successfully!');
       queryClient.invalidateQueries({ queryKey: ['services'] });
-      onSuccess();
-    } catch (error) {
+      onSuccess?.();
+    } catch (error: any) {
       console.error('Error saving service:', error);
-      toast.error(`Failed to save service: ${error.message || 'Unknown error'}`);
+      toast.error(error.message || 'Failed to save service');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleTransportDetailsSubmit = (details: any) => {
-    setTransportDetails(details);
-    toast.success('Transport details saved');
-  };
+  const currencyOptions = [
+    { value: 'KES', label: 'KES - Kenyan Shilling' },
+    { value: 'USD', label: 'USD - US Dollar' },
+    { value: 'EUR', label: 'EUR - Euro' },
+    { value: 'GBP', label: 'GBP - British Pound' },
+  ];
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="max-h-[80vh] overflow-y-auto space-y-6 p-1">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <ServiceFormFields 
-              form={form} 
-              getCurrencySymbol={getCurrencySymbol}
-              watchedCurrency={watchedCurrency}
-            />
-            
-            <ServiceCurrencyField form={form} />
-            
-            <ServiceFormActions 
-              form={form} 
-              service={service} 
-              onCancel={onCancel} 
-            />
-          </form>
-        </Form>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-1">
+        <div>
+          <Label htmlFor="name">Service Name *</Label>
+          <Input id="name" type="text" placeholder="Enter service name" {...form.register('name')} />
+          {form.formState.errors.name && (
+            <p className="text-sm text-red-500 mt-1">{form.formState.errors.name.message}</p>
+          )}
+        </div>
 
-        {isTransportService && (
-          <div className="mt-4 border-t pt-4">
-            <h3 className="text-sm font-medium mb-3">Transport Details</h3>
-            <EnhancedTransportForm
-              onSubmit={handleTransportDetailsSubmit}
-              defaultValues={transportDetails}
-            />
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Textarea id="description" placeholder="Enter service description" {...form.register('description')} />
+          {form.formState.errors.description && (
+            <p className="text-sm text-red-500 mt-1">{form.formState.errors.description.message}</p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="price">Price *</Label>
+            <Input id="price" type="text" placeholder="Enter price" {...form.register('price')} />
+            {form.formState.errors.price && (
+              <p className="text-sm text-red-500 mt-1">{form.formState.errors.price.message}</p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="duration_minutes">Duration (minutes) *</Label>
+            <Input id="duration_minutes" type="text" placeholder="Enter duration in minutes" {...form.register('duration_minutes')} />
+            {form.formState.errors.duration_minutes && (
+              <p className="text-sm text-red-500 mt-1">{form.formState.errors.duration_minutes.message}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="currency">Currency *</Label>
+            <Select onValueChange={form.setValue.bind(null, 'currency')} defaultValue={form.getValues('currency')}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select currency" />
+              </SelectTrigger>
+              <SelectContent>
+                {currencyOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {form.formState.errors.currency && (
+              <p className="text-sm text-red-500 mt-1">{form.formState.errors.currency.message}</p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="category">Category *</Label>
+            <Select onValueChange={form.setValue.bind(null, 'category')} defaultValue={form.getValues('category')}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {SERVICE_CATEGORIES.map((category) => (
+                  <SelectItem key={category.value} value={category.value}>{category.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {form.formState.errors.category && (
+              <p className="text-sm text-red-500 mt-1">{form.formState.errors.category.message}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Service Images Section */}
+        <ServiceImageUpload
+          serviceId={service?.id}
+          images={serviceImages}
+          onImagesChange={setServiceImages}
+          maxImages={5}
+        />
+
+        {/* Transport Service Details */}
+        <div>
+          <Label htmlFor="is_transport_service">Is Transport Service</Label>
+          <Switch id="is_transport_service" checked={form.getValues('is_transport_service')} onCheckedChange={(checked) => form.setValue('is_transport_service', checked)} />
+        </div>
+
+        {form.getValues('is_transport_service') && (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="service_type">Service Type</Label>
+              <Input id="service_type" type="text" placeholder="e.g., Taxi, Bus, Shuttle" {...form.register('service_type')} />
+            </div>
+            <div>
+              <Label htmlFor="route">Route</Label>
+              <Input id="route" type="text" placeholder="e.g., Airport to City Center" {...form.register('route')} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="departure_time">Departure Time</Label>
+                <Input id="departure_time" type="time" {...form.register('departure_time')} />
+              </div>
+              <div>
+                <Label htmlFor="arrival_time">Arrival Time</Label>
+                <Input id="arrival_time" type="time" {...form.register('arrival_time')} />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="vehicle_capacity">Vehicle Capacity</Label>
+              <Input id="vehicle_capacity" type="text" placeholder="e.g., 4, 12, 50" {...form.register('vehicle_capacity')} />
+            </div>
+            <div>
+              <Label htmlFor="pickup_location">Pickup Location</Label>
+              <Input id="pickup_location" type="text" placeholder="e.g., Airport Terminal 1" {...form.register('pickup_location')} />
+            </div>
+            <div>
+              <Label htmlFor="dropoff_location">Drop-off Location</Label>
+              <Input id="dropoff_location" type="text" placeholder="e.g., City Center Hotel" {...form.register('dropoff_location')} />
+            </div>
+            <div>
+              <Label htmlFor="external_booking_url">External Booking URL</Label>
+              <Input id="external_booking_url" type="url" placeholder="https://example.com/booking" {...form.register('external_booking_url')} />
+            </div>
+            <div>
+              <Label htmlFor="booking_instructions">Booking Instructions</Label>
+              <Textarea id="booking_instructions" placeholder="Enter booking instructions" {...form.register('booking_instructions')} />
+            </div>
           </div>
         )}
-      </div>
+
+        <div className="flex justify-end space-x-2">
+          <Button variant="ghost" onClick={onCancel} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? 'Saving...' : 'Save Service'}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 };

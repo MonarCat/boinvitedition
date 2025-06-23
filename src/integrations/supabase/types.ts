@@ -284,6 +284,59 @@ export type Database = {
           },
         ]
       }
+      business_payouts: {
+        Row: {
+          account_holder_name: string | null
+          airtel_number: string | null
+          bank_account_number: string | null
+          bank_name: string | null
+          business_id: string | null
+          created_at: string | null
+          id: string
+          is_verified: boolean | null
+          mpesa_number: string | null
+          updated_at: string | null
+          verification_code: string | null
+          verification_expires_at: string | null
+        }
+        Insert: {
+          account_holder_name?: string | null
+          airtel_number?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          business_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          mpesa_number?: string | null
+          updated_at?: string | null
+          verification_code?: string | null
+          verification_expires_at?: string | null
+        }
+        Update: {
+          account_holder_name?: string | null
+          airtel_number?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          business_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          mpesa_number?: string | null
+          updated_at?: string | null
+          verification_code?: string | null
+          verification_expires_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_payouts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_reviews: {
         Row: {
           booking_id: string
@@ -522,6 +575,84 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      client_business_transactions: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          business_amount: number
+          business_id: string | null
+          client_email: string
+          client_phone: string | null
+          created_at: string | null
+          dispute_reason: string | null
+          dispute_status: string | null
+          id: string
+          payment_method: string | null
+          payment_reference: string | null
+          payout_reference: string | null
+          payout_status: string | null
+          paystack_reference: string | null
+          platform_fee: number
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          business_amount: number
+          business_id?: string | null
+          client_email: string
+          client_phone?: string | null
+          created_at?: string | null
+          dispute_reason?: string | null
+          dispute_status?: string | null
+          id?: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          payout_reference?: string | null
+          payout_status?: string | null
+          paystack_reference?: string | null
+          platform_fee: number
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          business_amount?: number
+          business_id?: string | null
+          client_email?: string
+          client_phone?: string | null
+          created_at?: string | null
+          dispute_reason?: string | null
+          dispute_status?: string | null
+          id?: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          payout_reference?: string | null
+          payout_status?: string | null
+          paystack_reference?: string | null
+          platform_fee?: number
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_business_transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_business_transactions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clients: {
         Row: {

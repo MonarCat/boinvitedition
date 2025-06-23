@@ -1,14 +1,14 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Phone, Clock, Star, ChevronLeft, QrCode } from 'lucide-react';
+import { MapPin, Phone, Clock, Star, ChevronLeft, QrCode, CreditCard } from 'lucide-react';
 import { ServicesList } from './ServicesList';
 import { EmptyServiceSelection } from './EmptyServiceSelection';
 import { PublicBookingCalendar } from './PublicBookingCalendar';
 import { BusinessPaymentInstructions } from '@/components/business/BusinessPaymentInstructions';
 import { UnifiedQRGenerator } from '@/components/qr/UnifiedQRGenerator';
+import { ClientToBusinessPayment } from '@/components/payment/ClientToBusinessPayment';
 
 interface Service {
   id: string;
@@ -32,6 +32,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
 }) => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [showQR, setShowQR] = useState(false);
+  const [showClientPayment, setShowClientPayment] = useState(false);
 
   const handleServiceSelect = (service: Service) => {
     setSelectedService(service);
@@ -39,6 +40,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
 
   const handleBackToServices = () => {
     setSelectedService(null);
+    setShowClientPayment(false);
   };
 
   const formatBusinessHours = (hours: any) => {
@@ -78,15 +80,26 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
               </div>
             </div>
             
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowQR(!showQR)}
-              className="flex items-center gap-1"
-            >
-              <QrCode className="w-4 h-4" />
-              QR
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowClientPayment(!showClientPayment)}
+                className="flex items-center gap-1"
+              >
+                <CreditCard className="w-4 h-4" />
+                Pay
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowQR(!showQR)}
+                className="flex items-center gap-1"
+              >
+                <QrCode className="w-4 h-4" />
+                QR
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -115,6 +128,31 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
               />
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {/* Client Payment Overlay */}
+      {showClientPayment && selectedService && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md">
+            <div className="mb-4 flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowClientPayment(false)}
+                className="text-white hover:bg-white/20"
+              >
+                ×
+              </Button>
+            </div>
+            <ClientToBusinessPayment
+              businessId={businessId}
+              businessName={business.name}
+              amount={selectedService.price}
+              currency={selectedService.currency || business.currency || 'KES'}
+              onSuccess={() => setShowClientPayment(false)}
+            />
+          </div>
         </div>
       )}
 
@@ -232,6 +270,14 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                   >
                     <ChevronLeft className="w-4 h-4" />
                     Back to Services
+                  </Button>
+                  
+                  <Button
+                    onClick={() => setShowClientPayment(true)}
+                    className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Pay Now
                   </Button>
                 </div>
                 <CardTitle className="text-lg">Book {selectedService.name}</CardTitle>

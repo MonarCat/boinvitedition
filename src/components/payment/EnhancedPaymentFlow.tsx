@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -119,7 +118,6 @@ export const EnhancedPaymentFlow: React.FC<EnhancedPaymentFlowProps> = ({
               amount={bookingDetails.totalAmount}
               currency={bookingDetails.currency}
               email={bookingDetails.customerEmail}
-              reference={`booking-${bookingDetails.id}`}
               onSuccess={() => {
                 setPaymentStatus('success');
                 onPaymentSuccess?.();

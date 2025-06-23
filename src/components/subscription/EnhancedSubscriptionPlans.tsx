@@ -3,98 +3,23 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Clock, Star, Zap, Users, Calendar, CreditCard } from 'lucide-react';
-import { PaystackIntegration } from '@/components/payment/PaystackIntegration';
-import { MobilePaymentNotice } from './MobilePaymentNotice';
+import { CheckCircle, Star, Zap, Users, Calendar } from 'lucide-react';
+import { MultiProviderPayment } from '@/components/payment/MultiProviderPayment';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Plan {
   id: string;
   name: string;
-  basePrice: number;
+  price: number;
+  currency: string;
+  interval: string;
   description: string;
   features: string[];
-  staffLimit?: number;
-  bookingsLimit?: number;
-  popular?: boolean;
-  icon: React.ReactNode;
+  popular: boolean;
+  staffLimit: number | null;
+  bookingsLimit: number | null;
+  color: string;
 }
-
-const plans: Plan[] = [
-  {
-    id: 'trial',
-    name: 'Free Trial',
-    basePrice: 10,
-    description: '14 days full access with one-time setup fee',
-    features: [
-      'All features unlocked',
-      '14 days trial period',
-      'WhatsApp notifications',
-      'QR code booking system',
-      'Basic analytics',
-      'Email support'
-    ],
-    icon: <Clock className="w-5 h-5" />
-  },
-  {
-    id: 'starter',
-    name: 'Starter',
-    basePrice: 1020,
-    description: 'Perfect for small businesses',
-    features: [
-      'Up to 5 staff members',
-      '1,000 bookings/month',
-      'WhatsApp notifications',
-      'QR code booking system',
-      'Advanced analytics',
-      'Priority support'
-    ],
-    staffLimit: 5,
-    bookingsLimit: 1000,
-    icon: <Zap className="w-5 h-5" />
-  },
-  {
-    id: 'medium',
-    name: 'Business',
-    basePrice: 2900,
-    description: 'Growing businesses with multiple staff',
-    features: [
-      'Up to 15 staff members',
-      '3,000 bookings/month',
-      'All Starter features',
-      'Custom branding',
-      'Advanced reports',
-      'Phone support'
-    ],
-    staffLimit: 15,
-    bookingsLimit: 3000,
-    popular: true,
-    icon: <Users className="w-5 h-5" />
-  },
-  {
-    id: 'premium',
-    name: 'Enterprise',
-    basePrice: 9900,
-    description: 'Large organizations with unlimited needs',
-    features: [
-      'Unlimited staff members',
-      'Unlimited bookings',
-      'All Business features',
-      'White-label solution',
-      'Custom integrations',
-      'Dedicated support'
-    ],
-    icon: <Star className="w-5 h-5" />
-  }
-];
-
-const intervals = [
-  { id: 'monthly', name: 'Monthly', multiplier: 1, discount: 0 },
-  { id: 'quarterly', name: 'Quarterly', multiplier: 3, discount: 5 },
-  { id: 'biannual', name: 'Bi-annual', multiplier: 6, discount: 10 },
-  { id: 'annual', name: 'Annual', multiplier: 12, discount: 15 },
-  { id: '2year', name: '2 Years', multiplier: 24, discount: 20 },
-  { id: '3year', name: '3 Years', multiplier: 36, discount: 30 }
-];
 
 interface EnhancedSubscriptionPlansProps {
   currentPlan?: string;
@@ -107,149 +32,206 @@ interface EnhancedSubscriptionPlansProps {
 export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps> = ({
   currentPlan,
   businessId,
-  customerEmail,
+  customerEmail = '',
   onSelectPlan,
   isLoading = false
 }) => {
-  const [selectedInterval, setSelectedInterval] = useState('monthly');
-  const [showPaystackIntegration, setShowPaystackIntegration] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  const calculatePrice = (basePrice: number, interval: any) => {
-    const totalBeforeDiscount = basePrice * interval.multiplier;
-    const discountAmount = (totalBeforeDiscount * interval.discount) / 100;
-    return totalBeforeDiscount - discountAmount;
-  };
-
-  const handleSelectPlan = (planId: string) => {
-    if (planId === 'trial') {
-      onSelectPlan(planId, selectedInterval, 10);
-    } else {
-      setShowPaystackIntegration(true);
+  const plans: Plan[] = [
+    {
+      id: 'trial',
+      name: 'Free Trial',
+      price: 10,
+      currency: 'KES',
+      interval: '7 days',
+      description: 'Perfect for testing our platform',
+      features: [
+        '7 days full access',
+        'Up to 3 staff members',
+        'Up to 500 bookings',
+        'QR code generation',
+        'Basic support',
+        'Payment integration'
+      ],
+      popular: false,
+      staffLimit: 3,
+      bookingsLimit: 500,
+      color: 'border-gray-200'
+    },
+    {
+      id: 'starter',
+      name: 'Starter',
+      price: 890,
+      currency: 'KES',
+      interval: 'month',
+      description: 'Great for small businesses',
+      features: [
+        'Up to 5 staff members',
+        'Up to 1,000 bookings/month',
+        'QR code & online booking',
+        'WhatsApp notifications',
+        'Payment processing',
+        'Basic analytics',
+        'Email support'
+      ],
+      popular: false,
+      staffLimit: 5,
+      bookingsLimit: 1000,
+      color: 'border-blue-200'
+    },
+    {
+      id: 'medium',
+      name: 'Business',
+      price: 2900,
+      currency: 'KES',
+      interval: 'month',
+      description: 'Most popular for growing businesses',
+      features: [
+        'Up to 15 staff members',
+        'Up to 3,000 bookings/month',
+        'Advanced booking management',
+        'Multi-location support',
+        'Advanced analytics',
+        'Priority support',
+        'Custom branding'
+      ],
+      popular: true,
+      staffLimit: 15,
+      bookingsLimit: 3000,
+      color: 'border-orange-200'
+    },
+    {
+      id: 'premium',
+      name: 'Enterprise',
+      price: 5900,
+      currency: 'KES',
+      interval: 'month',
+      description: 'For large businesses',
+      features: [
+        'Unlimited staff members',
+        'Unlimited bookings',
+        'White-label solution',
+        'API access',
+        'Custom integrations',
+        'Dedicated account manager',
+        '24/7 phone support'
+      ],
+      popular: false,
+      staffLimit: null,
+      bookingsLimit: null,
+      color: 'border-purple-200'
     }
+  ];
+
+  const handleSelectPlan = (plan: Plan) => {
+    setSelectedPlan(plan);
+    setShowPaymentModal(true);
   };
 
-  const selectedIntervalData = intervals.find(i => i.id === selectedInterval);
+  const handlePaymentSuccess = (reference: string) => {
+    setShowPaymentModal(false);
+    onSelectPlan(selectedPlan!.id, selectedPlan!.interval, selectedPlan!.price);
+  };
 
-  if (showPaystackIntegration) {
-    return (
-      <div className="space-y-6">
-        <Button 
-          variant="outline" 
-          onClick={() => setShowPaystackIntegration(false)}
-          className="mb-4"
-        >
-          ← Back to Plans
-        </Button>
-        <PaystackIntegration />
-      </div>
-    );
-  }
+  const handlePaymentError = (error: string) => {
+    console.error('Payment error:', error);
+  };
 
   return (
     <div className="space-y-8">
-      <MobilePaymentNotice />
-      
-      {/* Interval Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-center">Choose Billing Interval</CardTitle>
-          <p className="text-center text-gray-600">Save more with longer commitments</p>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {intervals.map((interval) => (
-              <Button
-                key={interval.id}
-                variant={selectedInterval === interval.id ? "default" : "outline"}
-                className="relative"
-                onClick={() => setSelectedInterval(interval.id)}
-              >
-                <div className="text-center">
-                  <div className="font-medium">{interval.name}</div>
-                  {interval.discount > 0 && (
-                    <Badge className="absolute -top-2 -right-2 bg-green-500 text-xs">
-                      -{interval.discount}%
-                    </Badge>
-                  )}
-                </div>
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Plans Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {plans.map((plan) => {
-          const finalPrice = selectedIntervalData ? calculatePrice(plan.basePrice, selectedIntervalData) : plan.basePrice;
-          const monthlyPrice = selectedIntervalData ? finalPrice / selectedIntervalData.multiplier : plan.basePrice;
-          
-          return (
-            <Card 
-              key={plan.id} 
-              className={`relative ${plan.popular ? 'border-blue-500 shadow-lg' : ''} ${currentPlan === plan.id ? 'bg-blue-50' : ''}`}
-            >
-              {plan.popular && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-500">
+        {plans.map((plan) => (
+          <Card 
+            key={plan.id} 
+            className={`relative ${plan.color} ${plan.popular ? 'ring-2 ring-orange-500' : ''}`}
+          >
+            {plan.popular && (
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-orange-500 text-white px-3 py-1">
+                  <Star className="w-3 h-3 mr-1" />
                   Most Popular
                 </Badge>
-              )}
-              
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  {plan.icon}
-                  {plan.name}
-                </CardTitle>
-                <div className="space-y-1">
-                  <div className="text-3xl font-bold">
-                    KES {Math.round(monthlyPrice).toLocaleString()}
-                    <span className="text-sm font-normal text-gray-600">/month</span>
-                  </div>
-                  {selectedIntervalData && selectedIntervalData.discount > 0 && (
-                    <div className="text-sm text-green-600">
-                      Save {selectedIntervalData.discount}% with {selectedIntervalData.name.toLowerCase()} billing
-                    </div>
-                  )}
-                  {selectedIntervalData && selectedIntervalData.multiplier > 1 && (
-                    <div className="text-sm text-gray-600">
-                      Billed KES {Math.round(finalPrice).toLocaleString()} {selectedIntervalData.name.toLowerCase()}
-                    </div>
-                  )}
-                </div>
-                <p className="text-gray-600 text-sm">{plan.description}</p>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <ul className="space-y-2">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2 text-sm">
-                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+              </div>
+            )}
 
-                <Button
-                  onClick={() => handleSelectPlan(plan.id)}
-                  disabled={isLoading || currentPlan === plan.id}
-                  className="w-full"
-                  variant={plan.popular ? "default" : "outline"}
-                >
-                  {isLoading ? (
-                    "Processing..."
-                  ) : currentPlan === plan.id ? (
-                    "Current Plan"
-                  ) : plan.id === 'trial' ? (
-                    "Start Free Trial"
-                  ) : (
-                    "Select Plan"
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
+            <CardHeader className="text-center pb-2">
+              <CardTitle className="text-lg font-semibold">{plan.name}</CardTitle>
+              <div className="py-4">
+                <div className="text-3xl font-bold text-gray-900">
+                  KSh {plan.price.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-600">per {plan.interval}</div>
+              </div>
+              <p className="text-sm text-gray-600">{plan.description}</p>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                {plan.features.map((feature, index) => (
+                  <div key={index} className="flex items-start gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-4 space-y-2">
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <Users className="w-3 h-3" />
+                  <span>
+                    {plan.staffLimit ? `Up to ${plan.staffLimit} staff` : 'Unlimited staff'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <Calendar className="w-3 h-3" />
+                  <span>
+                    {plan.bookingsLimit ? `${plan.bookingsLimit.toLocaleString()} bookings` : 'Unlimited bookings'}
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => handleSelectPlan(plan)}
+                disabled={isLoading || currentPlan === plan.id}
+                className={`w-full ${plan.popular ? 'bg-orange-600 hover:bg-orange-700' : ''}`}
+                variant={currentPlan === plan.id ? 'outline' : 'default'}
+              >
+                {currentPlan === plan.id ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Current Plan
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 mr-2" />
+                    {plan.id === 'trial' ? 'Start Free Trial' : 'Subscribe Now'}
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
       </div>
+
+      {/* Payment Modal */}
+      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Complete Your Subscription</DialogTitle>
+          </DialogHeader>
+          {selectedPlan && (
+            <MultiProviderPayment
+              plan={selectedPlan}
+              businessId={businessId}
+              customerEmail={customerEmail}
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

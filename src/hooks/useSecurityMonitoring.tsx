@@ -72,7 +72,9 @@ export const useSecurityMonitoring = () => {
         user_id: item.user_id,
         created_at: item.created_at,
         event_type: item.table_name, // Map table_name to event_type
-        description: item.old_values?.description // Extract description from old_values
+        description: typeof item.old_values === 'object' && item.old_values !== null && 'description' in item.old_values 
+          ? String(item.old_values.description) 
+          : undefined // Extract description from old_values with proper type checking
       }));
       
       setSecurityEvents(transformedEvents);

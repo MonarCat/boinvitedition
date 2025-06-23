@@ -29,6 +29,10 @@ export const SecurityDashboard = () => {
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
       case 'RATE_LIMIT_EXCEEDED':
         return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+      case 'FAILED_LOGIN':
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      case 'SUCCESSFUL_LOGIN':
+        return <Eye className="h-4 w-4 text-green-500" />;
       default:
         return <Eye className="h-4 w-4 text-blue-500" />;
     }
@@ -40,6 +44,10 @@ export const SecurityDashboard = () => {
         return 'destructive';
       case 'RATE_LIMIT_EXCEEDED':
         return 'secondary';
+      case 'FAILED_LOGIN':
+        return 'secondary';
+      case 'SUCCESSFUL_LOGIN':
+        return 'outline';
       default:
         return 'outline';
     }
@@ -59,7 +67,7 @@ export const SecurityDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{securityEvents.length}</div>
-            <p className="text-xs text-muted-foreground">Last 24 hours</p>
+            <p className="text-xs text-muted-foreground">Total events</p>
           </CardContent>
         </Card>
 
@@ -101,7 +109,7 @@ export const SecurityDashboard = () => {
           ) : (
             <div className="space-y-3">
               {securityEvents.slice(0, 10).map((event, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                <div key={event.id || index} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     {getEventIcon(event.event_type || 'DEFAULT')}
                     <div>

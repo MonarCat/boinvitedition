@@ -12,6 +12,8 @@ export const useSpreadsheetExport = (businessId: string) => {
       return;
     }
 
+    console.log(`Exporting ${data.length} records to CSV for ${filename}`);
+
     const headers = Object.keys(data[0]);
     const csvContent = [
       headers.join(','),
@@ -38,9 +40,12 @@ export const useSpreadsheetExport = (businessId: string) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    console.log(`CSV export completed for ${filename}`);
   };
 
   const exportBookings = async () => {
+    console.log('Starting bookings export for business:', businessId);
     setIsExporting(true);
     try {
       const { data, error } = await supabase
@@ -94,6 +99,7 @@ export const useSpreadsheetExport = (businessId: string) => {
   };
 
   const exportClients = async () => {
+    console.log('Starting clients export for business:', businessId);
     setIsExporting(true);
     try {
       const { data, error } = await supabase
@@ -126,6 +132,7 @@ export const useSpreadsheetExport = (businessId: string) => {
   };
 
   const exportStaff = async () => {
+    console.log('Starting staff export for business:', businessId);
     setIsExporting(true);
     try {
       const { data, error } = await supabase

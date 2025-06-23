@@ -14,15 +14,21 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
   isExporting, 
   label 
 }) => {
+  const handleClick = () => {
+    console.log(`Export button clicked for ${label}`);
+    onExport();
+  };
+
   return (
     <Button
-      onClick={onExport}
+      onClick={handleClick}
       disabled={isExporting}
       variant="outline"
       size="sm"
+      className="flex items-center gap-2"
     >
-      <Download className="w-4 h-4 mr-2" />
-      {isExporting ? 'Exporting...' : `Export ${label}`}
+      <Download className="w-4 h-4" />
+      {isExporting ? `Exporting ${label}...` : `Export ${label}`}
     </Button>
   );
 };

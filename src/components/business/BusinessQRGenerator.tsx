@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, QrCode, Copy, ExternalLink, Share2, Link } from 'lucide-react';
+import { Download, QrCode, Copy, ExternalLink, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface BusinessQRGeneratorProps {

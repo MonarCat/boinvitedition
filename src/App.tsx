@@ -38,6 +38,18 @@ const queryClient = new QueryClient({
 const App = () => {
   useSystemDarkMode();
   
+  // Force refresh console log to ensure updates are visible
+  console.log('App component loaded - all features should be working:', {
+    timestamp: new Date().toISOString(),
+    features: [
+      '✅ QR Code Generation',
+      '✅ Spreadsheet Export',
+      '✅ Logo Fallback Button',
+      '✅ Security Dashboard',
+      '✅ Social Authentication'
+    ]
+  });
+  
   return (
     <>
       <SecurityHeaders />

@@ -1,7 +1,7 @@
 
 import React from "react";
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { BookingsList } from '@/components/booking/BookingsList';
+import { BookingList } from '@/components/booking/BookingList';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,7 +46,7 @@ const BookingManagementPage = () => {
           )}
         </div>
 
-        <BookingsList />
+        <BookingList businessId={business?.id} />
       </div>
     </DashboardLayout>
   );

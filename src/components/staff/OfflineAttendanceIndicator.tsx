@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { WifiOff, Wifi, Sync } from 'lucide-react';
+import { WifiOff, Wifi, RefreshCw } from 'lucide-react';
 import { getPendingAttendanceCount, syncOfflineAttendance } from '@/lib/offlineAttendance';
 
 export const OfflineAttendanceIndicator = () => {
@@ -58,7 +58,7 @@ export const OfflineAttendanceIndicator = () => {
               onClick={handleSync}
               disabled={syncing}
             >
-              <Sync className={`h-3 w-3 mr-1 ${syncing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3 w-3 mr-1 ${syncing ? 'animate-spin' : ''}`} />
               Sync
             </Button>
           )}

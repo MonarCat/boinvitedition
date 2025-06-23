@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { LogIn, UserPlus } from 'lucide-react';
 import { AuthAlerts } from './AuthAlerts';
-import { SignInForm } from './SignInForm';
+import SignInForm from './SignInForm';
 import { SignUpForm } from './SignUpForm';
 import { PasswordResetForm } from './PasswordResetForm';
 
@@ -26,7 +26,7 @@ export const AuthForm = () => {
   useEffect(() => {
     if (user) {
       console.log('User authenticated, redirecting to dashboard:', user.email);
-      const from = location.state?.from?.pathname || '/dashboard';
+      const from = location.state?.from?.pathname || '/app/dashboard';
       navigate(from, { replace: true });
     }
   }, [user, navigate, location]);

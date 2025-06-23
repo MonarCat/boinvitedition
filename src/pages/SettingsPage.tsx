@@ -8,11 +8,11 @@ import { NotificationSettings } from '@/components/settings/NotificationSettings
 import { BusinessPayoutSettings } from '@/components/payment/BusinessPayoutSettings';
 import { BusinessEarningsOverview } from '@/components/payment/BusinessEarningsOverview';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/hooks/useAuth';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 
 const SettingsPage = () => {
-  const { user } = useAuth();
-  const businessId = user?.businesses?.[0]?.id; // Assuming user has a business
+  const { business } = useBusinessSettings();
+  const businessId = business?.id;
 
   return (
     <DashboardLayout>

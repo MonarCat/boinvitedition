@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardKPISection } from '@/components/dashboard/DashboardKPISection';
@@ -12,10 +12,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSpreadsheetExport } from '@/hooks/useSpreadsheetExport';
+import { useDashboardData } from '@/hooks/useDashboardData';
+import { useDashboardHandlers } from '@/hooks/useDashboardHandlers';
 import { QrCode, Download, Shield } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [theme, setTheme] = useState('system');
 
   // Get the business for the logged-in user
   const { data: business } = useQuery({
@@ -33,6 +36,26 @@ const Dashboard = () => {
     enabled: !!user?.id,
   });
 
+  // Get dashboard data and stats
+  const {
+    stats,
+    currency,
+    formatPrice,
+    handleKpiRefresh,
+    timePeriod,
+    setTimePeriod,
+  } = useDashboardData(business?.id);
+
+  // Get dashboard handlers
+  const {
+    handleNewBooking,
+    handleCreateInvoice,
+    handleViewClients,
+    handleManageServices,
+    handleUpdateSettings,
+    handleSubscription,
+  } = useDashboardHandlers();
+
   const { isExporting, exportBookings, exportClients, exportStaff } = useSpreadsheetExport(business?.id || '');
 
   console.log('Dashboard loaded with business:', business?.id, 'user:', user?.id);
@@ -40,12 +63,33 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <DashboardHeader />
-        <DashboardKPISection />
+        <DashboardHeader 
+          business={business}
+          theme={theme}
+          setTheme={setTheme}
+          onNewBooking={handleNewBooking}
+        />
+        <DashboardKPISection 
+          business={business}
+          stats={stats}
+          currency={currency}
+          formatPrice={formatPrice}
+          onRefresh={handleKpiRefresh}
+          onEditBusiness={handleUpdateSettings}
+          timePeriod={timePeriod}
+          onTimePeriodChange={setTimePeriod}
+        />
         
         {/* Quick Actions with Export Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <DashboardQuickActions />
+          <DashboardQuickActions 
+            onNewBooking={handleNewBooking}
+            onCreateInvoice={handleCreateInvoice}
+            onViewClients={handleViewClients}
+            onManageServices={handleManageServices}
+            onSubscription={handleSubscription}
+            onUpdateSettings={handleUpdateSettings}
+          />
           
           {business && (
             <>

@@ -50,6 +50,14 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
 
     setIsProcessing(true);
     try {
+      console.log('Initiating payment with details:', {
+        clientEmail: clientDetails.email,
+        clientPhone: clientDetails.phone,
+        businessId,
+        amount,
+        bookingId
+      });
+
       // Call our edge function to initialize payment
       const { data, error } = await supabase.functions.invoke('client-to-business-payment', {
         body: {
@@ -62,19 +70,53 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
         }
       });
 
-      if (error) throw error;
+      console.log('Payment response:', { data, error });
 
-      if (data.success) {
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Payment initiation failed');
+      }
+
+      // Check if response is valid
+      if (!data) {
+        throw new Error('No response received from payment service');
+      }
+
+      // Handle different response formats
+      let paymentData = data;
+      if (typeof data === 'string') {
+        try {
+          paymentData = JSON.parse(data);
+        } catch (parseError) {
+          console.error('Failed to parse response:', data);
+          throw new Error('Invalid response from payment service');
+        }
+      }
+
+      if (paymentData.success === false) {
+        throw new Error(paymentData.error || 'Payment initialization failed');
+      }
+
+      if (paymentData.success && paymentData.authorization_url) {
         // Redirect to Paystack payment page
-        window.open(data.authorization_url, '_blank');
+        window.open(paymentData.authorization_url, '_blank');
         toast.success('Payment initiated! Complete the payment in the new tab.');
         onSuccess?.();
       } else {
-        throw new Error(data.error || 'Payment initialization failed');
+        throw new Error('Invalid payment response - no authorization URL');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment error:', error);
-      toast.error(error.message || 'Payment failed. Please try again.');
+      
+      let errorMessage = 'Payment failed. Please try again.';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsProcessing(false);
     }

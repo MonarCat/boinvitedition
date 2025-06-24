@@ -1,6 +1,6 @@
 
 import React, { useCallback, useRef } from "react";
-import { GoogleMap, Marker, useJsApiLoader, InfoWindow } from "@react-google-maps/api";
+import { GoogleMap as GoogleMapComponent, Marker, useJsApiLoader, InfoWindow } from "@react-google-maps/api";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 
@@ -98,7 +98,7 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
 
   return (
     <div className="relative h-full w-full">
-      <GoogleMap
+      <GoogleMapComponent
         mapContainerStyle={containerStyle}
         center={center}
         zoom={12}
@@ -193,7 +193,7 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
             </div>
           </InfoWindow>
         )}
-      </GoogleMap>
+      </GoogleMapComponent>
       <div className="absolute top-4 left-4 z-10">
         <Button
           variant="outline"

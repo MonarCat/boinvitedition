@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Clock, TrendingUp, Users, CheckCircle, Smartphone, CreditCard, Wallet } from 'lucide-react';
+import { Clock, TrendingUp, Users, CheckCircle, Smartphone, CreditCard, Wallet, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SubscriptionPage = () => {
@@ -100,8 +100,8 @@ const SubscriptionPage = () => {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Flexible pricing options to match your business needs. Start with a free trial, 
-            pay as you grow, or choose a subscription plan with seamless multi-provider payments.
+            Flexible pricing options to match your business needs. Secure payments via Paystack 
+            with instant activation after successful payment.
           </p>
         </div>
 
@@ -121,7 +121,7 @@ const SubscriptionPage = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                Multi-Provider Payment Options
+                Secure Payment with Paystack
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -129,22 +129,22 @@ const SubscriptionPage = () => {
                 <div className="flex items-start gap-3">
                   <Smartphone className="w-5 h-5 text-green-600 mt-1" />
                   <div>
-                    <h4 className="font-medium">M-Pesa STK Push</h4>
-                    <p className="text-sm text-gray-600">Instant payment from your M-Pesa account</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Wallet className="w-5 h-5 text-red-600 mt-1" />
-                  <div>
-                    <h4 className="font-medium">Airtel Money</h4>
-                    <p className="text-sm text-gray-600">Quick payments via Airtel Money</p>
+                    <h4 className="font-medium">M-Pesa & Mobile Money</h4>
+                    <p className="text-sm text-gray-600">Pay directly from your mobile wallet</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <CreditCard className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h4 className="font-medium">Cards & More</h4>
-                    <p className="text-sm text-gray-600">Visa, Mastercard, and other options</p>
+                    <h4 className="font-medium">Cards & Bank Transfer</h4>
+                    <p className="text-sm text-gray-600">Visa, Mastercard, and bank transfers</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <ExternalLink className="w-5 h-5 text-purple-600 mt-1" />
+                  <div>
+                    <h4 className="font-medium">Instant Activation</h4>
+                    <p className="text-sm text-gray-600">Your plan activates immediately after payment</p>
                   </div>
                 </div>
               </div>

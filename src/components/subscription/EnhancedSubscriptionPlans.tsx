@@ -3,9 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Star, Zap, Users, Calendar, ArrowUp, ArrowDown } from 'lucide-react';
-import { DirectPaystackPayment, loadPaystackScript } from '@/components/payment/DirectPaystackPayment';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CheckCircle, Star, Zap, Users, Calendar, ArrowUp, ArrowDown, ExternalLink } from 'lucide-react';
+import { PaystackPlanRedirect } from './PaystackPlanRedirect';
 
 interface Plan {
   id: string;
@@ -29,6 +28,13 @@ interface EnhancedSubscriptionPlansProps {
   isLoading?: boolean;
 }
 
+const PAYSTACK_PLAN_URLS = {
+  trial: 'https://paystack.shop/pay/4qwq0f-lo6',
+  starter: 'https://paystack.shop/pay/starter-plan-1020',
+  medium: 'https://paystack.shop/pay/business-plan-2900',
+  premium: 'https://paystack.shop/pay/enterprise-plan-9900'
+};
+
 export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps> = ({
   currentPlan,
   businessId,
@@ -36,13 +42,6 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
   onSelectPlan,
   isLoading = false
 }) => {
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-
-  useEffect(() => {
-    loadPaystackScript().catch(console.error);
-  }, []);
-
   const plans: Plan[] = [
     {
       id: 'trial',
@@ -146,23 +145,11 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
     return 'same';
   };
 
-  const handleSelectPlan = (plan: Plan) => {
-    setSelectedPlan(plan);
-    if (plan.id === 'trial') {
-      // Handle trial directly without payment
-      onSelectPlan(plan.id, plan.interval, plan.price);
-    } else {
-      setShowPaymentModal(true);
+  const handlePaystackRedirect = (plan: Plan) => {
+    const paymentUrl = PAYSTACK_PLAN_URLS[plan.id as keyof typeof PAYSTACK_PLAN_URLS];
+    if (paymentUrl) {
+      window.open(paymentUrl, '_blank');
     }
-  };
-
-  const handlePaymentSuccess = (reference: string) => {
-    setShowPaymentModal(false);
-    onSelectPlan(selectedPlan!.id, selectedPlan!.interval, selectedPlan!.price, reference);
-  };
-
-  const handlePaymentError = (error: string) => {
-    console.error('Payment error:', error);
   };
 
   const getButtonText = (plan: Plan) => {
@@ -191,7 +178,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
       case 'downgrade':
         return ArrowDown;
       default:
-        return Zap;
+        return ExternalLink;
     }
   };
 
@@ -263,51 +250,35 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
                   </div>
                 </div>
 
-                <Button
-                  onClick={() => handleSelectPlan(plan)}
-                  disabled={isLoading || currentPlan === plan.id}
-                  className={`w-full ${plan.popular ? 'bg-orange-600 hover:bg-orange-700' : ''} ${
+                <PaystackPlanRedirect
+                  planId={plan.id}
+                  planName={plan.name}
+                  price={plan.price}
+                  isCurrentPlan={currentPlan === plan.id}
+                  disabled={isLoading}
+                  className={`${plan.popular ? 'bg-orange-600 hover:bg-orange-700' : ''} ${
                     changeType === 'upgrade' ? 'bg-green-600 hover:bg-green-700' : ''
                   }`}
-                  variant={currentPlan === plan.id ? 'outline' : 'default'}
-                >
-                  <ButtonIcon className="w-4 h-4 mr-2" />
-                  {getButtonText(plan)}
-                </Button>
+                />
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* Payment Modal */}
-      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedPlan && getChangeType(selectedPlan.id) === 'upgrade' ? 'Upgrade Your Plan' : 'Complete Your Subscription'}
-            </DialogTitle>
-          </DialogHeader>
-          {selectedPlan && (
-            <DirectPaystackPayment
-              amount={selectedPlan.price}
-              currency={selectedPlan.currency}
-              email={customerEmail}
-              metadata={{
-                payment_type: 'subscription',
-                business_id: businessId,
-                plan_type: selectedPlan.id
-              }}
-              onSuccess={handlePaymentSuccess}
-              onError={handlePaymentError}
-              title={`${getChangeType(selectedPlan.id) === 'upgrade' ? 'Upgrade to' : 'Subscribe to'} ${selectedPlan.name}`}
-              description="Secure subscription payment powered by Paystack"
-              showClientDetails={false}
-              buttonText={getChangeType(selectedPlan.id) === 'upgrade' ? 'Upgrade to' : 'Subscribe to'}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Notice about external payment */}
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="font-medium text-blue-900 mb-2">Secure Payment via Paystack</h4>
+          <p className="text-sm text-blue-800">
+            When you click "Pay with Paystack", you'll be redirected to our secure payment page. 
+            After successful payment, your subscription will be automatically activated.
+          </p>
+          <div className="mt-2 text-xs text-blue-700">
+            🔒 All payments are processed securely by Paystack with bank-level encryption
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

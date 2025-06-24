@@ -28,6 +28,11 @@ export const useSecurityMonitoring = () => {
     metadata: Record<string, any> = {}
   ) => {
     try {
+      if (!user) {
+        console.warn('User not authenticated, cannot log security event');
+        return;
+      }
+
       const { error } = await supabase.rpc('log_security_event', {
         p_event_type: eventType,
         p_description: description,
@@ -43,10 +48,26 @@ export const useSecurityMonitoring = () => {
   };
 
   const fetchSecurityEvents = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('User not authenticated, skipping security events fetch');
+      return;
+    }
     
     setIsLoading(true);
     try {
+      // First check if the user session is still valid
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        console.log('Session invalid, refreshing...');
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+          console.error('Failed to refresh session:', refreshError);
+          toast.error('Session expired. Please sign in again.');
+          return;
+        }
+      }
+
       const { data, error } = await supabase
         .from('audit_log')
         .select('*')
@@ -54,7 +75,48 @@ export const useSecurityMonitoring = () => {
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST301') {
+          // JWT expired
+          console.log('JWT expired, attempting to refresh session...');
+          const { error: refreshError } = await supabase.auth.refreshSession();
+          if (refreshError) {
+            console.error('Failed to refresh session:', refreshError);
+            toast.error('Session expired. Please sign in again.');
+            return;
+          }
+          // Retry the request after refresh
+          const { data: retryData, error: retryError } = await supabase
+            .from('audit_log')
+            .select('*')
+            .eq('action', 'SECURITY_EVENT')
+            .order('created_at', { ascending: false })
+            .limit(50);
+          
+          if (retryError) {
+            throw retryError;
+          }
+          
+          const transformedEvents: SecurityEvent[] = (retryData || []).map(item => ({
+            id: item.id,
+            action: item.action,
+            table_name: item.table_name || 'security',
+            record_id: item.record_id,
+            old_values: item.old_values,
+            new_values: item.new_values,
+            user_id: item.user_id,
+            created_at: item.created_at,
+            event_type: item.table_name,
+            description: typeof item.old_values === 'object' && item.old_values !== null && 'description' in item.old_values 
+              ? String(item.old_values.description) 
+              : undefined
+          }));
+          
+          setSecurityEvents(transformedEvents);
+          return;
+        }
+        throw error;
+      }
       
       // Transform the data to match SecurityEvent interface
       const transformedEvents: SecurityEvent[] = (data || []).map(item => ({

@@ -2,12 +2,13 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Shield, AlertTriangle, Eye, Lock, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Shield, AlertTriangle, Eye, Lock, CheckCircle, RefreshCw } from 'lucide-react';
 import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
 import { useUserRoles } from '@/hooks/useUserRoles';
 
 export const SecurityDashboard = () => {
-  const { securityEvents, isLoading } = useSecurityMonitoring();
+  const { securityEvents, isLoading, fetchSecurityEvents } = useSecurityMonitoring();
   const { isAdmin } = useUserRoles();
 
   console.log('SecurityDashboard loaded:', { eventsCount: securityEvents.length, isAdmin, isLoading });
@@ -91,8 +92,21 @@ export const SecurityDashboard = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Recent Security Events</CardTitle>
-          <CardDescription>Monitor and review security-related activities</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-sm">Recent Security Events</CardTitle>
+              <CardDescription>Monitor and review security-related activities</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchSecurityEvents}
+              disabled={isLoading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (

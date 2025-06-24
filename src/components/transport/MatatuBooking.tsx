@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,14 +17,16 @@ interface Route {
   departure_time: string;
 }
 
+interface VehicleInfo {
+  sacco_name?: string;
+  plate_number?: string;
+  seat_count?: number;
+  driver_phone?: string;
+}
+
 interface TransportDetails {
   routes?: Route[];
-  vehicle_info?: {
-    sacco_name?: string;
-    plate_number?: string;
-    seat_count?: number;
-    driver_phone?: string;
-  };
+  vehicle_info?: VehicleInfo;
 }
 
 interface MatatuBookingProps {
@@ -123,23 +126,7 @@ export const MatatuBooking: React.FC<MatatuBookingProps> = ({
     setIsLoading(true);
 
     try {
-      // Create booking directly without separate client creation
-      // Use a more robust approach for client handling
-      const bookingData = {
-        service_id: serviceId,
-        business_id: businessId,
-        booking_date: new Date().toISOString().split('T')[0],
-        booking_time: selectedRoute.departure_time,
-        duration_minutes: parseInt(selectedRoute.duration.split(' ')[0]) * 60,
-        total_amount: selectedRoute.price,
-        customer_name: `${customerInfo.name} - Seat ${selectedSeat}`,
-        customer_phone: customerInfo.phone,
-        customer_email: customerInfo.email || `${customerInfo.phone}@transport.booking`,
-        notes: `Route: ${selectedRoute.origin} → ${selectedRoute.destination}, Seat: ${selectedSeat}`,
-        status: 'pending_payment'
-      };
-
-      // Try to find or create client first, but don't let it block the booking
+      // Try to find or create client first
       let clientId = null;
       try {
         const { data: existingClient } = await supabase
@@ -152,7 +139,7 @@ export const MatatuBooking: React.FC<MatatuBookingProps> = ({
         if (existingClient) {
           clientId = existingClient.id;
         } else {
-          // Try to create client, but continue even if it fails
+          // Try to create client
           const { data: newClient } = await supabase
             .from('clients')
             .insert({
@@ -173,10 +160,21 @@ export const MatatuBooking: React.FC<MatatuBookingProps> = ({
         // Continue with booking even if client creation fails
       }
 
-      // Add client_id if we have one, otherwise create booking without it
-      if (clientId) {
-        bookingData.client_id = clientId;
-      }
+      // Create booking with proper client_id handling
+      const bookingData = {
+        service_id: serviceId,
+        business_id: businessId,
+        client_id: clientId || '00000000-0000-0000-0000-000000000000', // Use a default UUID if no client
+        booking_date: new Date().toISOString().split('T')[0],
+        booking_time: selectedRoute.departure_time,
+        duration_minutes: parseInt(selectedRoute.duration.split(' ')[0]) * 60,
+        total_amount: selectedRoute.price,
+        customer_name: `${customerInfo.name} - Seat ${selectedSeat}`,
+        customer_phone: customerInfo.phone,
+        customer_email: customerInfo.email || `${customerInfo.phone}@transport.booking`,
+        notes: `Route: ${selectedRoute.origin} → ${selectedRoute.destination}, Seat: ${selectedSeat}`,
+        status: 'pending_payment'
+      };
 
       const { data: booking, error } = await supabase
         .from('bookings')

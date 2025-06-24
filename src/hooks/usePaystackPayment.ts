@@ -73,18 +73,18 @@ export const usePaystackPayment = () => {
           });
       }
       
-      // Log general payment transaction
+      // Log general payment transaction - convert metadata to JSON
       await supabase
         .from('payment_transactions')
         .insert({
-          business_id: metadata.business_id,
+          business_id: metadata.business_id || null,
           amount: amount,
           currency: currency.toUpperCase(),
           status: status,
           payment_method: 'paystack',
           paystack_reference: reference,
           transaction_type: metadata.payment_type,
-          metadata: metadata
+          metadata: metadata as any // Cast to any to satisfy Json type requirement
         });
     } catch (error) {
       console.error('Failed to log transaction:', error);

@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
 import { EnhancedBusinessHeader } from './EnhancedBusinessHeader';
-import { ServicesList } from './ServicesList';
+import { ServiceTypeSelector } from './ServiceTypeSelector';
 import { EmptyServiceSelection } from './EmptyServiceSelection';
 import { PublicBookingCalendar } from './PublicBookingCalendar';
 import { BusinessPaymentInstructions } from '@/components/business/BusinessPaymentInstructions';
 import { MobileBookingHeader } from './MobileBookingHeader';
 import { MatatuBooking } from '@/components/transport/MatatuBooking';
+import { SalonBooking } from './SalonBooking';
+import { WhatsAppFAB } from '@/components/ui/WhatsAppFAB';
 
 interface Service {
   id: string;
@@ -17,6 +19,7 @@ interface Service {
   currency?: string;
   is_transport_service?: boolean;
   transport_details?: any;
+  category?: string;
 }
 
 interface EnhancedPublicBookingContentProps {
@@ -42,8 +45,16 @@ export const EnhancedPublicBookingContent: React.FC<EnhancedPublicBookingContent
 
   const handleBookingComplete = (bookingId: string) => {
     console.log('Booking completed:', bookingId);
-    // Handle booking completion (e.g., redirect to payment)
     handleBackToServices();
+  };
+
+  const isSalonService = (service: Service) => {
+    return service.category?.toLowerCase().includes('hair') ||
+           service.category?.toLowerCase().includes('beauty') ||
+           service.category?.toLowerCase().includes('salon') ||
+           service.name.toLowerCase().includes('hair') ||
+           service.name.toLowerCase().includes('beauty') ||
+           service.name.toLowerCase().includes('salon');
   };
 
   const BookingContent = () => (
@@ -59,9 +70,8 @@ export const EnhancedPublicBookingContent: React.FC<EnhancedPublicBookingContent
           {!services || services.length === 0 ? (
             <EmptyServiceSelection />
           ) : (
-            <ServicesList 
+            <ServiceTypeSelector 
               services={services} 
-              selectedService={selectedService}
               onServiceSelect={handleServiceSelect}
             />
           )}
@@ -88,6 +98,13 @@ export const EnhancedPublicBookingContent: React.FC<EnhancedPublicBookingContent
               }}
               onBookingComplete={handleBookingComplete}
             />
+          ) : isSalonService(selectedService) ? (
+            <SalonBooking
+              serviceId={selectedService.id}
+              businessId={businessId}
+              services={services}
+              onBookingComplete={handleBookingComplete}
+            />
           ) : (
             <PublicBookingCalendar 
               businessId={businessId} 
@@ -97,6 +114,9 @@ export const EnhancedPublicBookingContent: React.FC<EnhancedPublicBookingContent
           )}
         </div>
       )}
+      
+      {/* WhatsApp FAB */}
+      <WhatsAppFAB />
     </div>
   );
 

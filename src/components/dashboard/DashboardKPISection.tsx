@@ -169,7 +169,7 @@ export const DashboardKPISection = ({
             <div>
               <h3 className="font-semibold text-royal-red">Upgrade Your Business Management</h3>
               <p className="text-sm text-gray-700 mt-1">
-                <strong>Medium Plan: KES 2,900/month</strong> • <strong>Premium Plan: KES 9,900/month</strong>
+                <strong>Medium Plan: KES 2,900/month</strong> • <strong>Premium Plan: KES 8,900/month</strong>
               </p>
               <p className="text-xs text-gray-600 mt-1">
                 Complete business management: bookings, invoicing, staff management, analytics, payments & more

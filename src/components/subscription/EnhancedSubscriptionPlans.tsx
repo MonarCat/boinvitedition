@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Star, Zap, Users, Calendar, ArrowUp, ArrowDown, ExternalLink } from 'lucide-react';
-import { PaystackPlanRedirect } from './PaystackPlanRedirect';
+import { CheckCircle, Star, Zap, Users, Calendar, ArrowUp, ArrowDown } from 'lucide-react';
+import { MultiProviderPayment } from '../payment/MultiProviderPayment';
 
 interface Plan {
   id: string;
@@ -28,13 +28,6 @@ interface EnhancedSubscriptionPlansProps {
   isLoading?: boolean;
 }
 
-const PAYSTACK_PLAN_URLS = {
-  trial: 'https://paystack.shop/pay/4qwq0f-lo6',
-  starter: 'https://paystack.shop/pay/starter-plan-1020',
-  medium: 'https://paystack.shop/pay/business-plan-2900',
-  premium: 'https://paystack.shop/pay/enterprise-plan-9900'
-};
-
 export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps> = ({
   currentPlan,
   businessId,
@@ -42,6 +35,9 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
   onSelectPlan,
   isLoading = false
 }) => {
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [showPayment, setShowPayment] = useState(false);
+
   const plans: Plan[] = [
     {
       id: 'trial',
@@ -145,11 +141,31 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
     return 'same';
   };
 
-  const handlePaystackRedirect = (plan: Plan) => {
-    const paymentUrl = PAYSTACK_PLAN_URLS[plan.id as keyof typeof PAYSTACK_PLAN_URLS];
-    if (paymentUrl) {
-      window.open(paymentUrl, '_blank');
+  const handleSelectPlan = (plan: Plan) => {
+    if (currentPlan === plan.id) return;
+    
+    if (plan.id === 'trial') {
+      // Handle trial directly
+      onSelectPlan(plan.id, plan.interval, plan.price);
+    } else {
+      // Show payment for paid plans
+      setSelectedPlan(plan);
+      setShowPayment(true);
     }
+  };
+
+  const handlePaymentSuccess = (reference: string) => {
+    if (selectedPlan) {
+      onSelectPlan(selectedPlan.id, selectedPlan.interval, selectedPlan.price, reference);
+      setShowPayment(false);
+      setSelectedPlan(null);
+    }
+  };
+
+  const handlePaymentError = (error: string) => {
+    console.error('Payment error:', error);
+    setShowPayment(false);
+    setSelectedPlan(null);
   };
 
   const getButtonText = (plan: Plan) => {
@@ -178,9 +194,38 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
       case 'downgrade':
         return ArrowDown;
       default:
-        return ExternalLink;
+        return Zap;
     }
   };
+
+  if (showPayment && selectedPlan) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h3 className="text-xl font-semibold mb-2">Complete Your Subscription</h3>
+          <p className="text-gray-600">
+            You're subscribing to the {selectedPlan.name} plan for KSh {selectedPlan.price.toLocaleString()}/{selectedPlan.interval}
+          </p>
+        </div>
+        
+        <div className="max-w-md mx-auto">
+          <MultiProviderPayment
+            plan={selectedPlan}
+            businessId={businessId}
+            customerEmail={customerEmail}
+            onSuccess={handlePaymentSuccess}
+            onError={handlePaymentError}
+          />
+        </div>
+        
+        <div className="text-center">
+          <Button variant="outline" onClick={() => setShowPayment(false)}>
+            Back to Plans
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -250,32 +295,32 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
                   </div>
                 </div>
 
-                <PaystackPlanRedirect
-                  planId={plan.id}
-                  planName={plan.name}
-                  price={plan.price}
-                  isCurrentPlan={currentPlan === plan.id}
-                  disabled={isLoading}
-                  className={`${plan.popular ? 'bg-orange-600 hover:bg-orange-700' : ''} ${
+                <Button
+                  onClick={() => handleSelectPlan(plan)}
+                  disabled={currentPlan === plan.id || isLoading}
+                  className={`w-full ${plan.popular ? 'bg-orange-600 hover:bg-orange-700' : ''} ${
                     changeType === 'upgrade' ? 'bg-green-600 hover:bg-green-700' : ''
                   }`}
-                />
+                >
+                  <ButtonIcon className="w-4 h-4 mr-2" />
+                  {getButtonText(plan)}
+                </Button>
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* Notice about external payment */}
+      {/* Payment Information */}
       <div className="max-w-4xl mx-auto">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-2">Secure Payment via Paystack</h4>
+          <h4 className="font-medium text-blue-900 mb-2">Secure Payment Options</h4>
           <p className="text-sm text-blue-800">
-            When you click "Pay with Paystack", you'll be redirected to our secure payment page. 
-            After successful payment, your subscription will be automatically activated.
+            When you select a paid plan, you'll see secure payment options including M-Pesa, Airtel Money, 
+            and card payments. All payments are processed securely through Paystack.
           </p>
           <div className="mt-2 text-xs text-blue-700">
-            🔒 All payments are processed securely by Paystack with bank-level encryption
+            🔒 Your subscription will be activated immediately after successful payment
           </div>
         </div>
       </div>

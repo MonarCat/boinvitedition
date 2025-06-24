@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Star, Zap, Users, Calendar } from 'lucide-react';
+import { CheckCircle, Star, Zap, Users, Calendar, ArrowUp, ArrowDown } from 'lucide-react';
 import { DirectPaystackPayment, loadPaystackScript } from '@/components/payment/DirectPaystackPayment';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -24,7 +25,7 @@ interface EnhancedSubscriptionPlansProps {
   currentPlan?: string;
   businessId: string;
   customerEmail?: string;
-  onSelectPlan: (planId: string, interval: string, amount: number) => void;
+  onSelectPlan: (planId: string, interval: string, amount: number, paystackReference?: string) => void;
   isLoading?: boolean;
 }
 
@@ -85,7 +86,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
       color: 'border-blue-200'
     },
     {
-      id: 'business',
+      id: 'medium',
       name: 'Business',
       price: 2900,
       currency: 'KES',
@@ -107,7 +108,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
       color: 'border-orange-200'
     },
     {
-      id: 'enterprise',
+      id: 'premium',
       name: 'Enterprise',
       price: 8900,
       currency: 'KES',
@@ -130,6 +131,21 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
     }
   ];
 
+  const getPlanLevel = (planId: string): number => {
+    const levels = { trial: 0, starter: 1, medium: 2, premium: 3 };
+    return levels[planId as keyof typeof levels] || 0;
+  };
+
+  const getChangeType = (planId: string): 'upgrade' | 'downgrade' | 'same' | 'new' => {
+    if (!currentPlan) return 'new';
+    const currentLevel = getPlanLevel(currentPlan);
+    const newLevel = getPlanLevel(planId);
+    
+    if (newLevel > currentLevel) return 'upgrade';
+    if (newLevel < currentLevel) return 'downgrade';
+    return 'same';
+  };
+
   const handleSelectPlan = (plan: Plan) => {
     setSelectedPlan(plan);
     if (plan.id === 'trial') {
@@ -142,94 +158,135 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
 
   const handlePaymentSuccess = (reference: string) => {
     setShowPaymentModal(false);
-    onSelectPlan(selectedPlan!.id, selectedPlan!.interval, selectedPlan!.price);
+    onSelectPlan(selectedPlan!.id, selectedPlan!.interval, selectedPlan!.price, reference);
   };
 
   const handlePaymentError = (error: string) => {
     console.error('Payment error:', error);
   };
 
+  const getButtonText = (plan: Plan) => {
+    if (currentPlan === plan.id) return 'Current Plan';
+    
+    const changeType = getChangeType(plan.id);
+    switch (changeType) {
+      case 'upgrade':
+        return 'Upgrade';
+      case 'downgrade':
+        return 'Downgrade';
+      case 'new':
+        return plan.id === 'trial' ? 'Start Free Trial' : 'Subscribe Now';
+      default:
+        return 'Subscribe Now';
+    }
+  };
+
+  const getButtonIcon = (plan: Plan) => {
+    if (currentPlan === plan.id) return CheckCircle;
+    
+    const changeType = getChangeType(plan.id);
+    switch (changeType) {
+      case 'upgrade':
+        return ArrowUp;
+      case 'downgrade':
+        return ArrowDown;
+      default:
+        return Zap;
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {plans.map((plan) => (
-          <Card 
-            key={plan.id} 
-            className={`relative ${plan.color} ${plan.popular ? 'ring-2 ring-orange-500' : ''}`}
-          >
-            {plan.popular && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-orange-500 text-white px-3 py-1">
-                  <Star className="w-3 h-3 mr-1" />
-                  Most Popular
-                </Badge>
-              </div>
-            )}
-
-            <CardHeader className="text-center pb-2">
-              <CardTitle className="text-lg font-semibold">{plan.name}</CardTitle>
-              <div className="py-4">
-                <div className="text-3xl font-bold text-gray-900">
-                  KSh {plan.price.toLocaleString()}
+        {plans.map((plan) => {
+          const changeType = getChangeType(plan.id);
+          const ButtonIcon = getButtonIcon(plan);
+          
+          return (
+            <Card 
+              key={plan.id} 
+              className={`relative ${plan.color} ${plan.popular ? 'ring-2 ring-orange-500' : ''} ${
+                changeType === 'upgrade' ? 'ring-2 ring-green-500' : ''
+              } ${changeType === 'downgrade' ? 'ring-2 ring-yellow-500' : ''}`}
+            >
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-orange-500 text-white px-3 py-1">
+                    <Star className="w-3 h-3 mr-1" />
+                    Most Popular
+                  </Badge>
                 </div>
-                <div className="text-sm text-gray-600">per {plan.interval}</div>
-              </div>
-              <p className="text-sm text-gray-600">{plan.description}</p>
-            </CardHeader>
+              )}
 
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                {plan.features.map((feature, index) => (
-                  <div key={index} className="flex items-start gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                    <span>{feature}</span>
+              {changeType === 'upgrade' && (
+                <div className="absolute -top-3 right-4">
+                  <Badge className="bg-green-500 text-white px-2 py-1">
+                    <ArrowUp className="w-3 h-3 mr-1" />
+                    Upgrade
+                  </Badge>
+                </div>
+              )}
+
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="text-lg font-semibold">{plan.name}</CardTitle>
+                <div className="py-4">
+                  <div className="text-3xl font-bold text-gray-900">
+                    KSh {plan.price.toLocaleString()}
                   </div>
-                ))}
-              </div>
-
-              <div className="pt-4 space-y-2">
-                <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <Users className="w-3 h-3" />
-                  <span>
-                    {plan.staffLimit ? `Up to ${plan.staffLimit} staff` : 'Unlimited staff'}
-                  </span>
+                  <div className="text-sm text-gray-600">per {plan.interval}</div>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <Calendar className="w-3 h-3" />
-                  <span>
-                    {plan.bookingsLimit ? `${plan.bookingsLimit.toLocaleString()} bookings` : 'Unlimited bookings'}
-                  </span>
-                </div>
-              </div>
+                <p className="text-sm text-gray-600">{plan.description}</p>
+              </CardHeader>
 
-              <Button
-                onClick={() => handleSelectPlan(plan)}
-                disabled={isLoading || currentPlan === plan.id}
-                className={`w-full ${plan.popular ? 'bg-orange-600 hover:bg-orange-700' : ''}`}
-                variant={currentPlan === plan.id ? 'outline' : 'default'}
-              >
-                {currentPlan === plan.id ? (
-                  <>
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Current Plan
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4 mr-2" />
-                    {plan.id === 'trial' ? 'Start Free Trial' : 'Subscribe Now'}
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  {plan.features.map((feature, index) => (
+                    <div key={index} className="flex items-start gap-2 text-sm">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-4 space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <Users className="w-3 h-3" />
+                    <span>
+                      {plan.staffLimit ? `Up to ${plan.staffLimit} staff` : 'Unlimited staff'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <Calendar className="w-3 h-3" />
+                    <span>
+                      {plan.bookingsLimit ? `${plan.bookingsLimit.toLocaleString()} bookings` : 'Unlimited bookings'}
+                    </span>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => handleSelectPlan(plan)}
+                  disabled={isLoading || currentPlan === plan.id}
+                  className={`w-full ${plan.popular ? 'bg-orange-600 hover:bg-orange-700' : ''} ${
+                    changeType === 'upgrade' ? 'bg-green-600 hover:bg-green-700' : ''
+                  }`}
+                  variant={currentPlan === plan.id ? 'outline' : 'default'}
+                >
+                  <ButtonIcon className="w-4 h-4 mr-2" />
+                  {getButtonText(plan)}
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Payment Modal */}
       <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Complete Your Subscription</DialogTitle>
+            <DialogTitle>
+              {selectedPlan && getChangeType(selectedPlan.id) === 'upgrade' ? 'Upgrade Your Plan' : 'Complete Your Subscription'}
+            </DialogTitle>
           </DialogHeader>
           {selectedPlan && (
             <DirectPaystackPayment
@@ -243,10 +300,10 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
               }}
               onSuccess={handlePaymentSuccess}
               onError={handlePaymentError}
-              title={`Subscribe to ${selectedPlan.name}`}
+              title={`${getChangeType(selectedPlan.id) === 'upgrade' ? 'Upgrade to' : 'Subscribe to'} ${selectedPlan.name}`}
               description="Secure subscription payment powered by Paystack"
               showClientDetails={false}
-              buttonText="Subscribe to"
+              buttonText={getChangeType(selectedPlan.id) === 'upgrade' ? 'Upgrade to' : 'Subscribe to'}
             />
           )}
         </DialogContent>

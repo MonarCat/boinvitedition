@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { EnhancedSubscriptionPlans } from '@/components/subscription/EnhancedSubscriptionPlans';
@@ -14,7 +15,7 @@ import { toast } from 'sonner';
 
 const SubscriptionPage = () => {
   const { user } = useAuth();
-  const { subscription, isLoading } = useSubscription();
+  const { subscription, isLoading, createSubscription } = useSubscription();
 
   // Get user's business
   const { data: business, isLoading: isBusinessLoading } = useQuery({
@@ -35,14 +36,24 @@ const SubscriptionPage = () => {
     enabled: !!user,
   });
 
-  const handleSelectPlan = async (planId: string, interval: string, amount: number) => {
+  const handleSelectPlan = async (planId: string, interval: string, amount: number, paystackReference?: string) => {
     if (!business) return;
     
-    console.log('Plan selected successfully:', { planId, interval, amount, businessId: business.id });
-    toast.success(`Successfully subscribed to ${planId} plan!`);
-    
-    // Refresh subscription data
-    window.location.reload();
+    try {
+      await createSubscription({
+        planType: planId,
+        businessId: business.id,
+        paymentInterval: interval,
+        amount,
+        paystackReference
+      });
+      
+      console.log('Plan selected successfully:', { planId, interval, amount, businessId: business.id });
+      
+    } catch (error) {
+      console.error('Failed to update subscription:', error);
+      toast.error('Failed to update subscription. Please try again.');
+    }
   };
 
   if (isLoading || isBusinessLoading) {

@@ -57,19 +57,23 @@ export const useSubscription = () => {
     mutationFn: async ({ 
       planType, 
       businessId, 
-      paymentInterval = 'monthly' 
+      paymentInterval = 'monthly',
+      amount,
+      paystackReference 
     }: { 
       planType: string; 
       businessId: string;
       paymentInterval?: string;
+      amount?: number;
+      paystackReference?: string;
     }) => {
       if (planType === 'trial') {
         const trialEndDate = new Date();
-        trialEndDate.setDate(trialEndDate.getDate() + 14);
+        trialEndDate.setDate(trialEndDate.getDate() + 7);
         
         const { data, error } = await supabase
           .from('subscriptions')
-          .insert({
+          .upsert({
             user_id: user?.id,
             business_id: businessId,
             plan_type: 'trial',
@@ -77,8 +81,10 @@ export const useSubscription = () => {
             trial_ends_at: trialEndDate.toISOString(),
             current_period_end: trialEndDate.toISOString(),
             payment_interval: paymentInterval,
-            staff_limit: null,
-            bookings_limit: null
+            staff_limit: 3,
+            bookings_limit: 100
+          }, {
+            onConflict: 'business_id'
           })
           .select()
           .single();
@@ -86,36 +92,67 @@ export const useSubscription = () => {
         if (error) throw error;
         return data;
       } else {
-        // Handle subscription plans with Paystack checkout
-        const { data, error } = await supabase.functions.invoke('create-paystack-checkout', {
-          body: { 
-            planType,
-            businessId,
-            customerEmail: user?.email,
-            paymentInterval
-          }
-        });
+        // Handle paid subscription plans
+        const planLimits = {
+          starter: { staff_limit: 5, bookings_limit: 1000 },
+          medium: { staff_limit: 15, bookings_limit: 5000 },
+          premium: { staff_limit: null, bookings_limit: null }
+        };
+
+        const limits = planLimits[planType as keyof typeof planLimits] || planLimits.starter;
+        const subscriptionEndDate = new Date();
+        subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + 1);
+
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .upsert({
+            user_id: user?.id,
+            business_id: businessId,
+            plan_type: planType,
+            status: 'active',
+            current_period_end: subscriptionEndDate.toISOString(),
+            payment_interval: paymentInterval,
+            staff_limit: limits.staff_limit,
+            bookings_limit: limits.bookings_limit,
+            paystack_reference: paystackReference
+          }, {
+            onConflict: 'business_id'
+          })
+          .select()
+          .single();
         
         if (error) throw error;
-        
-        if (data.url) {
-          window.location.href = data.url;
-        }
-        
         return data;
       }
     },
     onSuccess: (data, variables) => {
       if (variables.planType === 'trial') {
-        toast.success('Free trial started! You have 14 days of full access.');
-        queryClient.invalidateQueries({ queryKey: ['subscription'] });
+        toast.success('Free trial started! You have 7 days of full access.');
+      } else {
+        const isUpgrade = subscription && getPlanLevel(variables.planType) > getPlanLevel(subscription.plan_type);
+        const isDowngrade = subscription && getPlanLevel(variables.planType) < getPlanLevel(subscription.plan_type);
+        
+        if (isUpgrade) {
+          toast.success(`Successfully upgraded to ${variables.planType} plan!`);
+        } else if (isDowngrade) {
+          toast.success(`Successfully changed to ${variables.planType} plan!`);
+        } else {
+          toast.success(`Successfully subscribed to ${variables.planType} plan!`);
+        }
       }
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
     },
     onError: (error) => {
       console.error('Subscription error:', error);
-      toast.error('Failed to start subscription. Please try again.');
+      toast.error('Failed to update subscription. Please try again.');
     },
   });
+
+  // Helper function to determine plan hierarchy
+  const getPlanLevel = (planType: string): number => {
+    const levels = { trial: 0, starter: 1, medium: 2, premium: 3 };
+    return levels[planType as keyof typeof levels] || 0;
+  };
 
   return {
     subscription,
@@ -123,5 +160,6 @@ export const useSubscription = () => {
     isActive,
     createSubscription: createSubscriptionMutation.mutate,
     isCreatingSubscription: createSubscriptionMutation.isPending,
+    getPlanLevel
   };
 };

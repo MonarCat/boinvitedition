@@ -86,6 +86,39 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_rate_limits: {
+        Row: {
+          attempt_type: string
+          attempts: number | null
+          blocked_until: string | null
+          created_at: string | null
+          id: string
+          identifier: string
+          updated_at: string | null
+          window_start: string | null
+        }
+        Insert: {
+          attempt_type: string
+          attempts?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          identifier: string
+          updated_at?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          attempt_type?: string
+          attempts?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          identifier?: string
+          updated_at?: string | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       blocked_time_slots: {
         Row: {
           blocked_date: string
@@ -1349,6 +1382,15 @@ export type Database = {
         Args: { booking_date: string; booking_time: string }
         Returns: string
       }
+      check_rate_limit: {
+        Args: {
+          p_identifier: string
+          p_attempt_type: string
+          p_max_attempts?: number
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
       create_paid_subscription: {
         Args: {
           business_id: string
@@ -1373,6 +1415,14 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      is_business_owner: {
+        Args: { _business_id: string }
+        Returns: boolean
+      }
+      log_security_event: {
+        Args: { p_event_type: string; p_description: string; p_metadata?: Json }
+        Returns: string
       }
       search_businesses_by_location: {
         Args: {

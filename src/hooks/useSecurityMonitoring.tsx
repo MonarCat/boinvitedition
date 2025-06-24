@@ -28,16 +28,11 @@ export const useSecurityMonitoring = () => {
     metadata: Record<string, any> = {}
   ) => {
     try {
-      // Use direct insert instead of RPC since the function might not be in types yet
-      const { error } = await supabase
-        .from('audit_log')
-        .insert({
-          action: 'SECURITY_EVENT',
-          table_name: eventType,
-          old_values: { description },
-          new_values: metadata,
-          user_id: user?.id
-        });
+      const { error } = await supabase.rpc('log_security_event', {
+        p_event_type: eventType,
+        p_description: description,
+        p_metadata: metadata
+      });
       
       if (error) {
         console.error('Failed to log security event:', error);
@@ -71,10 +66,10 @@ export const useSecurityMonitoring = () => {
         new_values: item.new_values,
         user_id: item.user_id,
         created_at: item.created_at,
-        event_type: item.table_name, // Map table_name to event_type
+        event_type: item.table_name,
         description: typeof item.old_values === 'object' && item.old_values !== null && 'description' in item.old_values 
           ? String(item.old_values.description) 
-          : undefined // Extract description from old_values with proper type checking
+          : undefined
       }));
       
       setSecurityEvents(transformedEvents);
@@ -86,25 +81,55 @@ export const useSecurityMonitoring = () => {
     }
   };
 
-  // Monitor suspicious activities
-  const monitorFailedLogins = () => {
-    const failedAttempts = parseInt(localStorage.getItem('failed_login_attempts') || '0');
-    if (failedAttempts >= 5) {
+  // Enhanced security monitoring functions
+  const monitorFailedLogins = (attempts: number) => {
+    if (attempts >= 5) {
       logSecurityEvent('MULTIPLE_FAILED_LOGINS', 'Multiple failed login attempts detected', {
-        attempts: failedAttempts,
-        timestamp: new Date().toISOString()
+        attempts,
+        timestamp: new Date().toISOString(),
+        severity: 'high'
       });
     }
   };
 
   const monitorRateLimiting = (endpoint: string, requestCount: number) => {
-    if (requestCount > 100) { // 100 requests per minute threshold
+    if (requestCount > 100) {
       logSecurityEvent('RATE_LIMIT_EXCEEDED', `Rate limit exceeded for endpoint: ${endpoint}`, {
         endpoint,
         request_count: requestCount,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        severity: 'medium'
       });
     }
+  };
+
+  const monitorSuspiciousPayments = (amount: number, businessId: string) => {
+    if (amount > 100000) { // Large amounts
+      logSecurityEvent('LARGE_PAYMENT_ATTEMPT', 'Large payment amount detected', {
+        amount,
+        business_id: businessId,
+        timestamp: new Date().toISOString(),
+        severity: 'high'
+      });
+    }
+  };
+
+  const monitorUnauthorizedAccess = (resource: string, userId: string) => {
+    logSecurityEvent('UNAUTHORIZED_ACCESS_ATTEMPT', `Unauthorized access to ${resource}`, {
+      resource,
+      user_id: userId,
+      timestamp: new Date().toISOString(),
+      severity: 'high'
+    });
+  };
+
+  const monitorDataExport = (exportType: string, recordCount: number) => {
+    logSecurityEvent('DATA_EXPORT', `Data export performed: ${exportType}`, {
+      export_type: exportType,
+      record_count: recordCount,
+      timestamp: new Date().toISOString(),
+      severity: 'medium'
+    });
   };
 
   useEffect(() => {
@@ -119,6 +144,9 @@ export const useSecurityMonitoring = () => {
     logSecurityEvent,
     fetchSecurityEvents,
     monitorFailedLogins,
-    monitorRateLimiting
+    monitorRateLimiting,
+    monitorSuspiciousPayments,
+    monitorUnauthorizedAccess,
+    monitorDataExport
   };
 };

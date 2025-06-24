@@ -14,15 +14,18 @@ export const SecurityHeaders = () => {
       meta.content = content;
     };
 
-    // Content Security Policy
+    // Enhanced Content Security Policy
     setMetaTag('Content-Security-Policy', 
       "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co; " +
-      "style-src 'self' 'unsafe-inline'; " +
-      "img-src 'self' data: https:; " +
-      "connect-src 'self' https://api.paystack.co https://*.supabase.co wss://*.supabase.co; " +
-      "font-src 'self' data:; " +
-      "frame-src https://js.paystack.co;"
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://www.googletagmanager.com; " +
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+      "img-src 'self' data: https: blob:; " +
+      "connect-src 'self' https://api.paystack.co https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com; " +
+      "font-src 'self' data: https://fonts.gstatic.com; " +
+      "frame-src https://js.paystack.co; " +
+      "object-src 'none'; " +
+      "base-uri 'self'; " +
+      "form-action 'self';"
     );
 
     // Prevent clickjacking
@@ -39,7 +42,17 @@ export const SecurityHeaders = () => {
 
     // Permissions Policy
     setMetaTag('Permissions-Policy', 
-      'camera=(), microphone=(), geolocation=(self), payment=(self)'
+      'camera=(), microphone=(), geolocation=(self), payment=(self), usb=(), bluetooth=()'
+    );
+
+    // Strict Transport Security (if HTTPS)
+    if (window.location.protocol === 'https:') {
+      setMetaTag('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    }
+
+    // Feature Policy
+    setMetaTag('Feature-Policy', 
+      'camera none; microphone none; geolocation self; payment self'
     );
 
     return () => {

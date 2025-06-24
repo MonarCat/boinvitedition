@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -138,7 +137,7 @@ const LandingPage = () => {
     },
     {
       name: "Enterprise Plan",
-      price: "KES 9900",
+      price: "KES 8900",
       period: "/month",
       features: [
         "Unlimited staff & bookings",

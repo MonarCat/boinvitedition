@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CreditCard, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { CreditCard, Loader2, CheckCircle, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -181,113 +180,126 @@ export const DirectPaystackPayment: React.FC<DirectPaystackPaymentProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CreditCard className="w-5 h-5" />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Amount Display */}
-        <div className="bg-gray-50 rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-green-800">
-            {formatCurrency(amount, currency)}
-          </div>
-          {metadata.payment_type === 'client_to_business' && (
-            <div className="text-xs text-gray-500 mt-2">
-              <div className="flex justify-between">
-                <span>Business receives:</span>
-                <span>{formatCurrency(amount * 0.95, currency)}</span>
+    <div className="w-full max-w-md mx-auto">
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-gray-50">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="text-xl font-semibold text-gray-800 flex items-center justify-center gap-2">
+            <CreditCard className="w-5 h-5 text-green-600" />
+            {title}
+          </CardTitle>
+          <p className="text-sm text-gray-600 mt-2">{description}</p>
+        </CardHeader>
+        
+        <CardContent className="space-y-6">
+          {/* Amount Display */}
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 text-center border border-green-100">
+            <div className="text-3xl font-bold text-green-700 mb-2">
+              {formatCurrency(amount, currency)}
+            </div>
+            {metadata.payment_type === 'client_to_business' && (
+              <div className="text-xs text-gray-600 space-y-1">
+                <div className="flex justify-between items-center">
+                  <span>Business receives:</span>
+                  <span className="font-medium">{formatCurrency(amount * 0.95, currency)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Platform fee (5%):</span>
+                  <span className="font-medium">{formatCurrency(amount * 0.05, currency)}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span>Platform fee (5%):</span>
-                <span>{formatCurrency(amount * 0.05, currency)}</span>
+            )}
+          </div>
+
+          {/* Client Details Form */}
+          {showClientDetails && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="client_email" className="text-sm font-medium text-gray-700">
+                  Email Address
+                </Label>
+                <Input
+                  id="client_email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={clientDetails.email}
+                  onChange={(e) => setClientDetails(prev => ({ ...prev, email: e.target.value }))}
+                  className="border-gray-200 focus:border-green-500 focus:ring-green-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="client_phone" className="text-sm font-medium text-gray-700">
+                  Phone Number
+                </Label>
+                <Input
+                  id="client_phone"
+                  type="tel"
+                  placeholder="254712345678"
+                  value={clientDetails.phone}
+                  onChange={(e) => setClientDetails(prev => ({ ...prev, phone: e.target.value }))}
+                  className="border-gray-200 focus:border-green-500 focus:ring-green-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="client_name" className="text-sm font-medium text-gray-700">
+                  Full Name (Optional)
+                </Label>
+                <Input
+                  id="client_name"
+                  type="text"
+                  placeholder="Your full name"
+                  value={clientDetails.name}
+                  onChange={(e) => setClientDetails(prev => ({ ...prev, name: e.target.value }))}
+                  className="border-gray-200 focus:border-green-500 focus:ring-green-500"
+                />
               </div>
             </div>
           )}
-        </div>
 
-        {/* Client Details Form */}
-        {showClientDetails && (
-          <div className="space-y-3">
-            <div>
-              <Label htmlFor="client_email">Email Address</Label>
-              <Input
-                id="client_email"
-                type="email"
-                placeholder="your@email.com"
-                value={clientDetails.email}
-                onChange={(e) => setClientDetails(prev => ({ ...prev, email: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="client_phone">Phone Number</Label>
-              <Input
-                id="client_phone"
-                type="tel"
-                placeholder="254712345678"
-                value={clientDetails.phone}
-                onChange={(e) => setClientDetails(prev => ({ ...prev, phone: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="client_name">Full Name (Optional)</Label>
-              <Input
-                id="client_name"
-                type="text"
-                placeholder="Your full name"
-                value={clientDetails.name}
-                onChange={(e) => setClientDetails(prev => ({ ...prev, name: e.target.value }))}
-              />
+          {/* Payment Methods Info */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-gray-700 mb-3 text-center">Available Payment Options</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-200">
+                <CreditCard className="w-4 h-4 text-blue-600" />
+                <span className="text-sm text-gray-700">Card</span>
+              </div>
+              <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-200">
+                <Smartphone className="w-4 h-4 text-green-600" />
+                <span className="text-sm text-gray-700">M-Pesa</span>
+              </div>
             </div>
           </div>
-        )}
 
-        {/* Payment Methods Info */}
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium">Payment Options</h4>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="flex items-center gap-2 p-2 bg-green-50 rounded">
-              <CreditCard className="w-3 h-3 text-green-600" />
-              <span>Cards</span>
-            </div>
-            <div className="flex items-center gap-2 p-2 bg-green-50 rounded">
-              <CreditCard className="w-3 h-3 text-green-600" />
-              <span>M-Pesa</span>
+          {/* Pay Button */}
+          <Button 
+            onClick={handlePayment}
+            disabled={isProcessing}
+            className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium text-base shadow-lg hover:shadow-xl transition-all duration-200"
+            size="lg"
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Processing Payment...
+              </>
+            ) : (
+              <>
+                <CreditCard className="w-5 h-5 mr-2" />
+                {buttonText} {formatCurrency(amount, currency)}
+              </>
+            )}
+          </Button>
+
+          {/* Security Notice */}
+          <div className="text-center pt-2">
+            <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+              <CheckCircle className="w-3 h-3 text-green-600" />
+              <span>Secured by 256-bit SSL encryption</span>
             </div>
           </div>
-        </div>
-
-        {/* Pay Button */}
-        <Button 
-          onClick={handlePayment}
-          disabled={isProcessing}
-          className="w-full bg-green-600 hover:bg-green-700"
-          size="lg"
-        >
-          {isProcessing ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <CreditCard className="w-4 h-4 mr-2" />
-              {buttonText} {formatCurrency(amount, currency)}
-            </>
-          )}
-        </Button>
-
-        {/* Security Notice */}
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 text-xs text-gray-600">
-            <CheckCircle className="w-3 h-3" />
-            <span>{description}</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { PaystackPayment } from './PaystackPayment';
+import { MpesaPayment } from './MpesaPayment';
 import { BusinessPaymentInstructions } from '@/components/business/BusinessPaymentInstructions';
 
 interface EnhancedPaymentFlowProps {
@@ -47,10 +49,20 @@ export const EnhancedPaymentFlow: React.FC<EnhancedPaymentFlowProps> = ({
   onPaymentSuccess,
   onPaymentError
 }) => {
-  const [selectedMethod, setSelectedMethod] = useState<'paystack' | 'mpesa' | 'instructions'>('paystack');
+  const [selectedMethod, setSelectedMethod] = useState<'paystack' | 'mpesa' | 'instructions'>('mpesa');
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
 
   const paymentMethods = [
+    {
+      id: 'mpesa',
+      name: 'M-Pesa',
+      description: 'Pay directly from your M-Pesa account',
+      icon: Smartphone,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-200',
+      available: true
+    },
     {
       id: 'paystack',
       name: 'Cards & More',
@@ -60,16 +72,6 @@ export const EnhancedPaymentFlow: React.FC<EnhancedPaymentFlowProps> = ({
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-200',
       available: true
-    },
-    {
-      id: 'mpesa',
-      name: 'M-Pesa STK Push',
-      description: 'Pay directly from your M-Pesa account',
-      icon: Smartphone,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-200',
-      available: !!business.mpesa_number
     },
     {
       id: 'instructions',
@@ -88,6 +90,16 @@ export const EnhancedPaymentFlow: React.FC<EnhancedPaymentFlowProps> = ({
     setPaymentStatus('idle');
   };
 
+  const handlePaymentSuccess = () => {
+    setPaymentStatus('success');
+    onPaymentSuccess?.();
+  };
+
+  const handlePaymentError = (error: string) => {
+    setPaymentStatus('failed');
+    onPaymentError?.(error);
+  };
+
   const formatCurrency = (amount: number, currency: string) => {
     const currencySymbols: { [key: string]: string } = {
       'KES': 'KSh ',
@@ -100,6 +112,18 @@ export const EnhancedPaymentFlow: React.FC<EnhancedPaymentFlowProps> = ({
 
   const renderPaymentContent = () => {
     switch (selectedMethod) {
+      case 'mpesa':
+        return (
+          <MpesaPayment
+            amount={bookingDetails.totalAmount}
+            businessId={business.id}
+            clientEmail={bookingDetails.customerEmail}
+            bookingId={bookingDetails.id}
+            onSuccess={handlePaymentSuccess}
+            onError={handlePaymentError}
+          />
+        );
+
       case 'paystack':
         return (
           <div className="space-y-4">
@@ -118,14 +142,10 @@ export const EnhancedPaymentFlow: React.FC<EnhancedPaymentFlowProps> = ({
               amount={bookingDetails.totalAmount}
               currency={bookingDetails.currency}
               email={bookingDetails.customerEmail}
-              onSuccess={() => {
-                setPaymentStatus('success');
-                onPaymentSuccess?.();
-              }}
+              onSuccess={handlePaymentSuccess}
               onClose={() => {
                 if (paymentStatus === 'processing') {
-                  setPaymentStatus('failed');
-                  onPaymentError?.('Payment cancelled');
+                  handlePaymentError('Payment cancelled');
                 }
               }}
               metadata={{
@@ -139,57 +159,6 @@ export const EnhancedPaymentFlow: React.FC<EnhancedPaymentFlowProps> = ({
             
             <div className="text-xs text-gray-500 text-center mt-2">
               You can pay with: Cards (Visa, Mastercard), Mobile Money, Bank Transfer, Apple Pay, and more
-            </div>
-          </div>
-        );
-
-      case 'mpesa':
-        return (
-          <div className="space-y-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Smartphone className="w-5 h-5 text-green-600" />
-                <h4 className="font-medium text-green-800">M-Pesa STK Push</h4>
-              </div>
-              <p className="text-sm text-green-700 mb-3">
-                You will receive a payment prompt on your phone
-              </p>
-              
-              <Button 
-                className="w-full bg-green-600 hover:bg-green-700"
-                onClick={() => {
-                  setPaymentStatus('processing');
-                  // Implement M-Pesa STK Push logic here
-                  setTimeout(() => {
-                    setPaymentStatus('success');
-                    onPaymentSuccess?.();
-                  }, 3000);
-                }}
-                disabled={paymentStatus === 'processing'}
-              >
-                {paymentStatus === 'processing' ? (
-                  <>
-                    <Clock className="w-4 h-4 mr-2 animate-spin" />
-                    Waiting for payment...
-                  </>
-                ) : (
-                  <>
-                    <Smartphone className="w-4 h-4 mr-2" />
-                    Pay KSh {bookingDetails.totalAmount} via M-Pesa
-                  </>
-                )}
-              </Button>
-              
-              {paymentStatus === 'processing' && (
-                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-yellow-600" />
-                    <span className="text-sm text-yellow-800">
-                      Check your phone for the M-Pesa payment prompt
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         );
@@ -211,10 +180,7 @@ export const EnhancedPaymentFlow: React.FC<EnhancedPaymentFlowProps> = ({
               <Button 
                 variant="outline" 
                 className="w-full border-blue-300 text-blue-700 hover:bg-blue-100"
-                onClick={() => {
-                  setPaymentStatus('success');
-                  onPaymentSuccess?.();
-                }}
+                onClick={handlePaymentSuccess}
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
                 I have made the payment

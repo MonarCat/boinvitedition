@@ -10,6 +10,8 @@ serve(async (req) => {
   try {
     const { clientEmail, clientPhone, businessId, amount, bookingId, paymentMethod = 'paystack' } = await req.json()
 
+    console.log('Payment request received:', { clientEmail, clientPhone, businessId, amount, paymentMethod })
+
     // Enhanced validation
     if (!clientEmail || !businessId || !amount) {
       return new Response(
@@ -58,35 +60,87 @@ serve(async (req) => {
     const randomId = Math.random().toString(36).substr(2, 9)
     const paymentReference = `client-biz-${timestamp}-${randomId}`
 
-    // Initialize payment with Paystack
-    const paystackResponse = await fetch('https://api.paystack.co/transaction/initialize', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${paystackSecretKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: clientEmail,
-        amount: amount * 100, // Convert to kobo
-        currency: 'KES',
-        reference: paymentReference,
-        callback_url: `${req.headers.get('origin')}/payment-success`,
-        metadata: {
-          business_id: businessId,
-          booking_id: bookingId,
-          client_email: clientEmail,
-          client_phone: clientPhone,
-          payment_type: 'client_to_business',
-          platform_fee: platformFee,
-          business_amount: businessAmount,
-          timestamp: timestamp
-        }
-      })
-    })
+    let paystackResponse;
+    let paystackData;
 
-    const paystackData = await paystackResponse.json()
+    if (paymentMethod === 'mpesa' && clientPhone) {
+      // Format phone number for M-Pesa (ensure it starts with 254)
+      let formattedPhone = clientPhone.replace(/\D/g, '')
+      if (formattedPhone.startsWith('0')) {
+        formattedPhone = '254' + formattedPhone.slice(1)
+      }
+      if (!formattedPhone.startsWith('254')) {
+        formattedPhone = '254' + formattedPhone
+      }
+
+      console.log('Initiating M-Pesa payment for phone:', formattedPhone)
+
+      // Initialize M-Pesa payment with Paystack
+      paystackResponse = await fetch('https://api.paystack.co/charge', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${paystackSecretKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: clientEmail,
+          amount: amount * 100, // Convert to kobo
+          currency: 'KES',
+          mobile_money: {
+            phone: formattedPhone,
+            provider: 'mpesa'
+          },
+          reference: paymentReference,
+          metadata: {
+            business_id: businessId,
+            booking_id: bookingId,
+            client_email: clientEmail,
+            client_phone: clientPhone,
+            payment_type: 'client_to_business',
+            platform_fee: platformFee,
+            business_amount: businessAmount,
+            timestamp: timestamp
+          }
+        })
+      })
+    } else {
+      // Initialize regular payment with Paystack
+      paystackResponse = await fetch('https://api.paystack.co/transaction/initialize', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${paystackSecretKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: clientEmail,
+          amount: amount * 100, // Convert to kobo
+          currency: 'KES',
+          reference: paymentReference,
+          callback_url: `${req.headers.get('origin')}/payment-success`,
+          metadata: {
+            business_id: businessId,
+            booking_id: bookingId,
+            client_email: clientEmail,
+            client_phone: clientPhone,
+            payment_type: 'client_to_business',
+            platform_fee: platformFee,
+            business_amount: businessAmount,
+            timestamp: timestamp
+          }
+        })
+      })
+    }
+
+    if (!paystackResponse.ok) {
+      const errorText = await paystackResponse.text()
+      console.error('Paystack API error:', errorText)
+      throw new Error(`Payment service error: ${paystackResponse.status}`)
+    }
+
+    paystackData = await paystackResponse.json()
 
     if (!paystackData.status) {
+      console.error('Paystack payment failed:', paystackData)
       throw new Error(paystackData.message || 'Payment initialization failed')
     }
 
@@ -121,27 +175,48 @@ serve(async (req) => {
       reference: paymentReference,
       amount: amount,
       businessId: businessId,
-      clientEmail: clientEmail
+      clientEmail: clientEmail,
+      paymentMethod: paymentMethod
     })
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        authorization_url: paystackData.data.authorization_url,
-        reference: paystackData.data.reference,
-        access_code: paystackData.data.access_code,
-        payment_reference: paymentReference
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    )
+    // Return appropriate response based on payment method
+    if (paymentMethod === 'mpesa') {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'M-Pesa payment initiated. Check your phone for the payment prompt.',
+          reference: paystackData.data.reference,
+          payment_reference: paymentReference,
+          status: paystackData.data.status
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      )
+    } else {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          authorization_url: paystackData.data.authorization_url,
+          reference: paystackData.data.reference,
+          access_code: paystackData.data.access_code,
+          payment_reference: paymentReference
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      )
+    }
 
   } catch (error) {
     console.error('Client-to-business payment error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        success: false,
+        error: error.message || 'Payment initialization failed'
+      }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

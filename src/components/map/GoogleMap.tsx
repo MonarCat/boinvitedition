@@ -27,11 +27,12 @@ interface GoogleMapProps {
   onBusinessSelect: (business: Business | null) => void;
   selectedBusiness: Business | null;
   onMapSettingsClick?: () => void;
+  onBookNow?: (businessId: string) => void;
 }
 
 const DEFAULT_CENTER = { lat: -1.2921, lng: 36.8219 };
 
-export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
+export const GoogleMap: React.FC<GoogleMapProps> = ({
   businesses,
   userLocation,
   onBusinessSelect,
@@ -207,3 +208,6 @@ export const BusinessDiscoveryGoogleMap: React.FC<GoogleMapProps> = ({
     </div>
   );
 };
+
+// Also export as default for compatibility
+export default GoogleMap;

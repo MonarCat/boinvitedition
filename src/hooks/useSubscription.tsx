@@ -52,7 +52,7 @@ export const useSubscription = () => {
     subscription.status === 'active' && 
     new Date(subscription.current_period_end) > new Date();
 
-  // Create or upgrade subscription using the new database function
+  // Create or upgrade subscription using a direct database call
   const createSubscriptionMutation = useMutation({
     mutationFn: async ({ 
       planType, 
@@ -69,16 +69,40 @@ export const useSubscription = () => {
     }) => {
       console.log('Creating subscription:', { planType, businessId, paystackReference });
       
-      // Use the new database function for subscription updates
-      const { data, error } = await supabase.rpc('update_subscription_after_payment', {
-        p_business_id: businessId,
-        p_plan_type: planType,
-        p_paystack_reference: paystackReference || null
-      });
+      // Create the subscription directly via SQL insert
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .upsert({
+          user_id: user?.id,
+          business_id: businessId,
+          plan_type: planType,
+          status: 'active',
+          current_period_end: new Date(Date.now() + (planType === 'trial' ? 7 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000)).toISOString(),
+          staff_limit: planType === 'trial' ? 3 : planType === 'starter' ? 5 : planType === 'medium' ? 15 : null,
+          bookings_limit: planType === 'trial' ? 100 : planType === 'starter' ? 1000 : planType === 'medium' ? 5000 : null,
+          payment_interval: planType === 'trial' ? 'trial' : paymentInterval
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('Subscription update error:', error);
         throw error;
+      }
+
+      // Record payment transaction if paystack reference provided
+      if (paystackReference) {
+        await supabase
+          .from('payment_transactions')
+          .insert({
+            business_id: businessId,
+            subscription_id: data.id,
+            transaction_type: 'subscription',
+            status: 'completed',
+            paystack_reference: paystackReference,
+            amount: amount || 0,
+            currency: 'KES'
+          });
       }
 
       console.log('Subscription updated successfully:', data);

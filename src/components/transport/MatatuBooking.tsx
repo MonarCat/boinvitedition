@@ -17,6 +17,16 @@ interface Route {
   departure_time: string;
 }
 
+interface TransportDetails {
+  routes?: Route[];
+  vehicle_info?: {
+    sacco_name?: string;
+    plate_number?: string;
+    seat_count?: number;
+    driver_phone?: string;
+  };
+}
+
 interface MatatuBookingProps {
   serviceId: string;
   businessId: string;
@@ -66,8 +76,11 @@ export const MatatuBooking: React.FC<MatatuBookingProps> = ({
 
       if (error) throw error;
 
-      if (data?.transport_details?.routes) {
-        setRoutes(data.transport_details.routes);
+      if (data?.transport_details) {
+        const transportDetails = data.transport_details as TransportDetails;
+        if (transportDetails.routes) {
+          setRoutes(transportDetails.routes);
+        }
       }
     } catch (error) {
       console.error('Error fetching routes:', error);
@@ -111,9 +124,38 @@ export const MatatuBooking: React.FC<MatatuBookingProps> = ({
     setIsLoading(true);
 
     try {
+      // First, create or get a client record
+      let clientId = '';
+      
+      const { data: existingClient, error: clientError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('business_id', businessId)
+        .eq('email', customerInfo.email || customerInfo.phone)
+        .maybeSingle();
+
+      if (existingClient) {
+        clientId = existingClient.id;
+      } else {
+        const { data: newClient, error: newClientError } = await supabase
+          .from('clients')
+          .insert({
+            business_id: businessId,
+            name: customerInfo.name,
+            phone: customerInfo.phone,
+            email: customerInfo.email || customerInfo.phone + '@placeholder.com'
+          })
+          .select()
+          .single();
+
+        if (newClientError) throw newClientError;
+        clientId = newClient.id;
+      }
+
       const bookingData = {
         service_id: serviceId,
         business_id: businessId,
+        client_id: clientId,
         booking_date: new Date().toISOString().split('T')[0],
         booking_time: selectedRoute.departure_time,
         duration_minutes: parseInt(selectedRoute.duration.split(' ')[0]) * 60,

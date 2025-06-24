@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Star, Zap, Users, Calendar } from 'lucide-react';
-import { MultiProviderPayment } from '@/components/payment/MultiProviderPayment';
+import { DirectPaystackPayment, loadPaystackScript } from '@/components/payment/DirectPaystackPayment';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Plan {
@@ -38,7 +38,10 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  // Updated pricing structure
+  useEffect(() => {
+    loadPaystackScript().catch(console.error);
+  }, []);
+
   const plans: Plan[] = [
     {
       id: 'trial',
@@ -129,7 +132,12 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
 
   const handleSelectPlan = (plan: Plan) => {
     setSelectedPlan(plan);
-    setShowPaymentModal(true);
+    if (plan.id === 'trial') {
+      // Handle trial directly without payment
+      onSelectPlan(plan.id, plan.interval, plan.price);
+    } else {
+      setShowPaymentModal(true);
+    }
   };
 
   const handlePaymentSuccess = (reference: string) => {
@@ -224,12 +232,21 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
             <DialogTitle>Complete Your Subscription</DialogTitle>
           </DialogHeader>
           {selectedPlan && (
-            <MultiProviderPayment
-              plan={selectedPlan}
-              businessId={businessId}
-              customerEmail={customerEmail}
+            <DirectPaystackPayment
+              amount={selectedPlan.price}
+              currency={selectedPlan.currency}
+              email={customerEmail}
+              metadata={{
+                payment_type: 'subscription',
+                business_id: businessId,
+                plan_type: selectedPlan.id
+              }}
               onSuccess={handlePaymentSuccess}
               onError={handlePaymentError}
+              title={`Subscribe to ${selectedPlan.name}`}
+              description="Secure subscription payment powered by Paystack"
+              showClientDetails={false}
+              buttonText="Subscribe to"
             />
           )}
         </DialogContent>

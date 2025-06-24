@@ -15,7 +15,10 @@ serve(async (req) => {
     // Enhanced validation
     if (!clientEmail || !businessId || !amount) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
+        JSON.stringify({ 
+          success: false,
+          error: 'Missing required fields: clientEmail, businessId, and amount are required' 
+        }),
         { 
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -26,7 +29,10 @@ serve(async (req) => {
     // Security: Validate amount limits
     if (amount > 65000) {
       return new Response(
-        JSON.stringify({ error: 'Amount exceeds maximum limit of KSh 65,000' }),
+        JSON.stringify({ 
+          success: false,
+          error: 'Amount exceeds maximum limit of KSh 65,000' 
+        }),
         { 
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -36,7 +42,10 @@ serve(async (req) => {
 
     if (amount < 10) {
       return new Response(
-        JSON.stringify({ error: 'Minimum amount is KSh 10' }),
+        JSON.stringify({ 
+          success: false,
+          error: 'Minimum amount is KSh 10' 
+        }),
         { 
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -52,7 +61,17 @@ serve(async (req) => {
     // Get Paystack secret key
     const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY')
     if (!paystackSecretKey) {
-      throw new Error('Paystack secret key not configured')
+      console.error('Paystack secret key not configured')
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Payment service configuration error. Please contact support.' 
+        }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     // Create secure payment reference
@@ -134,14 +153,34 @@ serve(async (req) => {
     if (!paystackResponse.ok) {
       const errorText = await paystackResponse.text()
       console.error('Paystack API error:', errorText)
-      throw new Error(`Payment service error: ${paystackResponse.status}`)
+      
+      // Return a more user-friendly error
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Payment service temporarily unavailable. Please try again later.' 
+        }),
+        { 
+          status: 503,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     paystackData = await paystackResponse.json()
 
     if (!paystackData.status) {
       console.error('Paystack payment failed:', paystackData)
-      throw new Error(paystackData.message || 'Payment initialization failed')
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: paystackData.message || 'Payment initialization failed. Please try again.' 
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     // Create transaction record in Supabase
@@ -168,7 +207,7 @@ serve(async (req) => {
 
     if (insertError) {
       console.error('Error creating transaction record:', insertError)
-      // Don't fail the payment if logging fails
+      // Don't fail the payment if logging fails, but log the error
     }
 
     console.log('Payment initialized successfully:', {
@@ -215,7 +254,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message || 'Payment initialization failed'
+        error: 'An unexpected error occurred. Please try again later.'
       }),
       { 
         status: 500,

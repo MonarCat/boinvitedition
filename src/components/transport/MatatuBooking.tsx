@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -124,48 +123,60 @@ export const MatatuBooking: React.FC<MatatuBookingProps> = ({
     setIsLoading(true);
 
     try {
-      // First, create or get a client record
-      let clientId = '';
-      
-      const { data: existingClient, error: clientError } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('business_id', businessId)
-        .eq('email', customerInfo.email || customerInfo.phone)
-        .maybeSingle();
-
-      if (existingClient) {
-        clientId = existingClient.id;
-      } else {
-        const { data: newClient, error: newClientError } = await supabase
-          .from('clients')
-          .insert({
-            business_id: businessId,
-            name: customerInfo.name,
-            phone: customerInfo.phone,
-            email: customerInfo.email || customerInfo.phone + '@placeholder.com'
-          })
-          .select()
-          .single();
-
-        if (newClientError) throw newClientError;
-        clientId = newClient.id;
-      }
-
+      // Create booking directly without separate client creation
+      // Use a more robust approach for client handling
       const bookingData = {
         service_id: serviceId,
         business_id: businessId,
-        client_id: clientId,
         booking_date: new Date().toISOString().split('T')[0],
         booking_time: selectedRoute.departure_time,
         duration_minutes: parseInt(selectedRoute.duration.split(' ')[0]) * 60,
         total_amount: selectedRoute.price,
         customer_name: `${customerInfo.name} - Seat ${selectedSeat}`,
         customer_phone: customerInfo.phone,
-        customer_email: customerInfo.email,
+        customer_email: customerInfo.email || `${customerInfo.phone}@transport.booking`,
         notes: `Route: ${selectedRoute.origin} → ${selectedRoute.destination}, Seat: ${selectedSeat}`,
         status: 'pending_payment'
       };
+
+      // Try to find or create client first, but don't let it block the booking
+      let clientId = null;
+      try {
+        const { data: existingClient } = await supabase
+          .from('clients')
+          .select('id')
+          .eq('business_id', businessId)
+          .eq('phone', customerInfo.phone)
+          .maybeSingle();
+
+        if (existingClient) {
+          clientId = existingClient.id;
+        } else {
+          // Try to create client, but continue even if it fails
+          const { data: newClient } = await supabase
+            .from('clients')
+            .insert({
+              business_id: businessId,
+              name: customerInfo.name,
+              phone: customerInfo.phone,
+              email: customerInfo.email || `${customerInfo.phone}@transport.booking`
+            })
+            .select()
+            .maybeSingle();
+
+          if (newClient) {
+            clientId = newClient.id;
+          }
+        }
+      } catch (clientError) {
+        console.warn('Client creation failed, proceeding with booking:', clientError);
+        // Continue with booking even if client creation fails
+      }
+
+      // Add client_id if we have one, otherwise create booking without it
+      if (clientId) {
+        bookingData.client_id = clientId;
+      }
 
       const { data: booking, error } = await supabase
         .from('bookings')

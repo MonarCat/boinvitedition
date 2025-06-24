@@ -109,6 +109,10 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
         throw new Error('No business found');
       }
 
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       // Validate business access
       if (!validateBusinessAccess(business.id)) {
         throw new Error('Access denied');
@@ -128,7 +132,7 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
       const clientData = {
         business_id: business.id,
         name: sanitizeText(data.name, { maxLength: 100 }),
-        email: data.email ? sanitizeEmail(data.email) : null,
+        email: data.email ? sanitizeEmail(data.email) : `client-${Date.now()}@temp.local`,
         phone: data.phone ? sanitizePhone(data.phone) : null,
         address: data.address ? sanitizeText(data.address, { maxLength: 200 }) : null,
         notes: data.notes ? sanitizeText(data.notes, { maxLength: 500 }) : null,
@@ -139,20 +143,43 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
         throw new Error('Name cannot be empty after validation');
       }
 
+      console.log('Creating client with data:', clientData);
+
       if (client) {
+        // First verify ownership of the client being updated
+        const { data: existingClient, error: checkError } = await supabase
+          .from('clients')
+          .select('business_id')
+          .eq('id', client.id)
+          .single();
+
+        if (checkError || !existingClient) {
+          throw new Error('Client not found');
+        }
+
+        if (existingClient.business_id !== business.id) {
+          throw new Error('Access denied: Cannot update client from another business');
+        }
+
         const { error } = await supabase
           .from('clients')
           .update(clientData)
           .eq('id', client.id)
-          .eq('business_id', business.id); // Double-check ownership
+          .eq('business_id', business.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update error:', error);
+          throw error;
+        }
       } else {
         const { error } = await supabase
           .from('clients')
           .insert([clientData]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Insert error:', error);
+          throw error;
+        }
       }
     },
     onSuccess: () => {
@@ -162,7 +189,11 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
     },
     onError: (error) => {
       console.error('Client error:', error);
-      toast.error(`Failed to save client: ${error.message}`);
+      if (error.message.includes('row-level security')) {
+        toast.error('Access denied: You can only manage clients for your own business');
+      } else {
+        toast.error(`Failed to save client: ${error.message}`);
+      }
     },
   });
 

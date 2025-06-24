@@ -1,220 +1,388 @@
 
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Plane } from 'lucide-react';
-import { SeatSelectionMap } from './SeatSelectionMap';
-import { DurationSelector } from './DurationSelector';
-import { ServiceTypeSection } from './ServiceTypeSection';
-import { RouteSection } from './RouteSection';
-import { PassengerSection } from './PassengerSection';
-import { TimeSection } from './TimeSection';
-import { PricingSection } from './PricingSection';
-import { CURRENCIES } from '@/components/business/GlobalBusinessSettings';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Trash2, Bus, Car, Plane } from 'lucide-react';
+import { toast } from 'sonner';
 
-interface EnhancedTransportFormProps {
-  onSubmit: (data: any) => void;
-  defaultValues?: any;
-  businessId?: string;
-  isClientBooking?: boolean;
-  serviceDetails?: any;
+interface Route {
+  id: string;
+  origin: string;
+  destination: string;
+  price: number;
+  duration: string;
+  departure_time: string;
 }
 
-export const EnhancedTransportForm = ({ 
-  onSubmit, 
-  defaultValues, 
-  businessId, 
-  isClientBooking = false,
-  serviceDetails 
-}: EnhancedTransportFormProps) => {
-  const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
+interface TransportDetails {
+  service_type: 'matatu' | 'bus' | 'taxi' | 'flight';
+  vehicle_info: {
+    sacco_name?: string;
+    plate_number?: string;
+    seat_count?: number;
+    driver_phone?: string;
+    vehicle_model?: string;
+  };
+  routes: Route[];
+  booking_policy: string;
+  cancellation_policy: string;
+}
 
-  // Fetch business currency and logo
-  const { data: business } = useQuery({
-    queryKey: ['business', businessId],
-    queryFn: async () => {
-      if (!businessId) return null;
-      const { data, error } = await supabase
-        .from('businesses')
-        .select('currency, logo_url, name')
-        .eq('id', businessId)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!businessId,
-  });
+interface EnhancedTransportFormProps {
+  onSave: (transportDetails: TransportDetails) => void;
+  initialData?: TransportDetails;
+  isLoading?: boolean;
+}
 
-  // Get pre-filled service details for client booking
-  const prefilledData = isClientBooking && serviceDetails ? {
-    service_type: serviceDetails.service_type || 'bus',
-    departure_country: serviceDetails.departure_location?.split(', ')[1] || '',
-    departure_city: serviceDetails.departure_location?.split(', ')[0] || '',
-    arrival_country: serviceDetails.arrival_location?.split(', ')[1] || '',
-    arrival_city: serviceDetails.arrival_location?.split(', ')[0] || '',
-    departure_time: serviceDetails.departure_time || '',
-    arrival_time: serviceDetails.arrival_time || '',
-    service_class: serviceDetails.service_class || 'Economy',
-    available_seats: serviceDetails.available_seats || 50,
-    price_per_seat: serviceDetails.price_per_seat || 0,
-    duration_hours: serviceDetails.duration_hours || 0,
-    duration_minutes: serviceDetails.duration_minutes || 0,
-    adults: 1,
-    children: 0,
-    infants: 0,
-    ...defaultValues
-  } : {
-    service_type: 'bus',
-    departure_country: '',
-    departure_city: '',
-    arrival_country: '',
-    arrival_city: '',
-    departure_time: '',
-    arrival_time: '',
-    adults: 1,
-    children: 0,
-    infants: 0,
-    service_class: 'Economy',
-    available_seats: 50,
-    price_per_seat: 0,
-    ...defaultValues
+export const EnhancedTransportForm: React.FC<EnhancedTransportFormProps> = ({
+  onSave,
+  initialData,
+  isLoading = false
+}) => {
+  const [transportDetails, setTransportDetails] = useState<TransportDetails>(
+    initialData || {
+      service_type: 'matatu',
+      vehicle_info: {
+        sacco_name: '',
+        plate_number: '',
+        seat_count: 14,
+        driver_phone: '',
+        vehicle_model: ''
+      },
+      routes: [],
+      booking_policy: 'Booking must be made at least 30 minutes before departure.',
+      cancellation_policy: 'Free cancellation up to 2 hours before departure.'
+    }
+  );
+
+  const addRoute = () => {
+    const newRoute: Route = {
+      id: Date.now().toString(),
+      origin: '',
+      destination: '',
+      price: 0,
+      duration: '',
+      departure_time: ''
+    };
+    
+    setTransportDetails(prev => ({
+      ...prev,
+      routes: [...prev.routes, newRoute]
+    }));
   };
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
-    defaultValues: prefilledData
-  });
-
-  const serviceType = watch('service_type');
-  const adults = watch('adults');
-  const children = watch('children');
-  const totalPassengers = adults + children;
-
-  const getCurrencySymbol = (currency: string) => {
-    const currencyData = CURRENCIES.find(c => c.code === currency);
-    return currencyData?.symbol || '$';
+  const updateRoute = (routeId: string, field: keyof Route, value: string | number) => {
+    setTransportDetails(prev => ({
+      ...prev,
+      routes: prev.routes.map(route =>
+        route.id === routeId ? { ...route, [field]: value } : route
+      )
+    }));
   };
 
-  const businessCurrency = business?.currency || 'USD';
-  const currencySymbol = getCurrencySymbol(businessCurrency);
+  const removeRoute = (routeId: string) => {
+    setTransportDetails(prev => ({
+      ...prev,
+      routes: prev.routes.filter(route => route.id !== routeId)
+    }));
+  };
 
-  const handleFormSubmit = (data: any) => {
-    if (isClientBooking) {
-      // For client bookings, include selected seats and passenger info
-      const bookingData = {
-        service_id: serviceDetails?.id,
-        selected_seats: selectedSeats,
-        passenger_info: {
-          adults: data.adults,
-          children: data.children,
-          infants: data.infants
-        },
-        total_amount: selectedSeats.length * data.price_per_seat,
-        booking_date: new Date().toISOString().split('T')[0],
-        booking_time: data.departure_time,
-        currency: businessCurrency
-      };
-      onSubmit(bookingData);
-    } else {
-      // For business setup, save transport details
-      const transportDetails = {
-        service_type: data.service_type,
-        departure_location: `${data.departure_city}, ${data.departure_country}`,
-        arrival_location: `${data.arrival_city}, ${data.arrival_country}`,
-        departure_time: data.departure_time,
-        arrival_time: data.arrival_time,
-        duration_hours: data.duration_hours || 0,
-        duration_minutes: data.duration_minutes || 0,
-        service_class: data.service_class,
-        available_seats: data.available_seats,
-        price_per_seat: data.price_per_seat,
-        currency: businessCurrency
-      };
-      onSubmit(transportDetails);
+  const updateVehicleInfo = (field: keyof TransportDetails['vehicle_info'], value: string | number) => {
+    setTransportDetails(prev => ({
+      ...prev,
+      vehicle_info: {
+        ...prev.vehicle_info,
+        [field]: value
+      }
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (transportDetails.routes.length === 0) {
+      toast.error('Please add at least one route');
+      return;
+    }
+
+    const incompleteRoute = transportDetails.routes.find(
+      route => !route.origin || !route.destination || !route.price || !route.departure_time
+    );
+
+    if (incompleteRoute) {
+      toast.error('Please complete all route information');
+      return;
+    }
+
+    onSave(transportDetails);
+  };
+
+  const getServiceIcon = (type: string) => {
+    switch (type) {
+      case 'matatu':
+      case 'bus':
+        return <Bus className="w-4 h-4" />;
+      case 'taxi':
+        return <Car className="w-4 h-4" />;
+      case 'flight':
+        return <Plane className="w-4 h-4" />;
+      default:
+        return <Bus className="w-4 h-4" />;
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {serviceType === 'flight' ? <Plane className="h-5 w-5" /> : <MapPin className="h-5 w-5" />}
-            <CardTitle>
-              {isClientBooking ? 'Book Your Transport' : 'Enhanced Transport Service Details'}
-            </CardTitle>
-          </div>
-          {business?.logo_url && (
-            <img 
-              src={business.logo_url} 
-              alt={business.name}
-              className="h-12 w-auto object-contain"
-            />
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-          {!isClientBooking && <ServiceTypeSection setValue={setValue} watch={watch} />}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Service Type */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Transport Service Type</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select
+            value={transportDetails.service_type}
+            onValueChange={(value: 'matatu' | 'bus' | 'taxi' | 'flight') =>
+              setTransportDetails(prev => ({ ...prev, service_type: value }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="matatu">
+                <div className="flex items-center gap-2">
+                  <Bus className="w-4 h-4" />
+                  Matatu
+                </div>
+              </SelectItem>
+              <SelectItem value="bus">
+                <div className="flex items-center gap-2">
+                  <Bus className="w-4 h-4" />
+                  Bus
+                </div>
+              </SelectItem>
+              <SelectItem value="taxi">
+                <div className="flex items-center gap-2">
+                  <Car className="w-4 h-4" />
+                  Taxi/Private Car
+                </div>
+              </SelectItem>
+              <SelectItem value="flight">
+                <div className="flex items-center gap-2">
+                  <Plane className="w-4 h-4" />
+                  Flight
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
 
-          <RouteSection 
-            register={register} 
-            setValue={setValue} 
-            watch={watch}
-            readOnly={isClientBooking}
-          />
-
-          <PassengerSection register={register} />
-
-          <TimeSection 
-            register={register}
-            readOnly={isClientBooking}
-          />
-
-          {!isClientBooking && (
-            <DurationSelector
-              hours={watch('duration_hours') || 0}
-              minutes={watch('duration_minutes') || 0}
-              onHoursChange={(hours) => setValue('duration_hours', hours)}
-              onMinutesChange={(minutes) => setValue('duration_minutes', minutes)}
-            />
-          )}
-
-          {isClientBooking && serviceDetails?.duration_hours && (
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h3 className="font-medium">Journey Duration</h3>
-              <p className="text-sm text-gray-600">
-                {serviceDetails.duration_hours}h {serviceDetails.duration_minutes || 0}m
-              </p>
+      {/* Vehicle Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {getServiceIcon(transportDetails.service_type)}
+            Vehicle Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {(transportDetails.service_type === 'matatu' || transportDetails.service_type === 'bus') && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="sacco_name">Sacco/Company Name</Label>
+                <Input
+                  id="sacco_name"
+                  value={transportDetails.vehicle_info.sacco_name || ''}
+                  onChange={(e) => updateVehicleInfo('sacco_name', e.target.value)}
+                  placeholder="e.g., 2NK, North Rift Shuttles"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="plate_number">Vehicle Plate Number</Label>
+                <Input
+                  id="plate_number"
+                  value={transportDetails.vehicle_info.plate_number || ''}
+                  onChange={(e) => updateVehicleInfo('plate_number', e.target.value)}
+                  placeholder="e.g., KCA 123A"
+                />
+              </div>
             </div>
           )}
 
-          <PricingSection 
-            register={register} 
-            watch={watch} 
-            currencySymbol={currencySymbol}
-            readOnly={isClientBooking}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="seat_count">Passenger Capacity</Label>
+              <Input
+                id="seat_count"
+                type="number"
+                value={transportDetails.vehicle_info.seat_count || ''}
+                onChange={(e) => updateVehicleInfo('seat_count', parseInt(e.target.value))}
+                placeholder="14"
+                min="1"
+              />
+            </div>
 
-          {totalPassengers > 0 && (
-            <SeatSelectionMap
-              serviceType={serviceType}
-              totalSeats={watch('available_seats')}
-              occupiedSeats={serviceDetails?.occupied_seats || []}
-              onSeatSelect={setSelectedSeats}
-              passengerCount={totalPassengers}
-              selectedSeats={selectedSeats}
+            <div>
+              <Label htmlFor="driver_phone">Driver/Contact Phone</Label>
+              <Input
+                id="driver_phone"
+                type="tel"
+                value={transportDetails.vehicle_info.driver_phone || ''}
+                onChange={(e) => updateVehicleInfo('driver_phone', e.target.value)}
+                placeholder="254712345678"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="vehicle_model">Vehicle Model (Optional)</Label>
+            <Input
+              id="vehicle_model"
+              value={transportDetails.vehicle_info.vehicle_model || ''}
+              onChange={(e) => updateVehicleInfo('vehicle_model', e.target.value)}
+              placeholder="e.g., Toyota Hiace, Nissan Matatu"
             />
-          )}
+          </div>
+        </CardContent>
+      </Card>
 
-          <Button type="submit" className="w-full">
-            {isClientBooking ? 'Proceed to Payment' : 'Save Enhanced Transport Service'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+      {/* Routes */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Routes & Schedules</CardTitle>
+            <Button type="button" onClick={addRoute} size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Route
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {transportDetails.routes.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Bus className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>No routes added yet</p>
+              <Button type="button" onClick={addRoute} variant="outline" className="mt-2">
+                Add Your First Route
+              </Button>
+            </div>
+          ) : (
+            transportDetails.routes.map((route, index) => (
+              <Card key={route.id} className="border-2">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="outline">Route {index + 1}</Badge>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeRoute(route.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Origin</Label>
+                      <Input
+                        value={route.origin}
+                        onChange={(e) => updateRoute(route.id, 'origin', e.target.value)}
+                        placeholder="Starting point"
+                      />
+                    </div>
+                    <div>
+                      <Label>Destination</Label>
+                      <Input
+                        value={route.destination}
+                        onChange={(e) => updateRoute(route.id, 'destination', e.target.value)}
+                        placeholder="End point"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label>Price (KSh)</Label>
+                      <Input
+                        type="number"
+                        value={route.price}
+                        onChange={(e) => updateRoute(route.id, 'price', parseFloat(e.target.value))}
+                        placeholder="1200"
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <Label>Duration</Label>
+                      <Input
+                        value={route.duration}
+                        onChange={(e) => updateRoute(route.id, 'duration', e.target.value)}
+                        placeholder="4 hours"
+                      />
+                    </div>
+                    <div>
+                      <Label>Departure Time</Label>
+                      <Input
+                        type="time"
+                        value={route.departure_time}
+                        onChange={(e) => updateRoute(route.id, 'departure_time', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Policies */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Booking & Cancellation Policies</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="booking_policy">Booking Policy</Label>
+            <Textarea
+              id="booking_policy"
+              value={transportDetails.booking_policy}
+              onChange={(e) => setTransportDetails(prev => ({
+                ...prev,
+                booking_policy: e.target.value
+              }))}
+              placeholder="Describe your booking requirements..."
+              rows={3}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="cancellation_policy">Cancellation Policy</Label>
+            <Textarea
+              id="cancellation_policy"
+              value={transportDetails.cancellation_policy}
+              onChange={(e) => setTransportDetails(prev => ({
+                ...prev,
+                cancellation_policy: e.target.value
+              }))}
+              placeholder="Describe your cancellation terms..."
+              rows={3}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+        {isLoading ? 'Saving...' : 'Save Transport Service'}
+      </Button>
+    </form>
   );
 };

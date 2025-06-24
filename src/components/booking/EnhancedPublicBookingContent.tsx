@@ -6,6 +6,7 @@ import { EmptyServiceSelection } from './EmptyServiceSelection';
 import { PublicBookingCalendar } from './PublicBookingCalendar';
 import { BusinessPaymentInstructions } from '@/components/business/BusinessPaymentInstructions';
 import { MobileBookingHeader } from './MobileBookingHeader';
+import { MatatuBooking } from '@/components/transport/MatatuBooking';
 
 interface Service {
   id: string;
@@ -14,6 +15,8 @@ interface Service {
   price: number;
   duration_minutes: number;
   currency?: string;
+  is_transport_service?: boolean;
+  transport_details?: any;
 }
 
 interface EnhancedPublicBookingContentProps {
@@ -35,6 +38,12 @@ export const EnhancedPublicBookingContent: React.FC<EnhancedPublicBookingContent
 
   const handleBackToServices = () => {
     setSelectedService(null);
+  };
+
+  const handleBookingComplete = (bookingId: string) => {
+    console.log('Booking completed:', bookingId);
+    // Handle booking completion (e.g., redirect to payment)
+    handleBackToServices();
   };
 
   const BookingContent = () => (
@@ -65,11 +74,27 @@ export const EnhancedPublicBookingContent: React.FC<EnhancedPublicBookingContent
           >
             ← Back to Services
           </button>
-          <PublicBookingCalendar 
-            businessId={businessId} 
-            selectedService={selectedService}
-            onBookingComplete={handleBackToServices}
-          />
+          
+          {selectedService.is_transport_service ? (
+            <MatatuBooking
+              serviceId={selectedService.id}
+              businessId={businessId}
+              vehicle={{
+                id: selectedService.id,
+                sacco_name: selectedService.transport_details?.vehicle_info?.sacco_name || 'Transport Service',
+                plate_number: selectedService.transport_details?.vehicle_info?.plate_number || 'N/A',
+                seat_count: selectedService.transport_details?.vehicle_info?.seat_count || 14,
+                driver_phone: selectedService.transport_details?.vehicle_info?.driver_phone || ''
+              }}
+              onBookingComplete={handleBookingComplete}
+            />
+          ) : (
+            <PublicBookingCalendar 
+              businessId={businessId} 
+              selectedService={selectedService}
+              onBookingComplete={handleBackToServices}
+            />
+          )}
         </div>
       )}
     </div>

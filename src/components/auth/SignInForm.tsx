@@ -51,7 +51,7 @@ const SignInForm: React.FC<SignInFormProps> = ({
           user_agent: navigator.userAgent
         });
 
-        monitorFailedLogins(currentAttempts);
+        monitorFailedLogins(email);
         setError(error.message);
         onError?.(error.message);
       } else {

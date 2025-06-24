@@ -95,7 +95,7 @@ export const logSecurityEvent = (eventType: string, details: Record<string, any>
   });
   
   // Additional logging can be added here - only if gtag is available
-  if (typeof window !== 'undefined' && window.gtag) {
+  if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
     try {
       window.gtag('event', 'security_event', {
         event_category: 'security',

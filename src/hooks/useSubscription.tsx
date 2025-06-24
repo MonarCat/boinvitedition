@@ -52,7 +52,7 @@ export const useSubscription = () => {
     subscription.status === 'active' && 
     new Date(subscription.current_period_end) > new Date();
 
-  // Create or upgrade subscription
+  // Create or upgrade subscription using the new database function
   const createSubscriptionMutation = useMutation({
     mutationFn: async ({ 
       planType, 
@@ -67,65 +67,26 @@ export const useSubscription = () => {
       amount?: number;
       paystackReference?: string;
     }) => {
-      if (planType === 'trial') {
-        const trialEndDate = new Date();
-        trialEndDate.setDate(trialEndDate.getDate() + 7);
-        
-        const { data, error } = await supabase
-          .from('subscriptions')
-          .upsert({
-            user_id: user?.id,
-            business_id: businessId,
-            plan_type: 'trial',
-            status: 'active',
-            trial_ends_at: trialEndDate.toISOString(),
-            current_period_end: trialEndDate.toISOString(),
-            payment_interval: paymentInterval,
-            staff_limit: 3,
-            bookings_limit: 100
-          }, {
-            onConflict: 'business_id'
-          })
-          .select()
-          .single();
-        
-        if (error) throw error;
-        return data;
-      } else {
-        // Handle paid subscription plans
-        const planLimits = {
-          starter: { staff_limit: 5, bookings_limit: 1000 },
-          medium: { staff_limit: 15, bookings_limit: 5000 },
-          premium: { staff_limit: null, bookings_limit: null }
-        };
+      console.log('Creating subscription:', { planType, businessId, paystackReference });
+      
+      // Use the new database function for subscription updates
+      const { data, error } = await supabase.rpc('update_subscription_after_payment', {
+        p_business_id: businessId,
+        p_plan_type: planType,
+        p_paystack_reference: paystackReference || null
+      });
 
-        const limits = planLimits[planType as keyof typeof planLimits] || planLimits.starter;
-        const subscriptionEndDate = new Date();
-        subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + 1);
-
-        const { data, error } = await supabase
-          .from('subscriptions')
-          .upsert({
-            user_id: user?.id,
-            business_id: businessId,
-            plan_type: planType,
-            status: 'active',
-            current_period_end: subscriptionEndDate.toISOString(),
-            payment_interval: paymentInterval,
-            staff_limit: limits.staff_limit,
-            bookings_limit: limits.bookings_limit,
-            paystack_reference: paystackReference
-          }, {
-            onConflict: 'business_id'
-          })
-          .select()
-          .single();
-        
-        if (error) throw error;
-        return data;
+      if (error) {
+        console.error('Subscription update error:', error);
+        throw error;
       }
+
+      console.log('Subscription updated successfully:', data);
+      return data;
     },
     onSuccess: (data, variables) => {
+      console.log('Subscription mutation success:', { data, variables });
+      
       if (variables.planType === 'trial') {
         toast.success('Free trial started! You have 7 days of full access.');
       } else {
@@ -140,9 +101,11 @@ export const useSubscription = () => {
           toast.success(`Successfully subscribed to ${variables.planType} plan!`);
         }
       }
+      
+      // Invalidate and refetch subscription data
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Subscription error:', error);
       toast.error('Failed to update subscription. Please try again.');
     },

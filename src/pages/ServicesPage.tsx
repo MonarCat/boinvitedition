@@ -6,7 +6,7 @@ import { EnhancedServiceForm } from '@/components/services/EnhancedServiceForm';
 import { BusinessHours } from '@/components/business/BusinessHours';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { UnifiedQRGenerator } from '@/components/qr/UnifiedQRGenerator';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -51,34 +51,34 @@ const ServicesPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Services</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Services</h1>
             <p className="text-gray-600">Manage your business services with global currency support</p>
           </div>
-          <Sheet open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <SheetTrigger asChild>
-              <Button onClick={handleCreateService} className="flex items-center gap-2">
+          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={handleCreateService} className="flex items-center gap-2 w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
                 Add Service
               </Button>
-            </SheetTrigger>
-            <SheetContent className="w-[700px] sm:max-w-[700px] overflow-hidden">
-              <SheetHeader>
-                <SheetTitle>{editingService ? 'Edit Service' : 'Create New Service'}</SheetTitle>
-                <SheetDescription>
+            </DialogTrigger>
+            <DialogContent className="w-full max-w-4xl max-h-[90vh] overflow-hidden p-0">
+              <DialogHeader className="p-6 pb-4">
+                <DialogTitle>{editingService ? 'Edit Service' : 'Create New Service'}</DialogTitle>
+                <DialogDescription>
                   {editingService ? 'Update your service details' : 'Add a new service with enhanced categories and currency support'}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="mt-4 h-full">
+                </DialogDescription>
+              </DialogHeader>
+              <div className="px-6 pb-6 overflow-y-auto max-h-[calc(90vh-120px)]">
                 <EnhancedServiceForm 
                   service={editingService} 
                   onSuccess={handleFormClose}
                   onCancel={handleFormClose}
                 />
               </div>
-            </SheetContent>
-          </Sheet>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <ServicesList onEditService={handleEditService} />
@@ -86,7 +86,7 @@ const ServicesPage = () => {
         {/* Business Hours Section */}
         {business && (
           <div className="mt-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Business Hours</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Business Hours</h2>
             <BusinessHours 
               businessId={business.id} 
               currentHours={business.business_hours || {}}
@@ -96,7 +96,7 @@ const ServicesPage = () => {
 
         {/* Unified QR Code Section */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Service Booking QR Code</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Service Booking QR Code</h2>
           <p className="text-gray-600 mb-4">
             Display this QR code at your location. Customers can scan it to view and book your services directly.
           </p>

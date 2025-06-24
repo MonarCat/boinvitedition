@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Smartphone, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { PaymentErrorHandler } from './PaymentErrorHandler';
 
 interface MpesaPaymentProps {
   amount: number;
@@ -27,6 +28,7 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
 }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const formatPhoneNumber = (phone: string) => {
     // Remove all non-digit characters
@@ -43,22 +45,28 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
   };
 
   const handlePayment = async () => {
+    setError(null);
+    
     if (!phoneNumber.trim()) {
-      toast.error('Please enter your M-Pesa phone number');
+      const errorMsg = 'Please enter your M-Pesa phone number';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     const formattedPhone = formatPhoneNumber(phoneNumber);
     
     if (formattedPhone.length !== 12) {
-      toast.error('Please enter a valid phone number (e.g., 0712345678)');
+      const errorMsg = 'Please enter a valid phone number (e.g., 0712345678)';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('client-to-business-payment', {
+      const { data, error: funcError } = await supabase.functions.invoke('client-to-business-payment', {
         body: {
           clientEmail,
           clientPhone: formattedPhone,
@@ -69,27 +77,42 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
         }
       });
 
-      if (error) {
-        console.error('Payment error:', error);
-        onError('Payment failed. Please try again.');
-        toast.error('Payment failed. Please try again.');
+      if (funcError) {
+        console.error('Payment error:', funcError);
+        const errorMsg = 'Payment failed. Please try again.';
+        setError(errorMsg);
+        onError(errorMsg);
+        toast.error(errorMsg);
         return;
       }
 
-      if (data.success) {
+      if (data?.success) {
         toast.success('Payment request sent! Check your phone for the M-Pesa prompt.');
         onSuccess();
       } else {
-        onError(data.error || 'Payment failed');
-        toast.error(data.error || 'Payment failed');
+        const errorMsg = data?.error || 'Payment failed';
+        setError(errorMsg);
+        onError(errorMsg);
+        toast.error(errorMsg);
       }
     } catch (error) {
       console.error('Payment error:', error);
-      onError('Payment failed. Please try again.');
-      toast.error('Payment failed. Please try again.');
+      const errorMsg = 'Payment failed. Please try again.';
+      setError(errorMsg);
+      onError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleRetry = () => {
+    setError(null);
+    handlePayment();
+  };
+
+  const handleDismissError = () => {
+    setError(null);
   };
 
   return (
@@ -101,6 +124,12 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <PaymentErrorHandler 
+          error={error}
+          onRetry={handleRetry}
+          onDismiss={handleDismissError}
+        />
+
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex justify-between items-center">
             <span className="font-medium">Amount to Pay:</span>

@@ -148,14 +148,19 @@ export const DirectPaystackPayment: React.FC<DirectPaystackPaymentProps> = ({
           client_phone: clientDetails.phone,
           client_name: clientDetails.name
         },
-        callback: async function(response: any) {
+        callback: function(response: any) {
           setIsProcessing(false);
           
           // Log successful transaction
-          await logTransaction(response.reference, 'completed');
-          
-          toast.success('Payment successful!');
-          onSuccess(response.reference);
+          logTransaction(response.reference, 'completed').then(() => {
+            toast.success('Payment successful!');
+            onSuccess(response.reference);
+          }).catch((error) => {
+            console.error('Transaction logging failed:', error);
+            // Still call onSuccess since payment was successful
+            toast.success('Payment successful!');
+            onSuccess(response.reference);
+          });
         },
         onClose: function() {
           setIsProcessing(false);

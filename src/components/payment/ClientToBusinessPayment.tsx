@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Smartphone, Loader2, CheckCircle } from 'lucide-react';
+import { CreditCard, Smartphone, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -94,7 +94,20 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
       }
 
       if (paymentData.success === false) {
-        throw new Error(paymentData.error || 'Payment initialization failed');
+        // Handle detailed error information
+        const errorMessage = paymentData.error || 'Payment initialization failed';
+        const errorDetails = paymentData.details || '';
+        
+        console.error('Payment failed:', { error: errorMessage, details: errorDetails });
+        
+        // Show user-friendly error message
+        if (errorDetails.includes('IP address') || errorDetails.includes('configuration')) {
+          throw new Error('Payment service is temporarily unavailable. Please try again later or contact support.');
+        } else if (errorDetails.includes('Invalid key') || errorDetails.includes('authentication')) {
+          throw new Error('Payment service authentication failed. Please contact support.');
+        } else {
+          throw new Error(errorMessage);
+        }
       }
 
       if (paymentData.success && paymentData.authorization_url) {
@@ -191,6 +204,17 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
               <Smartphone className="w-4 h-4 text-green-600" />
               <span className="text-sm">Mobile Money (M-Pesa, Airtel)</span>
               <Badge className="ml-auto bg-green-500">Available</Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* Important Notice */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5" />
+            <div className="text-sm text-amber-800">
+              <p className="font-medium mb-1">Payment Service Notice</p>
+              <p>If you experience any payment issues, please contact support. Our team is working to ensure smooth payment processing.</p>
             </div>
           </div>
         </div>

@@ -113,6 +113,21 @@ serve(async (req) => {
       );
     }
 
+    // Validate that we have a proper secret key (basic check)
+    if (!paystackSecretKey.startsWith('sk_')) {
+      console.error('Invalid Paystack secret key format');
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Payment service configuration error. Invalid API key format.' 
+        }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
     // Create secure payment reference
     const timestamp = Date.now();
     const randomId = Math.random().toString(36).substr(2, 9);
@@ -165,7 +180,7 @@ serve(async (req) => {
       });
     } else {
       // Initialize regular payment with Paystack
-      const origin = req.headers.get('origin') || 'https://prfowczgawhjapsdpncq.supabase.co';
+      const origin = req.headers.get('origin') || 'https://boinvit.com';
       
       console.log('Initiating regular payment with origin:', origin);
 
@@ -201,13 +216,40 @@ serve(async (req) => {
       const errorText = await paystackResponse.text();
       console.error('Paystack API error:', paystackResponse.status, errorText);
       
+      // Parse error response if possible
+      let errorMessage = 'Payment service temporarily unavailable. Please try again later.';
+      let errorDetails = '';
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.message) {
+          errorDetails = errorData.message;
+          
+          // Handle specific error cases
+          if (errorDetails.includes('IP address')) {
+            errorMessage = 'Payment service configuration issue. Please contact support.';
+          } else if (errorDetails.includes('Invalid key')) {
+            errorMessage = 'Payment service authentication failed. Please contact support.';
+          } else if (errorDetails.includes('amount')) {
+            errorMessage = 'Invalid payment amount. Please check and try again.';
+          } else {
+            errorMessage = `Payment failed: ${errorDetails}`;
+          }
+        }
+      } catch (parseError) {
+        console.error('Failed to parse Paystack error:', parseError);
+        errorDetails = errorText;
+      }
+      
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: 'Payment service temporarily unavailable. Please try again later.' 
+          error: errorMessage,
+          details: errorDetails,
+          status_code: paystackResponse.status
         }),
         { 
-          status: 503,
+          status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
@@ -221,7 +263,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: paystackData.message || 'Payment initialization failed. Please try again.' 
+          error: paystackData.message || 'Payment initialization failed. Please try again.',
+          paystack_error: paystackData
         }),
         { 
           status: 400,

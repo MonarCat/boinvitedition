@@ -162,11 +162,11 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
           >
             <div className="max-w-xs p-2">
               <h3 className="font-semibold text-base mb-1">{selectedBusiness.name}</h3>
-              {selectedBusiness.average_rating !== undefined && (
+              {selectedBusiness.average_rating !== undefined && selectedBusiness.average_rating !== null && (
                 <div className="flex items-center gap-1 mb-1 text-sm">
                   <span className="text-yellow-400">★</span>
                   {selectedBusiness.average_rating.toFixed(1)}
-                  {selectedBusiness.total_reviews !== undefined && (
+                  {selectedBusiness.total_reviews !== undefined && selectedBusiness.total_reviews !== null && (
                     <span className="ml-1 text-xs text-gray-500">
                       ({selectedBusiness.total_reviews} reviews)
                     </span>

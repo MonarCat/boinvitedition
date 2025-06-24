@@ -81,19 +81,30 @@ export const sanitizeWebhookPayload = (payload: any): any => {
   return sanitized;
 };
 
+// Extend Window interface for gtag
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 export const logSecurityEvent = (eventType: string, details: Record<string, any>) => {
   console.warn(`Security Event: ${eventType}`, {
     timestamp: new Date().toISOString(),
     ...details
   });
   
-  // Additional logging can be added here
+  // Additional logging can be added here - only if gtag is available
   if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', 'security_event', {
-      event_category: 'security',
-      event_label: eventType,
-      custom_parameter: JSON.stringify(details)
-    });
+    try {
+      window.gtag('event', 'security_event', {
+        event_category: 'security',
+        event_label: eventType,
+        custom_parameter: JSON.stringify(details)
+      });
+    } catch (error) {
+      console.warn('Failed to send analytics event:', error);
+    }
   }
 };
 

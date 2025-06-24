@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/input';
@@ -52,7 +51,7 @@ const SignInForm: React.FC<SignInFormProps> = ({
           user_agent: navigator.userAgent
         });
 
-        monitorFailedLogins();
+        monitorFailedLogins(currentAttempts);
         setError(error.message);
         onError?.(error.message);
       } else {

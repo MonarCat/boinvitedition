@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ReliableQRGenerator } from './ReliableQRGenerator';
+import { BusinessQRGenerator } from '@/components/business/BusinessQRGenerator';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -27,7 +27,7 @@ export const QRCodeGenerator = ({ businessId, businessName }: QRCodeGeneratorPro
 
   return (
     <div className="space-y-4">
-      <ReliableQRGenerator 
+      <BusinessQRGenerator 
         businessId={businessId} 
         businessName={businessName}
       />

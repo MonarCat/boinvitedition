@@ -21,21 +21,26 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
   const bookingUrl = `${window.location.origin}/book/${businessId}`;
   
   React.useEffect(() => {
-    if (canvasRef.current && businessId) {
-      QRCode.toCanvas(canvasRef.current, bookingUrl, {
-        width: 200,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF'
-        }
-      }, (error) => {
-        if (error) {
+    const generateQR = async () => {
+      if (canvasRef.current && businessId) {
+        try {
+          await QRCode.toCanvas(canvasRef.current, bookingUrl, {
+            width: 200,
+            margin: 2,
+            color: {
+              dark: '#000000',
+              light: '#FFFFFF'
+            }
+          });
+          console.log('QR Code generated successfully for:', bookingUrl);
+        } catch (error) {
           console.error('Error generating QR code:', error);
           toast.error('Failed to generate QR code');
         }
-      });
-    }
+      }
+    };
+
+    generateQR();
   }, [bookingUrl, businessId]);
 
   const downloadQR = () => {

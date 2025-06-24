@@ -27,11 +27,11 @@ serve(async (req) => {
     }
 
     // Security: Validate amount limits
-    if (amount > 65000) {
+    if (amount > 100000) {
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: 'Amount exceeds maximum limit of KSh 65,000' 
+          error: 'Amount exceeds maximum limit of KSh 100,000' 
         }),
         { 
           status: 400,
@@ -53,7 +53,7 @@ serve(async (req) => {
       )
     }
 
-    // Calculate platform fee (5% standard, 6% for instant payout)
+    // Calculate platform fee (5% standard)
     const platformFeeRate = 0.05
     const platformFee = amount * platformFeeRate
     const businessAmount = amount - platformFee
@@ -82,48 +82,8 @@ serve(async (req) => {
     let paystackResponse;
     let paystackData;
 
-    if (paymentMethod === 'mpesa' && clientPhone) {
-      // Format phone number for M-Pesa (ensure it starts with 254)
-      let formattedPhone = clientPhone.replace(/\D/g, '')
-      if (formattedPhone.startsWith('0')) {
-        formattedPhone = '254' + formattedPhone.slice(1)
-      }
-      if (!formattedPhone.startsWith('254')) {
-        formattedPhone = '254' + formattedPhone
-      }
-
-      console.log('Initiating M-Pesa payment for phone:', formattedPhone)
-
-      // Initialize M-Pesa payment with Paystack
-      paystackResponse = await fetch('https://api.paystack.co/charge', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${paystackSecretKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: clientEmail,
-          amount: amount * 100, // Convert to kobo
-          currency: 'KES',
-          mobile_money: {
-            phone: formattedPhone,
-            provider: 'mpesa'
-          },
-          reference: paymentReference,
-          metadata: {
-            business_id: businessId,
-            booking_id: bookingId,
-            client_email: clientEmail,
-            client_phone: clientPhone,
-            payment_type: 'client_to_business',
-            platform_fee: platformFee,
-            business_amount: businessAmount,
-            timestamp: timestamp
-          }
-        })
-      })
-    } else {
-      // Initialize regular payment with Paystack
+    try {
+      // Initialize payment with Paystack
       paystackResponse = await fetch('https://api.paystack.co/transaction/initialize', {
         method: 'POST',
         headers: {
@@ -148,92 +108,74 @@ serve(async (req) => {
           }
         })
       })
-    }
 
-    if (!paystackResponse.ok) {
-      const errorText = await paystackResponse.text()
-      console.error('Paystack API error:', errorText)
-      
-      // Return a more user-friendly error
-      return new Response(
-        JSON.stringify({ 
-          success: false,
-          error: 'Payment service temporarily unavailable. Please try again later.' 
-        }),
-        { 
-          status: 503,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
-    }
+      if (!paystackResponse.ok) {
+        const errorText = await paystackResponse.text()
+        console.error('Paystack API error:', errorText)
+        
+        // Return a more user-friendly error
+        return new Response(
+          JSON.stringify({ 
+            success: false,
+            error: 'Payment service temporarily unavailable. Please try again later.' 
+          }),
+          { 
+            status: 503,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        )
+      }
 
-    paystackData = await paystackResponse.json()
+      paystackData = await paystackResponse.json()
 
-    if (!paystackData.status) {
-      console.error('Paystack payment failed:', paystackData)
-      return new Response(
-        JSON.stringify({ 
-          success: false,
-          error: paystackData.message || 'Payment initialization failed. Please try again.' 
-        }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
-    }
+      if (!paystackData.status) {
+        console.error('Paystack payment failed:', paystackData)
+        return new Response(
+          JSON.stringify({ 
+            success: false,
+            error: paystackData.message || 'Payment initialization failed. Please try again.' 
+          }),
+          { 
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        )
+      }
 
-    // Create transaction record in Supabase
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+      // Create transaction record in Supabase
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    const { error: insertError } = await supabase
-      .from('client_business_transactions')
-      .insert({
-        client_email: clientEmail,
-        client_phone: clientPhone,
-        business_id: businessId,
-        booking_id: bookingId,
+      const { error: insertError } = await supabase
+        .from('client_business_transactions')
+        .insert({
+          client_email: clientEmail,
+          client_phone: clientPhone,
+          business_id: businessId,
+          booking_id: bookingId,
+          amount: amount,
+          platform_fee: platformFee,
+          business_amount: businessAmount,
+          payment_reference: paymentReference,
+          paystack_reference: paystackData.data.reference,
+          payment_method: paymentMethod,
+          status: 'pending'
+        })
+
+      if (insertError) {
+        console.error('Error creating transaction record:', insertError)
+        // Don't fail the payment if logging fails, but log the error
+      }
+
+      console.log('Payment initialized successfully:', {
+        reference: paymentReference,
         amount: amount,
-        platform_fee: platformFee,
-        business_amount: businessAmount,
-        payment_reference: paymentReference,
-        paystack_reference: paystackData.data.reference,
-        payment_method: paymentMethod,
-        status: 'pending'
+        businessId: businessId,
+        clientEmail: clientEmail
       })
 
-    if (insertError) {
-      console.error('Error creating transaction record:', insertError)
-      // Don't fail the payment if logging fails, but log the error
-    }
-
-    console.log('Payment initialized successfully:', {
-      reference: paymentReference,
-      amount: amount,
-      businessId: businessId,
-      clientEmail: clientEmail,
-      paymentMethod: paymentMethod
-    })
-
-    // Return appropriate response based on payment method
-    if (paymentMethod === 'mpesa') {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: 'M-Pesa payment initiated. Check your phone for the payment prompt.',
-          reference: paystackData.data.reference,
-          payment_reference: paymentReference,
-          status: paystackData.data.status
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      )
-    } else {
       return new Response(
         JSON.stringify({
           success: true,
@@ -245,6 +187,19 @@ serve(async (req) => {
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
+        }
+      )
+
+    } catch (fetchError) {
+      console.error('Network error calling Paystack:', fetchError)
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Network error. Please check your connection and try again.' 
+        }),
+        { 
+          status: 503,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }

@@ -28,43 +28,43 @@ const LandingPage = () => {
   const features = [
     {
       icon: Calendar,
-      title: "Smart Booking System",
-      description: "Advanced scheduling with automated reminders, capacity management, and real-time availability"
+      title: "Smart Booking",
+      points: ["Automated scheduling", "Real-time availability", "Capacity management"]
     },
     {
       icon: Users,
       title: "Client & Staff Management",
-      description: "Comprehensive profiles, attendance tracking, performance analytics, and team coordination"
+      points: ["Comprehensive profiles", "Attendance tracking", "Performance analytics"]
     },
     {
       icon: Receipt,
-      title: "Invoice & Payment Processing",
-      description: "Professional invoicing with integrated Paystack payments and multiple payment options"
+      title: "Invoice & Payments",
+      points: ["Professional invoicing", "Paystack integration", "Multiple payment options"]
     },
     {
       icon: BarChart3,
-      title: "Business Analytics & Reporting",
-      description: "Real-time insights, revenue tracking, performance metrics, and growth analytics"
+      title: "Business Analytics",
+      points: ["Real-time insights", "Revenue tracking", "Growth metrics"]
     },
     {
       icon: CreditCard,
-      title: "Payment Gateway Integration",
-      description: "Secure payment processing with mobile money, bank transfers, and card payments"
+      title: "Payment Gateway",
+      points: ["Secure processing", "Mobile money", "Bank transfers"]
     },
     {
       icon: UserCheck,
-      title: "Staff Performance & Attendance",
-      description: "Track staff productivity, manage schedules, and monitor business operations"
+      title: "Staff Performance",
+      points: ["Productivity tracking", "Schedule management", "Operations monitoring"]
     },
     {
       icon: Building2,
-      title: "Multi-Location Support",
-      description: "Manage multiple business locations from a single dashboard with centralized control"
+      title: "Multi-Location",
+      points: ["Centralized control", "Multiple locations", "Single dashboard"]
     },
     {
       icon: Shield,
       title: "Enterprise Security",
-      description: "Bank-grade security with 99.9% uptime guarantee and data protection"
+      points: ["Bank-grade security", "99.9% uptime", "Data protection"]
     }
   ];
 
@@ -248,27 +248,35 @@ const LandingPage = () => {
       <GlobalPartnersSlider />
 
       {/* Features Section */}
-      <section className="py-20 bg-white">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Complete Business Management Suite
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              From appointment scheduling to financial management, staff coordination to customer insights - 
-              we provide everything your business needs to thrive and scale.
+              Everything your business needs to thrive and scale in one platform
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <feature.icon className="h-10 w-10 text-royal-red mb-4" />
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+              <Card key={index} className="hover:shadow-lg transition-shadow border-l-4 border-l-royal-red">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <feature.icon className="h-6 w-6 text-royal-red" />
+                    <CardTitle className="text-lg">{feature.title}</CardTitle>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">{feature.description}</p>
+                <CardContent className="pt-0">
+                  <ul className="space-y-1 text-sm text-gray-600">
+                    {feature.points.map((point, pointIndex) => (
+                      <li key={pointIndex} className="flex items-start gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </CardContent>
               </Card>
             ))}

@@ -6,7 +6,7 @@ import { DashboardKPISection } from '@/components/dashboard/DashboardKPISection'
 import { DashboardQuickActions } from '@/components/dashboard/DashboardQuickActions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { EnhancedQRGenerator } from '@/components/qr/EnhancedQRGenerator';
+import { ReliableQRGenerator } from '@/components/qr/ReliableQRGenerator';
 import { EnhancedSecurityDashboard } from '@/components/security/EnhancedSecurityDashboard';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useAuth } from '@/hooks/useAuth';
@@ -59,17 +59,11 @@ const Dashboard = () => {
 
   const { isExporting, exportBookings, exportClients, exportStaff } = useSpreadsheetExport(business?.id || '');
 
-  console.log('Dashboard loaded with enhanced security features:', {
+  console.log('Dashboard loaded with QR code fix:', {
     business: business?.id, 
     user: user?.id,
     theme,
-    securityFeatures: {
-      'Enhanced RLS Policies': '✓ Active',
-      'Webhook Security': '✓ Hardened',
-      'Rate Limiting': '✓ Enhanced',
-      'Input Validation': '✓ Comprehensive',
-      'Security Monitoring': '✓ Real-time'
-    }
+    qrGenerator: 'ReliableQRGenerator'
   });
 
   return (
@@ -165,7 +159,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* QR Code Section - Using EnhancedQRGenerator */}
+        {/* QR Code Section - Using ReliableQRGenerator for better stability */}
         {business && (
           <Card>
             <CardHeader>
@@ -174,12 +168,12 @@ const Dashboard = () => {
                 Service Booking QR Code
               </CardTitle>
               <p className="text-sm text-gray-600">
-                Enhanced QR code for customers to easily book your services
+                Reliable QR code for customers to easily book your services
               </p>
             </CardHeader>
             <CardContent>
               <div className="flex justify-center">
-                <EnhancedQRGenerator 
+                <ReliableQRGenerator 
                   businessId={business.id} 
                   businessName={business.name || 'Your Business'}
                 />

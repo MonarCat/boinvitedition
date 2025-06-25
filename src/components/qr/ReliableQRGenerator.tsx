@@ -23,9 +23,9 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
   businessName
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isValidating, setIsValidating] = useState(false);
   const [validationStatus, setValidationStatus] = useState<'pending' | 'valid' | 'invalid'>('pending');
   const [qrGenerated, setQrGenerated] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   
   // Generate reliable booking URL
   const baseUrl = window.location.origin;
@@ -64,7 +64,7 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
         .from('businesses')
         .select('id, name, is_active')
         .eq('id', businessId)
-        .single();
+        .maybeSingle(); // Use maybeSingle to avoid errors when no data found
 
       if (error) {
         console.error('QR Generator: Database error:', error);

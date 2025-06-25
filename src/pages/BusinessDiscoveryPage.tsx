@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { BusinessMap } from '@/components/map/BusinessMap';
+import { FindServicesMap } from '@/components/map/FindServicesMap';
 
 const BusinessDiscoveryPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
-      <BusinessMap />
+      <FindServicesMap />
     </div>
   );
 };

@@ -36,7 +36,7 @@ export const BusinessPayoutSettings: React.FC<BusinessPayoutSettingsProps> = ({ 
         .from('business_payouts')
         .select('*')
         .eq('business_id', businessId)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         throw error;
@@ -61,23 +61,62 @@ export const BusinessPayoutSettings: React.FC<BusinessPayoutSettingsProps> = ({ 
   };
 
   const handleSave = async () => {
+    if (!businessId) {
+      toast.error('Business ID is required');
+      return;
+    }
+
     setIsSaving(true);
     try {
-      const { error } = await supabase
+      // First check if record exists
+      const { data: existingRecord } = await supabase
         .from('business_payouts')
-        .upsert({
-          business_id: businessId,
-          ...payoutSettings,
-          is_verified: false // Reset verification when updating
-        });
+        .select('id')
+        .eq('business_id', businessId)
+        .maybeSingle();
 
-      if (error) throw error;
+      const payoutData = {
+        business_id: businessId,
+        mpesa_number: payoutSettings.mpesa_number || null,
+        airtel_number: payoutSettings.airtel_number || null,
+        bank_account_number: payoutSettings.bank_account_number || null,
+        bank_name: payoutSettings.bank_name || null,
+        account_holder_name: payoutSettings.account_holder_name || null,
+        is_verified: false, // Reset verification when updating
+        updated_at: new Date().toISOString()
+      };
+
+      let result;
+      if (existingRecord) {
+        // Update existing record
+        result = await supabase
+          .from('business_payouts')
+          .update(payoutData)
+          .eq('business_id', businessId);
+      } else {
+        // Insert new record
+        result = await supabase
+          .from('business_payouts')
+          .insert(payoutData);
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
 
       toast.success('Payout settings saved successfully');
       await loadPayoutSettings();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving payout settings:', error);
-      toast.error('Failed to save payout settings');
+      
+      // Provide specific error messages based on the error type
+      if (error.code === '23505') {
+        toast.error('Duplicate entry detected. Please refresh and try again.');
+      } else if (error.message) {
+        toast.error(`Failed to save: ${error.message}`);
+      } else {
+        toast.error('Failed to save payout settings. Please try again.');
+      }
     } finally {
       setIsSaving(false);
     }
@@ -86,8 +125,35 @@ export const BusinessPayoutSettings: React.FC<BusinessPayoutSettingsProps> = ({ 
   const handleInputChange = (field: string, value: string) => {
     setPayoutSettings(prev => ({
       ...prev,
-      [field]: value
+      [field]: value.trim()
     }));
+  };
+
+  const validateForm = () => {
+    const { mpesa_number, airtel_number, bank_account_number, bank_name, account_holder_name } = payoutSettings;
+    
+    // Check if at least one payment method is provided
+    const hasMobilePayment = mpesa_number || airtel_number;
+    const hasBankPayment = bank_account_number && bank_name && account_holder_name;
+    
+    if (!hasMobilePayment && !hasBankPayment) {
+      toast.error('Please provide at least one payment method');
+      return false;
+    }
+    
+    // Validate bank details if any bank field is filled
+    if ((bank_account_number || bank_name || account_holder_name) && !hasBankPayment) {
+      toast.error('Please complete all bank account details');
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleSaveWithValidation = () => {
+    if (validateForm()) {
+      handleSave();
+    }
   };
 
   if (isLoading) {
@@ -208,7 +274,7 @@ export const BusinessPayoutSettings: React.FC<BusinessPayoutSettingsProps> = ({ 
 
         {/* Save Button */}
         <Button 
-          onClick={handleSave} 
+          onClick={handleSaveWithValidation} 
           disabled={isSaving}
           className="w-full"
         >

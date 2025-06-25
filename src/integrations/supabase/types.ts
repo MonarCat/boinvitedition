@@ -1486,6 +1486,15 @@ export type Database = {
         Args: { p_event_type: string; p_description: string; p_metadata?: Json }
         Returns: string
       }
+      safe_rate_limit_check: {
+        Args: {
+          p_identifier: string
+          p_attempt_type: string
+          p_max_attempts?: number
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
       search_businesses_by_location: {
         Args: {
           search_lat: number

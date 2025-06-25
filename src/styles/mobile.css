@@ -1,63 +1,5 @@
 
-/* Mobile-First PWA Styles */
-
-/* Safe Area Support */
-.safe-area-pt { padding-top: env(safe-area-inset-top); }
-.safe-area-pr { padding-right: env(safe-area-inset-right); }
-.safe-area-pb { padding-bottom: env(safe-area-inset-bottom); }
-.safe-area-pl { padding-left: env(safe-area-inset-left); }
-
-/* Touch Optimizations */
-.touch-target {
-  min-height: 44px;
-  min-width: 44px;
-}
-
-/* Disable text selection for UI elements */
-.no-select {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-/* Native app-like scrolling */
-.native-scroll {
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
-/* Hide scrollbars on mobile */
-@media (max-width: 768px) {
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-/* Smooth animations */
-.smooth-transform {
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  will-change: transform;
-}
-
-/* Tap highlight removal */
-.no-tap-highlight {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Full height on mobile */
-.mobile-full-height {
-  height: 100vh;
-  height: 100dvh; /* Dynamic viewport height for mobile browsers */
-}
+/* Mobile-First PWA Styles - Pure CSS only */
 
 /* Floating Action Button positioning */
 .fab-position {
@@ -102,35 +44,6 @@
   }
 }
 
-/* Haptic feedback simulation */
-.haptic-light {
-  transition: transform 0.1s ease;
-}
-
-.haptic-light:active {
-  transform: scale(0.98);
-}
-
-.haptic-medium {
-  transition: transform 0.15s ease;
-}
-
-.haptic-medium:active {
-  transform: scale(0.95);
-}
-
-/* Loading states */
-.skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: loading 1.5s infinite;
-}
-
-@keyframes loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
 /* Swipe gesture indicators */
 .swipe-indicator {
   position: absolute;
@@ -173,11 +86,4 @@
 .page-exit-active {
   transform: translateX(-100%);
   opacity: 0;
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .skeleton {
-    background: linear-gradient(90deg, #2a2a2a 25%, #1a1a1a 50%, #2a2a2a 75%);
-  }
 }

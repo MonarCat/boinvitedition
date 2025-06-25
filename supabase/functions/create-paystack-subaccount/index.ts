@@ -29,7 +29,7 @@ serve(async (req) => {
       business_name: businessName,
       settlement_bank: settlementBank || 'test-bank', // Default for testing
       account_number: accountNumber || '0123456789', // Default for testing
-      percentage_charge: 7.0, // Platform takes 7%
+      percentage_charge: 5.0, // Platform takes 5%, business gets 95%
       description: `Subaccount for ${businessName}`,
       primary_contact_email: businessEmail,
       primary_contact_name: businessName,
@@ -64,6 +64,7 @@ serve(async (req) => {
       .from('businesses')
       .update({
         paystack_subaccount_id: subaccountResult.data.subaccount_code,
+        payment_setup_complete: true,
         updated_at: new Date().toISOString()
       })
       .eq('id', businessId)
@@ -73,19 +74,19 @@ serve(async (req) => {
       throw new Error('Failed to save subaccount information')
     }
 
-    // Update subscription to enable auto-split
-    const { error: subscriptionError } = await supabase
-      .from('subscriptions')
-      .update({
+    // Update business payout settings
+    const { error: payoutError } = await supabase
+      .from('business_payouts')
+      .upsert({
+        business_id: businessId,
+        paystack_subaccount_code: subaccountResult.data.subaccount_code,
         auto_split_enabled: true,
-        paystack_subaccount_id: subaccountResult.data.subaccount_code,
-        split_percentage: 7.0,
+        split_percentage: 95.0,
         updated_at: new Date().toISOString()
       })
-      .eq('business_id', businessId)
 
-    if (subscriptionError) {
-      console.warn('Subscription update warning:', subscriptionError)
+    if (payoutError) {
+      console.warn('Payout update warning:', payoutError)
     }
 
     return new Response(

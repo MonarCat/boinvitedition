@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { toast } from 'sonner';
@@ -25,11 +24,16 @@ export const PrintableQRCode: React.FC<PrintableQRCodeProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const [qrGenerated, setQrGenerated] = useState(false);
+  const [validationStatus, setValidationStatus] = useState<'pending' | 'valid' | 'invalid'>('pending');
+  const [isGenerating, setIsGenerating] = useState(false);
   
   const bookingUrl = `${window.location.origin}/book/${businessId}`;
   
   useEffect(() => {
     if (canvasRef.current && businessId) {
+      setIsGenerating(true);
+      setValidationStatus('pending');
+      
       QRCode.toCanvas(canvasRef.current, bookingUrl, {
         width: 400,
         margin: 2,
@@ -39,15 +43,48 @@ export const PrintableQRCode: React.FC<PrintableQRCodeProps> = ({
           light: '#FFFFFF'
         }
       }, (error) => {
+        setIsGenerating(false);
         if (error) {
           console.error('Error generating QR code:', error);
           toast.error('Failed to generate QR code');
+          setValidationStatus('invalid');
+          setQrGenerated(false);
         } else {
+          setValidationStatus('valid');
           setQrGenerated(true);
         }
       });
     }
   }, [bookingUrl, businessId]);
+
+  const handleRegenerate = () => {
+    setQrGenerated(false);
+    setValidationStatus('pending');
+    // Trigger re-generation by updating the effect dependency
+    if (canvasRef.current && businessId) {
+      setIsGenerating(true);
+      QRCode.toCanvas(canvasRef.current, bookingUrl, {
+        width: 400,
+        margin: 2,
+        errorCorrectionLevel: 'H',
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      }, (error) => {
+        setIsGenerating(false);
+        if (error) {
+          console.error('Error generating QR code:', error);
+          toast.error('Failed to generate QR code');
+          setValidationStatus('invalid');
+          setQrGenerated(false);
+        } else {
+          setValidationStatus('valid');
+          setQrGenerated(true);
+        }
+      });
+    }
+  };
 
   const handlePrint = () => {
     if (!qrGenerated) {
@@ -109,7 +146,13 @@ export const PrintableQRCode: React.FC<PrintableQRCodeProps> = ({
       >
         <QRHeader businessName={businessName} />
         
-        <QRCodeDisplay canvasRef={canvasRef} qrGenerated={qrGenerated} />
+        <QRCodeDisplay 
+          canvasRef={canvasRef} 
+          qrGenerated={qrGenerated}
+          validationStatus={validationStatus}
+          isGenerating={isGenerating}
+          onRegenerate={handleRegenerate}
+        />
         
         <QRInstructions />
         

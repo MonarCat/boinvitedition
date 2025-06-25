@@ -1,20 +1,57 @@
 
 {
-  "name": "Boinvit - Business Booking & Invoice Management",
+  "name": "Boinvit - Mobile Business Management Platform",
   "short_name": "Boinvit",
-  "description": "Comprehensive booking and invoice management platform for businesses",
+  "description": "Mobile-first business management platform for bookings, invoicing, staff management and more",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#dc2626",
+  "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
-  "categories": ["business", "productivity"],
+  "categories": ["business", "productivity", "mobile"],
+  "prefer_related_applications": false,
   "icons": [
+    {
+      "src": "/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable any"
+    },
+    {
+      "src": "/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png",
@@ -26,9 +63,49 @@
   "screenshots": [
     {
       "src": "/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile Dashboard"
+    },
+    {
+      "src": "/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png",
       "sizes": "1280x720",
       "type": "image/png",
-      "form_factor": "wide"
+      "form_factor": "wide",
+      "label": "Desktop Dashboard"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "New Booking",
+      "short_name": "Book",
+      "description": "Create a new booking",
+      "url": "/app/bookings?action=new",
+      "icons": [
+        {
+          "src": "/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Add Service",
+      "short_name": "Service",
+      "description": "Add a new service",
+      "url": "/app/services?action=new",
+      "icons": [
+        {
+          "src": "/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }

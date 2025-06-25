@@ -15,9 +15,8 @@ import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import CookiePolicy from "@/pages/CookiePolicy";
 import SafetyTips from "@/pages/SafetyTips";
 import NotFound from "@/pages/NotFound";
-import InstallPrompt from "@/components/pwa/InstallPrompt";
-import PWAStatus from "@/components/pwa/PWAStatus";
 import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
+import { EnhancedPWAManager } from "@/components/pwa/EnhancedPWAManager";
 import { useSystemDarkMode } from "@/lib/useSystemDarkMode";
 
 const queryClient = new QueryClient({
@@ -38,28 +37,24 @@ const queryClient = new QueryClient({
 const App = () => {
   useSystemDarkMode();
   
-  // Comprehensive feature verification console log
-  console.log('🚀 Boinvit App Loaded Successfully:', {
+  // Enhanced feature verification console log
+  console.log('🚀 Boinvit Mobile-First PWA Loaded:', {
     timestamp: new Date().toISOString(),
-    version: '2.0.0',
+    version: '3.0.0',
     features: {
-      '✅ Home Button (Logo)': 'LogoFallbackButton component loaded',
-      '✅ QR Code Generation': 'BusinessQRGenerator component active',
-      '✅ Spreadsheet Export': 'ExportButton components with CSV download',
-      '✅ Security Dashboard': 'SecurityDashboard with monitoring',
-      '✅ Social Authentication': 'Multi-provider auth system',
-      '✅ Business Discovery': 'Map-based business finder',
-      '✅ PWA Support': 'InstallPrompt and PWAStatus active',
-      '✅ Responsive Design': 'Mobile and desktop optimized'
+      '✅ Mobile-First Design': 'Bottom tabs, gestures, FAB',
+      '✅ PWA Enhancements': 'Enhanced install, notifications, offline',
+      '✅ Native App Experience': 'Pull-to-refresh, swipe navigation',
+      '✅ Offline Capabilities': 'Data caching and sync',
+      '✅ Performance Optimized': 'Lazy loading and code splitting',
+      '✅ Touch Optimized': 'Tap targets and gesture support'
     },
-    routes: {
-      'Landing': '/',
-      'Auth': '/auth',
-      'Demo': '/demo',
-      'Discover': '/discover',
-      'Booking': '/book/:businessId',
-      'App Dashboard': '/app/dashboard',
-      'Settings': '/app/settings'
+    mobile: {
+      'Bottom Navigation': 'Touch-friendly tab bar',
+      'Floating Action Button': 'Quick actions for common tasks',
+      'Pull to Refresh': 'Native-like refresh interaction',
+      'Swipe Gestures': 'Navigate between tabs with swipes',
+      'Offline Support': 'Works without internet connection'
     }
   });
   
@@ -69,7 +64,7 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster 
-            position="top-right"
+            position="top-center"
             toastOptions={{
               duration: 4000,
               style: {
@@ -118,11 +113,8 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 
-                {/* PWA Components - Mobile Optimized */}
-                <InstallPrompt />
-                <div className="fixed top-4 right-4 z-40">
-                  <PWAStatus />
-                </div>
+                {/* Enhanced PWA Manager */}
+                <EnhancedPWAManager />
               </div>
             </AuthProvider>
           </BrowserRouter>

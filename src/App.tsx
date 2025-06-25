@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SecurityHeaders } from "@/components/security/SecurityHeaders";
+import { ThemeProvider } from "@/lib/ThemeProvider";
 import AuthenticatedApp from "@/pages/AuthenticatedApp";
 import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
@@ -17,7 +18,6 @@ import SafetyTips from "@/pages/SafetyTips";
 import NotFound from "@/pages/NotFound";
 import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
 import { EnhancedPWAManager } from "@/components/pwa/EnhancedPWAManager";
-import { useSystemDarkMode } from "@/lib/useSystemDarkMode";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,8 +35,6 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  useSystemDarkMode();
-  
   // Enhanced feature verification console log
   console.log('🚀 Boinvit Mobile-First PWA Loaded:', {
     timestamp: new Date().toISOString(),
@@ -47,19 +45,21 @@ const App = () => {
       '✅ Native App Experience': 'Pull-to-refresh, swipe navigation',
       '✅ Offline Capabilities': 'Data caching and sync',
       '✅ Performance Optimized': 'Lazy loading and code splitting',
-      '✅ Touch Optimized': 'Tap targets and gesture support'
+      '✅ Touch Optimized': 'Tap targets and gesture support',
+      '✅ Enhanced Theming': 'System, Light, Dark with smooth transitions'
     },
     mobile: {
       'Bottom Navigation': 'Touch-friendly tab bar',
       'Floating Action Button': 'Quick actions for common tasks',
       'Pull to Refresh': 'Native-like refresh interaction',
       'Swipe Gestures': 'Navigate between tabs with swipes',
-      'Offline Support': 'Works without internet connection'
+      'Offline Support': 'Works without internet connection',
+      'Theme System': 'Automatic system detection with manual override'
     }
   });
   
   return (
-    <>
+    <ThemeProvider>
       <SecurityHeaders />
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -75,7 +75,7 @@ const App = () => {
           />
           <BrowserRouter>
             <AuthProvider>
-              <div className="relative min-h-screen">
+              <div className="relative min-h-screen transition-colors duration-200">
                 <Routes>
                   {/* Landing page as default */}
                   <Route path="/" element={<LandingPage />} />
@@ -120,7 +120,7 @@ const App = () => {
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
-    </>
+    </ThemeProvider>
   );
 };
 

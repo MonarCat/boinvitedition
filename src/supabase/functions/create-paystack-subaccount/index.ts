@@ -3,85 +3,115 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
-interface SubaccountRequest {
-  business_name: string;
-  settlement_bank?: string;
-  account_number?: string;
-  percentage_charge?: number;
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
-    if (!paystackSecretKey) {
-      throw new Error('PAYSTACK_SECRET_KEY not configured');
+    const { businessId, businessName, businessEmail, settlementBank, accountNumber } = await req.json()
+
+    console.log('Creating subaccount for:', { businessId, businessName, businessEmail })
+
+    // Get Paystack secret key
+    const paystackKey = Deno.env.get('PAYSTACK_SECRET_KEY')
+    if (!paystackKey) {
+      throw new Error('Paystack secret key not configured')
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
-    const requestData: SubaccountRequest = await req.json();
-    
-    const { business_name, settlement_bank, account_number, percentage_charge = 5 } = requestData;
-    
-    // Create subaccount with Paystack
-    const paystackResponse = await fetch('https://api.paystack.co/subaccount', {
+    // Create Paystack subaccount
+    const subaccountData = {
+      business_name: businessName,
+      settlement_bank: settlementBank || 'test-bank', // Default for testing
+      account_number: accountNumber || '0123456789', // Default for testing
+      percentage_charge: 5.0, // Platform takes 5%, business gets 95%
+      description: `Subaccount for ${businessName}`,
+      primary_contact_email: businessEmail,
+      primary_contact_name: businessName,
+      primary_contact_phone: null,
+      metadata: {
+        business_id: businessId
+      }
+    }
+
+    console.log('Subaccount data:', subaccountData)
+
+    const subaccountResponse = await fetch('https://api.paystack.co/subaccount', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${paystackSecretKey}`,
+        'Authorization': `Bearer ${paystackKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        business_name,
-        settlement_bank,
-        account_number,
-        percentage_charge, // Platform fee percentage
-        description: `Subaccount for ${business_name} - Boinvit Platform`,
-        primary_contact_email: 'support@boinvit.com',
-        primary_contact_name: 'Boinvit Support',
-        primary_contact_phone: '+254700000000',
-        metadata: {
-          platform: 'boinvit',
-          created_at: new Date().toISOString()
-        }
-      }),
-    });
+      body: JSON.stringify(subaccountData),
+    })
 
-    const paystackData = await paystackResponse.json();
-    
-    if (!paystackData.status) {
-      throw new Error(paystackData.message || 'Failed to create subaccount');
+    if (!subaccountResponse.ok) {
+      const errorText = await subaccountResponse.text()
+      console.error('Paystack subaccount error:', errorText)
+      throw new Error(`Subaccount creation failed: ${errorText}`)
+    }
+
+    const subaccountResult = await subaccountResponse.json()
+    console.log('Subaccount created:', subaccountResult.data.subaccount_code)
+
+    // Update business with subaccount information
+    const { error: updateError } = await supabase
+      .from('businesses')
+      .update({
+        paystack_subaccount_id: subaccountResult.data.subaccount_code,
+        payment_setup_complete: true,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', businessId)
+
+    if (updateError) {
+      console.error('Database update error:', updateError)
+      throw new Error('Failed to save subaccount information')
+    }
+
+    // Update business payout settings
+    const { error: payoutError } = await supabase
+      .from('business_payouts')
+      .upsert({
+        business_id: businessId,
+        paystack_subaccount_code: subaccountResult.data.subaccount_code,
+        auto_split_enabled: true,
+        split_percentage: 95.0,
+        updated_at: new Date().toISOString()
+      })
+
+    if (payoutError) {
+      console.warn('Payout update warning:', payoutError)
     }
 
     return new Response(
-      JSON.stringify({
+      JSON.stringify({ 
         success: true,
-        subaccount: paystackData.data,
-        subaccount_code: paystackData.data.subaccount_code,
+        subaccount_code: subaccountResult.data.subaccount_code,
         message: 'Subaccount created successfully'
       }),
-      {
+      { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
-      }
-    );
+      },
+    )
 
-  } catch (error: any) {
-    console.error('Subaccount creation error:', error);
+  } catch (error) {
+    console.error('Error in create-paystack-subaccount:', error)
     return new Response(
-      JSON.stringify({
+      JSON.stringify({ 
         success: false,
-        message: error.message || 'Failed to create subaccount'
+        error: error.message || 'Subaccount creation failed'
       }),
-      {
+      { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    );
+        status: 400,
+      },
+    )
   }
-});
+})

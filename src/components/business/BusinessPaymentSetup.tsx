@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,7 +52,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
           bank_account_number: payout.bank_account_number || '',
           account_holder_name: payout.account_holder_name || '',
           paystack_subaccount_code: payout.paystack_subaccount_code || '',
-          auto_split_enabled: payout.auto_split_enabled || false
+          auto_split_enabled: Boolean(payout.auto_split_enabled)
         });
       }
 
@@ -91,7 +90,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
       const { error: businessError } = await supabase
         .from('businesses')
         .update({
-          payment_setup_complete: hasValidPayment,
+          payment_setup_complete: Boolean(hasValidPayment),
           paystack_subaccount_id: formData.paystack_subaccount_code || null
         })
         .eq('id', businessId);

@@ -24,7 +24,7 @@ export const RealServiceImageUpload: React.FC<RealServiceImageUploadProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.From(event.target.files || []);
+    const files = Array.from(event.target.files || []);
     
     if (files.length === 0) return;
     

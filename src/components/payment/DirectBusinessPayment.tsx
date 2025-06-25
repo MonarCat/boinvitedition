@@ -257,8 +257,7 @@ export const DirectBusinessPayment: React.FC<DirectBusinessPaymentProps> = ({
             payment_type: 'client_to_business',
             business_id: businessId,
             booking_id: bookingId,
-            business_name: businessName,
-            subaccount_code: businessPayment.paystack_subaccount_code
+            business_name: businessName
           }}
           onSuccess={handlePaymentSuccess}
           onError={handlePaymentError}

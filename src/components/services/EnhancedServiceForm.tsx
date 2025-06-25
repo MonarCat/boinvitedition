@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ServiceImageUpload } from './ServiceImageUpload';
 import { RealServiceImageUpload } from './RealServiceImageUpload';
+import { useAuth } from '@/hooks/useAuth';
 
 interface EnhancedServiceFormProps {
   service?: any;
@@ -24,15 +26,33 @@ export const EnhancedServiceForm: React.FC<EnhancedServiceFormProps> = ({
   onSuccess,
   onCancel
 }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     category: 'general',
     transport_details: '',
     price: 0,
+    duration_minutes: 60,
     currency: 'KES',
     is_active: true,
     service_images: [] as string[],
+  });
+
+  // Get business_id from the user's business
+  const { data: business } = useQuery({
+    queryKey: ['user-business', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
   });
 
   useEffect(() => {
@@ -43,6 +63,7 @@ export const EnhancedServiceForm: React.FC<EnhancedServiceFormProps> = ({
         category: service.category || 'general',
         transport_details: service.transport_details || '',
         price: service.price || 0,
+        duration_minutes: service.duration_minutes || 60,
         currency: service.currency || 'KES',
         is_active: service.is_active !== false,
         service_images: service.service_images || [] as string[],
@@ -65,9 +86,17 @@ export const EnhancedServiceForm: React.FC<EnhancedServiceFormProps> = ({
       return;
     }
 
+    if (!business?.id) {
+      toast.error('Business not found. Please ensure you have a business setup.');
+      return;
+    }
+
     const serviceData = {
       ...formData,
+      business_id: business.id,
       price: parseFloat(formData.price.toString()),
+      duration_minutes: parseInt(formData.duration_minutes.toString()),
+      transport_details: formData.category === 'transport' ? formData.transport_details : null,
     };
 
     if (service) {
@@ -149,6 +178,16 @@ export const EnhancedServiceForm: React.FC<EnhancedServiceFormProps> = ({
               </SelectContent>
             </Select>
           </div>
+          <div>
+            <Label htmlFor="duration">Duration (minutes) *</Label>
+            <Input
+              id="duration"
+              type="number"
+              value={formData.duration_minutes}
+              onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) || 60 })}
+              required
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -198,7 +237,7 @@ export const EnhancedServiceForm: React.FC<EnhancedServiceFormProps> = ({
                 type="number"
                 placeholder="0.00"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                 required
               />
             </div>

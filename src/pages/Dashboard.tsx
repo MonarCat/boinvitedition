@@ -6,7 +6,7 @@ import { DashboardKPISection } from '@/components/dashboard/DashboardKPISection'
 import { DashboardQuickActions } from '@/components/dashboard/DashboardQuickActions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ReliableQRGenerator } from '@/components/qr/ReliableQRGenerator';
+import { QRCodeGenerator } from '@/components/qr/QRCodeGenerator';
 import { EnhancedSecurityDashboard } from '@/components/security/EnhancedSecurityDashboard';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useAuth } from '@/hooks/useAuth';
@@ -59,11 +59,11 @@ const Dashboard = () => {
 
   const { isExporting, exportBookings, exportClients, exportStaff } = useSpreadsheetExport(business?.id || '');
 
-  console.log('Dashboard loaded with QR code fix:', {
+  console.log('Dashboard loaded with clean QR code system:', {
     business: business?.id, 
     user: user?.id,
     theme,
-    qrGenerator: 'ReliableQRGenerator'
+    qrGenerator: 'QRCodeGenerator (refactored)'
   });
 
   return (
@@ -159,7 +159,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* QR Code Section - Using ReliableQRGenerator for better stability */}
+        {/* QR Code Section - Using new refactored QRCodeGenerator */}
         {business && (
           <Card>
             <CardHeader>
@@ -168,16 +168,15 @@ const Dashboard = () => {
                 Service Booking QR Code
               </CardTitle>
               <p className="text-sm text-gray-600">
-                Reliable QR code for customers to easily book your services
+                Clean and reliable QR code for customers to easily book your services
               </p>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-center">
-                <ReliableQRGenerator 
-                  businessId={business.id} 
-                  businessName={business.name || 'Your Business'}
-                />
-              </div>
+              <QRCodeGenerator 
+                businessId={business.id} 
+                businessName={business.name || 'Your Business'}
+                className="max-w-md mx-auto"
+              />
             </CardContent>
           </Card>
         )}

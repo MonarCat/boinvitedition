@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,7 +43,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
         .from('business_payouts')
         .select('*')
         .eq('business_id', businessId)
-        .single();
+        .maybeSingle();
 
       if (payout) {
         setPayoutData(payout);
@@ -68,19 +69,70 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
     }
   };
 
+  const validateFormData = () => {
+    if (!businessId) {
+      toast.error('Business ID is required');
+      return false;
+    }
+
+    const hasValidPayment = formData.mpesa_number || 
+      (formData.bank_name && formData.bank_account_number && formData.account_holder_name) ||
+      formData.paystack_subaccount_code;
+
+    if (!hasValidPayment) {
+      toast.error('Please provide at least one payment method');
+      return false;
+    }
+
+    // Validate bank details if partially filled
+    const bankFields = [formData.bank_name, formData.bank_account_number, formData.account_holder_name];
+    const filledBankFields = bankFields.filter(field => field && field.trim());
+    
+    if (filledBankFields.length > 0 && filledBankFields.length < 3) {
+      toast.error('Please complete all bank account details');
+      return false;
+    }
+
+    return true;
+  };
+
   const savePaymentData = async () => {
+    if (!validateFormData()) return;
+
     setLoading(true);
     try {
-      // Upsert business payout data
-      const { error: payoutError } = await supabase
+      // Check if record exists
+      const { data: existingRecord } = await supabase
         .from('business_payouts')
-        .upsert({
-          business_id: businessId,
-          ...formData,
-          split_percentage: 95.0
-        });
+        .select('id')
+        .eq('business_id', businessId)
+        .maybeSingle();
 
-      if (payoutError) throw payoutError;
+      const payoutPayload = {
+        business_id: businessId,
+        mpesa_number: formData.mpesa_number || null,
+        bank_name: formData.bank_name || null,
+        bank_account_number: formData.bank_account_number || null,
+        account_holder_name: formData.account_holder_name || null,
+        paystack_subaccount_code: formData.paystack_subaccount_code || null,
+        auto_split_enabled: formData.auto_split_enabled,
+        split_percentage: 95.0,
+        updated_at: new Date().toISOString()
+      };
+
+      let payoutResult;
+      if (existingRecord) {
+        payoutResult = await supabase
+          .from('business_payouts')
+          .update(payoutPayload)
+          .eq('business_id', businessId);
+      } else {
+        payoutResult = await supabase
+          .from('business_payouts')
+          .insert(payoutPayload);
+      }
+
+      if (payoutResult.error) throw payoutResult.error;
 
       // Update business payment setup status
       const hasValidPayment = formData.mpesa_number || 
@@ -91,7 +143,8 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
         .from('businesses')
         .update({
           payment_setup_complete: Boolean(hasValidPayment),
-          paystack_subaccount_id: formData.paystack_subaccount_code || null
+          paystack_subaccount_id: formData.paystack_subaccount_code || null,
+          updated_at: new Date().toISOString()
         })
         .eq('id', businessId);
 
@@ -102,7 +155,14 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
       onSetupComplete?.();
     } catch (error: any) {
       console.error('Error saving payment data:', error);
-      toast.error('Failed to save payment settings');
+      
+      if (error.code === '23505') {
+        toast.error('Duplicate entry detected. Please refresh and try again.');
+      } else if (error.message) {
+        toast.error(`Failed to save: ${error.message}`);
+      } else {
+        toast.error('Failed to save payment settings. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -183,7 +243,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
                 id="paystack-subaccount"
                 placeholder="ACCT_xxxxxxxxxx"
                 value={formData.paystack_subaccount_code}
-                onChange={(e) => setFormData({...formData, paystack_subaccount_code: e.target.value})}
+                onChange={(e) => setFormData({...formData, paystack_subaccount_code: e.target.value.trim()})}
               />
               <p className="text-xs text-gray-600">
                 Create a subaccount in your Paystack dashboard and enter the code here
@@ -214,7 +274,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
                 id="mpesa-number"
                 placeholder="254700000000"
                 value={formData.mpesa_number}
-                onChange={(e) => setFormData({...formData, mpesa_number: e.target.value})}
+                onChange={(e) => setFormData({...formData, mpesa_number: e.target.value.trim()})}
               />
             </div>
           </TabsContent>
@@ -234,7 +294,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
                   id="bank-name"
                   placeholder="Kenya Commercial Bank"
                   value={formData.bank_name}
-                  onChange={(e) => setFormData({...formData, bank_name: e.target.value})}
+                  onChange={(e) => setFormData({...formData, bank_name: e.target.value.trim()})}
                 />
               </div>
               <div className="space-y-2">
@@ -243,7 +303,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
                   id="account-number"
                   placeholder="1234567890"
                   value={formData.bank_account_number}
-                  onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
+                  onChange={(e) => setFormData({...formData, bank_account_number: e.target.value.trim()})}
                 />
               </div>
             </div>
@@ -254,7 +314,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
                 id="account-holder"
                 placeholder="John Doe"
                 value={formData.account_holder_name}
-                onChange={(e) => setFormData({...formData, account_holder_name: e.target.value})}
+                onChange={(e) => setFormData({...formData, account_holder_name: e.target.value.trim()})}
               />
             </div>
           </TabsContent>

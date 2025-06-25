@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
@@ -6,7 +5,7 @@ import { DashboardKPISection } from '@/components/dashboard/DashboardKPISection'
 import { DashboardQuickActions } from '@/components/dashboard/DashboardQuickActions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ReliableQRGenerator } from '@/components/qr/ReliableQRGenerator';
+import { EnhancedQRGenerator } from '@/components/qr/EnhancedQRGenerator';
 import { SecurityDashboard } from '@/components/security/SecurityDashboard';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useAuth } from '@/hooks/useAuth';
@@ -154,7 +153,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* QR Code Section - Using ReliableQRGenerator */}
+        {/* QR Code Section - Using EnhancedQRGenerator */}
         {business && (
           <Card>
             <CardHeader>
@@ -163,12 +162,12 @@ const Dashboard = () => {
                 Service Booking QR Code
               </CardTitle>
               <p className="text-sm text-gray-600">
-                Display this QR code for customers to easily book your services
+                Enhanced QR code for customers to easily book your services
               </p>
             </CardHeader>
             <CardContent>
               <div className="flex justify-center">
-                <ReliableQRGenerator 
+                <EnhancedQRGenerator 
                   businessId={business.id} 
                   businessName={business.name || 'Your Business'}
                 />

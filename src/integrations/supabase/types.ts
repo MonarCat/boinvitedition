@@ -279,6 +279,44 @@ export type Database = {
           },
         ]
       }
+      business_payment_configs: {
+        Row: {
+          business_id: string
+          config_data: Json
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          payment_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          business_id: string
+          config_data?: Json
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          payment_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          business_id?: string
+          config_data?: Json
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          payment_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_payment_configs_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_payment_settings: {
         Row: {
           business_id: string
@@ -321,6 +359,7 @@ export type Database = {
         Row: {
           account_holder_name: string | null
           airtel_number: string | null
+          auto_split_enabled: boolean | null
           bank_account_number: string | null
           bank_name: string | null
           business_id: string | null
@@ -328,6 +367,8 @@ export type Database = {
           id: string
           is_verified: boolean | null
           mpesa_number: string | null
+          paystack_subaccount_code: string | null
+          split_percentage: number | null
           updated_at: string | null
           verification_code: string | null
           verification_expires_at: string | null
@@ -335,6 +376,7 @@ export type Database = {
         Insert: {
           account_holder_name?: string | null
           airtel_number?: string | null
+          auto_split_enabled?: boolean | null
           bank_account_number?: string | null
           bank_name?: string | null
           business_id?: string | null
@@ -342,6 +384,8 @@ export type Database = {
           id?: string
           is_verified?: boolean | null
           mpesa_number?: string | null
+          paystack_subaccount_code?: string | null
+          split_percentage?: number | null
           updated_at?: string | null
           verification_code?: string | null
           verification_expires_at?: string | null
@@ -349,6 +393,7 @@ export type Database = {
         Update: {
           account_holder_name?: string | null
           airtel_number?: string | null
+          auto_split_enabled?: boolean | null
           bank_account_number?: string | null
           bank_name?: string | null
           business_id?: string | null
@@ -356,6 +401,8 @@ export type Database = {
           id?: string
           is_verified?: boolean | null
           mpesa_number?: string | null
+          paystack_subaccount_code?: string | null
+          split_percentage?: number | null
           updated_at?: string | null
           verification_code?: string | null
           verification_expires_at?: string | null
@@ -533,6 +580,8 @@ export type Database = {
           mpesa_number: string | null
           name: string
           payment_instructions: string | null
+          payment_setup_complete: boolean | null
+          paystack_subaccount_id: string | null
           phone: string | null
           preferred_payment_methods: string[] | null
           search_vector: unknown | null
@@ -565,6 +614,8 @@ export type Database = {
           mpesa_number?: string | null
           name: string
           payment_instructions?: string | null
+          payment_setup_complete?: boolean | null
+          paystack_subaccount_id?: string | null
           phone?: string | null
           preferred_payment_methods?: string[] | null
           search_vector?: unknown | null
@@ -597,6 +648,8 @@ export type Database = {
           mpesa_number?: string | null
           name?: string
           payment_instructions?: string | null
+          payment_setup_complete?: boolean | null
+          paystack_subaccount_id?: string | null
           phone?: string | null
           preferred_payment_methods?: string[] | null
           search_vector?: unknown | null
@@ -974,6 +1027,7 @@ export type Database = {
           booking_id: string | null
           business_amount: number | null
           business_id: string | null
+          business_received_amount: number | null
           created_at: string | null
           currency: string | null
           id: string
@@ -981,7 +1035,9 @@ export type Database = {
           payment_method: string | null
           paystack_reference: string | null
           platform_amount: number | null
+          platform_fee_amount: number | null
           split_amount: number | null
+          split_config: Json | null
           status: string | null
           subscription_id: string | null
           transaction_type: string
@@ -992,6 +1048,7 @@ export type Database = {
           booking_id?: string | null
           business_amount?: number | null
           business_id?: string | null
+          business_received_amount?: number | null
           created_at?: string | null
           currency?: string | null
           id?: string
@@ -999,7 +1056,9 @@ export type Database = {
           payment_method?: string | null
           paystack_reference?: string | null
           platform_amount?: number | null
+          platform_fee_amount?: number | null
           split_amount?: number | null
+          split_config?: Json | null
           status?: string | null
           subscription_id?: string | null
           transaction_type: string
@@ -1010,6 +1069,7 @@ export type Database = {
           booking_id?: string | null
           business_amount?: number | null
           business_id?: string | null
+          business_received_amount?: number | null
           created_at?: string | null
           currency?: string | null
           id?: string
@@ -1017,7 +1077,9 @@ export type Database = {
           payment_method?: string | null
           paystack_reference?: string | null
           platform_amount?: number | null
+          platform_fee_amount?: number | null
           split_amount?: number | null
+          split_config?: Json | null
           status?: string | null
           subscription_id?: string | null
           transaction_type?: string

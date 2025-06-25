@@ -1,13 +1,13 @@
-
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ServicesList } from '@/components/services/ServicesList';
 import { EnhancedServiceForm } from '@/components/services/EnhancedServiceForm';
 import { BusinessHours } from '@/components/business/BusinessHours';
+import { BusinessPaymentSetup } from '@/components/business/BusinessPaymentSetup';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ReliableQRGenerator } from '@/components/qr/ReliableQRGenerator';
+import { EnhancedQRGenerator } from '@/components/qr/EnhancedQRGenerator';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -83,6 +83,14 @@ const ServicesPage = () => {
 
         <ServicesList onEditService={handleEditService} />
 
+        {/* Business Payment Setup Section */}
+        {business && (
+          <div className="mt-8">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Payment Setup</h2>
+            <BusinessPaymentSetup businessId={business.id} />
+          </div>
+        )}
+
         {/* Business Hours Section */}
         {business && (
           <div className="mt-8">
@@ -94,16 +102,16 @@ const ServicesPage = () => {
           </div>
         )}
 
-        {/* Reliable QR Code Section */}
+        {/* Enhanced QR Code Section */}
         <div className="mt-12">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Service Booking QR Code</h2>
           <p className="text-gray-600 mb-4">
-            Display this QR code at your location. Customers can scan it to view and book your services directly.
+            Reliable QR code that customers can scan to view and book your services directly.
           </p>
           {!business && isLoadingBusiness ? (
             <div className="text-gray-400">Loading QR code...</div>
           ) : business ? (
-            <ReliableQRGenerator 
+            <EnhancedQRGenerator 
               businessId={business.id} 
               businessName={business.name}
             />

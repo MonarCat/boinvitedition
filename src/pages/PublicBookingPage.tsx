@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { BookingPageError } from '@/components/booking/BookingPageError';
 import { BookingPageLoading } from '@/components/booking/BookingPageLoading';
-import { ResponsiveBookingContent } from '@/components/booking/ResponsiveBookingContent';
+import { CleanBookingLayout } from '@/components/booking/CleanBookingLayout';
+import { DirectBusinessPayment } from '@/components/payment/DirectBusinessPayment';
 import { usePublicBookingData } from '@/hooks/usePublicBookingData';
 import { isValidUUID, logQRCodeDebugInfo } from '@/utils/uuidValidation';
 
@@ -54,11 +54,13 @@ const PublicBookingPage = () => {
   }
 
   return (
-    <ResponsiveBookingContent 
-      business={business}
-      services={services || []}
-      businessId={businessId}
-    />
+    <CleanBookingLayout>
+      <ResponsiveBookingContent 
+        business={business}
+        services={services || []}
+        businessId={businessId}
+      />
+    </CleanBookingLayout>
   );
 };
 

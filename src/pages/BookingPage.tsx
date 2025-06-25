@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { ClientPaymentSection } from "@/components/payment/ClientPaymentSection";
+import { DirectBusinessPayment } from "@/components/payment/DirectBusinessPayment";
 import { PaymentReceipt } from "@/components/payment/PaymentReceipt";
 import { useClientPayments } from "@/hooks/useClientPayments";
 import { BusinessPaymentInstructions } from "@/components/business/BusinessPaymentInstructions";
@@ -11,6 +11,7 @@ import { ServiceSelectionCard } from "@/components/booking/ServiceSelectionCard"
 import { DateTimeSelectionCard } from "@/components/booking/DateTimeSelectionCard";
 import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
 import { ClientInformationCard } from "@/components/booking/ClientInformationCard";
+import { CleanBookingLayout } from "@/components/booking/CleanBookingLayout";
 
 const BookingPage = () => {
   const { businessId } = useParams();
@@ -83,13 +84,13 @@ const BookingPage = () => {
       )}
 
       {showPayment && clientEmail ? (
-        <ClientPaymentSection
-          services={services.filter(s => s.id === selectedService)}
-          clientEmail={clientEmail}
+        <DirectBusinessPayment
+          businessId={businessId || ''}
           businessName={business?.name || 'Business'}
-          businessCurrency={business?.currency}
-          paymentInstructions={business?.payment_instructions}
-          business={business}
+          amount={services.find(s => s.id === selectedService)?.price || 0}
+          currency={business?.currency || 'KES'}
+          bookingId={undefined}
+          onSuccess={() => setPaymentCompleted(true)}
         />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -135,7 +136,7 @@ const BookingPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <CleanBookingLayout>
       {/* Mobile Header with Menu */}
       <MobileBookingHeader business={business}>
         <BookingContent />
@@ -145,7 +146,7 @@ const BookingPage = () => {
       <div className="max-w-4xl mx-auto px-6 py-8 space-y-6 hidden lg:block">
         <BookingContent />
       </div>
-    </div>
+    </CleanBookingLayout>
   );
 };
 

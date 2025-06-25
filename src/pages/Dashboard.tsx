@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useState } from "react";
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardKPISection } from '@/components/dashboard/DashboardKPISection';
@@ -19,6 +18,7 @@ import { QrCode, Download, Shield, Users, TrendingUp } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [theme, setTheme] = useState('system');
 
   // Get the business for the logged-in user
   const { data: business } = useQuery({
@@ -65,6 +65,8 @@ const Dashboard = () => {
       <div className="space-y-6">
         <DashboardHeader 
           business={business}
+          theme={theme}
+          setTheme={setTheme}
           onNewBooking={handleNewBooking}
         />
         <DashboardKPISection 

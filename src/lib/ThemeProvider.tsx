@@ -6,25 +6,17 @@ type Theme = "system" | "light" | "dark";
 interface ThemeContextValue {
   theme: Theme;
   setTheme: (value: Theme) => void;
-  resolvedTheme: "light" | "dark";
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: "system",
+  theme: "light",
   setTheme: () => {},
-  resolvedTheme: "light",
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    // Check localStorage first, fallback to system
-    const stored = localStorage.getItem("theme") as Theme;
-    return stored && ["system", "light", "dark"].includes(stored) ? stored : "system";
-  });
+  const [theme, setTheme] = useState<Theme>("light"); // Default to light theme
 
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
-
-  // Apply theme and update resolved theme
+  // Listen and apply theme
   useEffect(() => {
     const root = document.documentElement;
 
@@ -32,16 +24,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (theme === "system") {
         const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
         root.classList.toggle("dark", isDark);
-        setResolvedTheme(isDark ? "dark" : "light");
       } else {
-        const isDark = theme === "dark";
-        root.classList.toggle("dark", isDark);
-        setResolvedTheme(isDark ? "dark" : "light");
+        root.classList.toggle("dark", theme === "dark");
       }
     }
 
     apply(theme);
-    localStorage.setItem("theme", theme);
 
     // System change handler
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -58,7 +46,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

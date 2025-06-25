@@ -6,7 +6,7 @@ import { DashboardKPISection } from '@/components/dashboard/DashboardKPISection'
 import { DashboardQuickActions } from '@/components/dashboard/DashboardQuickActions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { UnifiedQRGenerator } from '@/components/qr/UnifiedQRGenerator';
+import { ReliableQRGenerator } from '@/components/qr/ReliableQRGenerator';
 import { SecurityDashboard } from '@/components/security/SecurityDashboard';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useAuth } from '@/hooks/useAuth';
@@ -154,7 +154,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* QR Code Section */}
+        {/* QR Code Section - Using ReliableQRGenerator */}
         {business && (
           <Card>
             <CardHeader>
@@ -168,10 +168,9 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="flex justify-center">
-                <UnifiedQRGenerator 
+                <ReliableQRGenerator 
                   businessId={business.id} 
                   businessName={business.name || 'Your Business'}
-                  showTitle={false}
                 />
               </div>
             </CardContent>

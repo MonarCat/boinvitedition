@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ServiceImageUploadProps {
@@ -19,6 +19,7 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
   maxImages = 5
 }) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,9 +34,12 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
     }
 
     setIsUploading(true);
+    const newUploadProgress: {[key: string]: number} = {};
     
     try {
-      const uploadPromises = files.map(async (file) => {
+      const uploadPromises = files.map(async (file, index) => {
+        const fileKey = `${file.name}-${index}`;
+        
         // Validate file type
         if (!file.type.startsWith('image/')) {
           throw new Error(`${file.name} is not an image file`);
@@ -46,23 +50,58 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
           throw new Error(`${file.name} is too large. Maximum size is 5MB`);
         }
 
-        // Create a data URL for preview (in a real app, you'd upload to a service)
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
-          reader.readAsDataURL(file);
-        });
+        // Initialize progress
+        newUploadProgress[fileKey] = 0;
+        setUploadProgress({...newUploadProgress});
+
+        // Simulate upload progress (in a real app, you'd get this from the upload service)
+        const progressInterval = setInterval(() => {
+          newUploadProgress[fileKey] = Math.min(newUploadProgress[fileKey] + 10, 90);
+          setUploadProgress({...newUploadProgress});
+        }, 100);
+
+        try {
+          // Create a data URL for preview (in a real app, you'd upload to a service)
+          const imageUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              // Complete the progress
+              clearInterval(progressInterval);
+              newUploadProgress[fileKey] = 100;
+              setUploadProgress({...newUploadProgress});
+              resolve(reader.result as string);
+            };
+            reader.onerror = () => {
+              clearInterval(progressInterval);
+              reject(new Error(`Failed to read ${file.name}`));
+            };
+            reader.readAsDataURL(file);
+          });
+
+          // Small delay to show completion
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+          return imageUrl;
+        } catch (error) {
+          clearInterval(progressInterval);
+          throw error;
+        }
       });
 
+      setUploadProgress(newUploadProgress);
+      
       const uploadedImages = await Promise.all(uploadPromises);
+      
+      // Only show success after ALL uploads are complete
       onImagesChange([...images, ...uploadedImages]);
       toast.success(`${uploadedImages.length} image(s) uploaded successfully`);
+      
     } catch (error: any) {
       console.error('Error uploading images:', error);
       toast.error(error.message || 'Failed to upload images');
     } finally {
       setIsUploading(false);
+      setUploadProgress({});
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -75,15 +114,50 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
     toast.success('Image removed');
   };
 
+  const hasActiveUploads = Object.keys(uploadProgress).length > 0;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ImageIcon className="w-5 h-5" />
           Service Images ({images.length}/{maxImages})
+          {isUploading && (
+            <div className="flex items-center gap-1 text-sm text-blue-600">
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+              Uploading...
+            </div>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Upload Progress */}
+        {hasActiveUploads && (
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-gray-700">Upload Progress:</h4>
+            {Object.entries(uploadProgress).map(([fileKey, progress]) => (
+              <div key={fileKey} className="space-y-1">
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>{fileKey.split('-')[0]}</span>
+                  <span>{progress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                  <div 
+                    className="bg-blue-600 h-1.5 rounded-full transition-all duration-300" 
+                    style={{ width: `${progress}%` }}
+                  ></div>
+                </div>
+                {progress === 100 && (
+                  <div className="flex items-center gap-1 text-xs text-green-600">
+                    <CheckCircle className="w-3 h-3" />
+                    Complete
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Upload Button */}
         {images.length < maxImages && (
           <>
@@ -133,7 +207,7 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
           </div>
         )}
 
-        {images.length === 0 && (
+        {images.length === 0 && !hasActiveUploads && (
           <div className="text-center py-8 text-gray-500">
             <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
             <p>No images uploaded yet</p>

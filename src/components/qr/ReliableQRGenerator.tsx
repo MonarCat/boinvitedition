@@ -4,7 +4,7 @@ import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Download, QrCode, Copy, ExternalLink, Share2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Download, QrCode, Copy, ExternalLink, Share2, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,71 +25,105 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [validationStatus, setValidationStatus] = useState<'pending' | 'valid' | 'invalid'>('pending');
+  const [qrGenerated, setQrGenerated] = useState(false);
   
   // Generate reliable booking URL
   const baseUrl = window.location.origin;
   const bookingUrl = `${baseUrl}/book/${businessId}`;
   
+  // Force QR code regeneration
+  const regenerateQR = async () => {
+    setQrGenerated(false);
+    setValidationStatus('pending');
+    await validateAndGenerateQR();
+  };
+
   // Validate business ID and generate QR code
-  useEffect(() => {
-    const validateAndGenerateQR = async () => {
-      if (!businessId) {
-        setValidationStatus('invalid');
-        return;
-      }
+  const validateAndGenerateQR = async () => {
+    console.log('QR Generator: Starting validation for business:', businessId);
+    
+    if (!businessId) {
+      console.log('QR Generator: No business ID provided');
+      setValidationStatus('invalid');
+      return;
+    }
 
-      // First validate UUID format
-      if (!isValidUUID(businessId)) {
-        setValidationStatus('invalid');
-        toast.error('Invalid business ID format');
-        return;
-      }
+    // First validate UUID format
+    if (!isValidUUID(businessId)) {
+      console.log('QR Generator: Invalid UUID format');
+      setValidationStatus('invalid');
+      toast.error('Invalid business ID format');
+      return;
+    }
 
-      setIsValidating(true);
-      
-      try {
-        // Validate business exists and is active
-        const { data: business, error } = await supabase
-          .from('businesses')
-          .select('id, name, is_active')
-          .eq('id', businessId)
-          .eq('is_active', true)
-          .single();
+    setIsValidating(true);
+    
+    try {
+      // Validate business exists and is active
+      const { data: business, error } = await supabase
+        .from('businesses')
+        .select('id, name, is_active')
+        .eq('id', businessId)
+        .single();
 
-        if (error || !business) {
-          setValidationStatus('invalid');
-          toast.error('Business not found or inactive');
-          return;
-        }
-
-        setValidationStatus('valid');
-
-        // Generate QR code with high error correction
-        if (canvasRef.current) {
-          await QRCode.toCanvas(canvasRef.current, bookingUrl, {
-            width: 500, // Minimum recommended size
-            margin: 2,
-            errorCorrectionLevel: 'H', // 30% error correction
-            color: {
-              dark: '#000000',
-              light: '#FFFFFF'
-            }
-          });
-        }
-      } catch (error) {
-        console.error('QR validation error:', error);
+      if (error) {
+        console.error('QR Generator: Database error:', error);
         setValidationStatus('invalid');
         toast.error('Failed to validate business');
-      } finally {
-        setIsValidating(false);
+        return;
       }
-    };
 
+      if (!business) {
+        console.log('QR Generator: Business not found');
+        setValidationStatus('invalid');
+        toast.error('Business not found');
+        return;
+      }
+
+      if (!business.is_active) {
+        console.log('QR Generator: Business is inactive');
+        setValidationStatus('invalid');
+        toast.error('Business is inactive');
+        return;
+      }
+
+      console.log('QR Generator: Business validated successfully:', business.name);
+      setValidationStatus('valid');
+
+      // Generate QR code with high error correction
+      if (canvasRef.current) {
+        console.log('QR Generator: Generating QR code for URL:', bookingUrl);
+        
+        await QRCode.toCanvas(canvasRef.current, bookingUrl, {
+          width: 300,
+          margin: 2,
+          errorCorrectionLevel: 'H', // 30% error correction
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
+        });
+        
+        setQrGenerated(true);
+        console.log('QR Generator: QR code generated successfully');
+        toast.success('QR code generated successfully');
+      }
+    } catch (error) {
+      console.error('QR Generator: Validation error:', error);
+      setValidationStatus('invalid');
+      toast.error('Failed to validate business');
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  // Validate business ID and generate QR code on mount
+  useEffect(() => {
     validateAndGenerateQR();
-  }, [businessId, bookingUrl]);
+  }, [businessId]);
 
   const downloadQR = () => {
-    if (canvasRef.current && validationStatus === 'valid') {
+    if (canvasRef.current && validationStatus === 'valid' && qrGenerated) {
       const link = document.createElement('a');
       const timestamp = new Date().toISOString().split('T')[0];
       link.download = `${businessName}-booking-qr-${timestamp}.png`;
@@ -176,6 +210,15 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
         </CardTitle>
         <div className="flex items-center justify-center gap-2">
           {getStatusBadge()}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={regenerateQR}
+            disabled={isValidating}
+            className="h-6 px-2"
+          >
+            <RefreshCw className={`w-3 h-3 ${isValidating ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
         <p className="text-sm text-gray-600">
           Reliable QR code for client bookings
@@ -183,23 +226,33 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-center">
-          {validationStatus === 'valid' ? (
+          {validationStatus === 'valid' && qrGenerated ? (
             <canvas 
               ref={canvasRef} 
               className="border rounded-lg shadow-sm max-w-full h-auto"
-              style={{ maxWidth: '300px' }}
             />
           ) : (
             <div className="w-[300px] h-[300px] border rounded-lg flex items-center justify-center bg-gray-50">
               {isValidating ? (
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                  <p className="text-sm text-gray-600">Validating...</p>
+                  <p className="text-sm text-gray-600">Generating QR code...</p>
                 </div>
               ) : (
                 <div className="text-center p-4">
                   <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                  <p className="text-sm text-red-600">Invalid business ID</p>
+                  <p className="text-sm text-red-600">
+                    {validationStatus === 'invalid' ? 'Invalid business' : 'QR code pending'}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={regenerateQR}
+                    className="mt-2"
+                  >
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    Retry
+                  </Button>
                 </div>
               )}
             </div>
@@ -218,7 +271,7 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
             onClick={shareUrl} 
             variant="default" 
             size="sm"
-            disabled={validationStatus !== 'valid'}
+            disabled={validationStatus !== 'valid' || !qrGenerated}
           >
             <Share2 className="w-4 h-4 mr-2" />
             Share Booking Link
@@ -238,7 +291,7 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
             onClick={downloadQR} 
             variant="outline" 
             size="sm"
-            disabled={validationStatus !== 'valid'}
+            disabled={validationStatus !== 'valid' || !qrGenerated}
           >
             <Download className="w-4 h-4 mr-2" />
             Download QR Code
@@ -255,7 +308,7 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
           </Button>
         </div>
 
-        {validationStatus === 'valid' && (
+        {validationStatus === 'valid' && qrGenerated && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-3">
             <h5 className="font-medium text-green-900 mb-2 text-sm">QR Code Ready!</h5>
             <ul className="text-xs text-green-800 space-y-1">

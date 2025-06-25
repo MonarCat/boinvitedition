@@ -7,7 +7,7 @@ import { BusinessHours } from '@/components/business/BusinessHours';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { UnifiedQRGenerator } from '@/components/qr/UnifiedQRGenerator';
+import { ReliableQRGenerator } from '@/components/qr/ReliableQRGenerator';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -94,7 +94,7 @@ const ServicesPage = () => {
           </div>
         )}
 
-        {/* Unified QR Code Section */}
+        {/* Reliable QR Code Section */}
         <div className="mt-12">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Service Booking QR Code</h2>
           <p className="text-gray-600 mb-4">
@@ -103,7 +103,7 @@ const ServicesPage = () => {
           {!business && isLoadingBusiness ? (
             <div className="text-gray-400">Loading QR code...</div>
           ) : business ? (
-            <UnifiedQRGenerator 
+            <ReliableQRGenerator 
               businessId={business.id} 
               businessName={business.name}
             />

@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +25,7 @@ export const ConsolidatedQRGenerator: React.FC<ConsolidatedQRGeneratorProps> = (
   
   const bookingUrl = `${window.location.origin}/book/${businessId}`;
 
-  const validateAndGenerateQR = async () => {
+  const validateAndGenerateQR = useCallback(async () => {
     try {
       setStatus('loading');
       setError(null);
@@ -42,8 +42,17 @@ export const ConsolidatedQRGenerator: React.FC<ConsolidatedQRGeneratorProps> = (
         throw new Error('Invalid business ID format');
       }
 
+      // Wait for canvas to be ready with timeout
+      let retries = 0;
+      const maxRetries = 20; // Increased retries
+      while (!canvasRef.current && retries < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 50)); // Shorter delay but more retries
+        retries++;
+      }
+
       if (!canvasRef.current) {
-        throw new Error('Canvas not initialized');
+        console.error('QR Generator: Canvas element still not available after waiting');
+        throw new Error('Unable to access canvas element. Please try refreshing the page.');
       }
 
       // Validate business exists and is active with simplified query
@@ -157,7 +166,12 @@ export const ConsolidatedQRGenerator: React.FC<ConsolidatedQRGeneratorProps> = (
 
   useEffect(() => {
     if (businessId) {
-      validateAndGenerateQR();
+      // Add a small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        validateAndGenerateQR();
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [businessId]);
 
@@ -216,8 +230,7 @@ export const ConsolidatedQRGenerator: React.FC<ConsolidatedQRGeneratorProps> = (
             <div className="p-2 bg-white rounded-lg shadow-sm border">
               <canvas 
                 ref={canvasRef} 
-                className="block mx-auto rounded"
-                style={{ maxWidth: '100%', height: 'auto' }}
+                className="block mx-auto rounded max-w-full h-auto"
               />
             </div>
           ) : status === 'error' ? (

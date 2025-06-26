@@ -91,23 +91,35 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
       setValidationStatus('valid');
 
       // Generate QR code with high error correction
-      if (canvasRef.current) {
-        console.log('QR Generator: Generating QR code for URL:', bookingUrl);
-        
-        await QRCode.toCanvas(canvasRef.current, bookingUrl, {
-          width: 300,
-          margin: 2,
-          errorCorrectionLevel: 'H', // 30% error correction
-          color: {
-            dark: '#000000',
-            light: '#FFFFFF'
-          }
-        });
-        
-        setQrGenerated(true);
-        console.log('QR Generator: QR code generated successfully');
-        toast.success('QR code generated successfully');
+      // Wait for canvas to be available with retry logic
+      let canvasReady = false;
+      for (let attempt = 0; attempt < 10; attempt++) {
+        if (canvasRef.current) {
+          canvasReady = true;
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
+      
+      if (!canvasReady) {
+        throw new Error('Canvas element not available after waiting');
+      }
+      
+      console.log('QR Generator: Generating QR code for URL:', bookingUrl);
+      
+      await QRCode.toCanvas(canvasRef.current, bookingUrl, {
+        width: 300,
+        margin: 2,
+        errorCorrectionLevel: 'H', // 30% error correction
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      
+      setQrGenerated(true);
+      console.log('QR Generator: QR code generated successfully');
+      toast.success('QR code generated successfully');
     } catch (error) {
       console.error('QR Generator: Validation error:', error);
       setValidationStatus('invalid');
@@ -119,7 +131,12 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
 
   // Validate business ID and generate QR code on mount
   useEffect(() => {
-    validateAndGenerateQR();
+    // Add a small delay to ensure the canvas is mounted before generating QR
+    const timer = setTimeout(() => {
+      validateAndGenerateQR();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [businessId]);
 
   const downloadQR = () => {

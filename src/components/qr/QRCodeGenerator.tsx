@@ -27,8 +27,16 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
       setStatus('loading');
       setError(null);
       
+      // Wait for canvas to be ready with timeout
+      let retries = 0;
+      const maxRetries = 10;
+      while (!canvasRef.current && retries < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        retries++;
+      }
+      
       if (!canvasRef.current) {
-        throw new Error('Canvas not initialized');
+        throw new Error('Canvas element not available after waiting');
       }
 
       // Validate business exists and is active
@@ -99,7 +107,12 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   };
 
   useEffect(() => {
-    generateQR();
+    // Add a small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      generateQR();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [businessId]);
 
   return (
@@ -116,8 +129,7 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
           {status === 'ready' ? (
             <canvas 
               ref={canvasRef} 
-              className="border rounded-lg shadow-sm"
-              style={{ width: '300px', height: '300px' }}
+              className="border rounded-lg shadow-sm w-[300px] h-[300px]"
             />
           ) : status === 'error' ? (
             <div className="w-[300px] h-[300px] border rounded-lg flex flex-col items-center justify-center bg-red-50">

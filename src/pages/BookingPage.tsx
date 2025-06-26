@@ -12,6 +12,7 @@ import { DateTimeSelectionCard } from "@/components/booking/DateTimeSelectionCar
 import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
 import { ClientInformationCard } from "@/components/booking/ClientInformationCard";
 import { CleanBookingLayout } from "@/components/booking/CleanBookingLayout";
+import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
 
 const BookingPage = () => {
   const { businessId } = useParams();
@@ -146,6 +147,9 @@ const BookingPage = () => {
       <div className="max-w-4xl mx-auto px-6 py-8 space-y-6 hidden lg:block">
         <BookingContent />
       </div>
+      
+      {/* WhatsApp Support Button */}
+      <WhatsAppFAB />
     </CleanBookingLayout>
   );
 };

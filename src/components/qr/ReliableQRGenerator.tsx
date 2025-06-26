@@ -1,10 +1,9 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Download, QrCode, Copy, ExternalLink, Share2, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Download, QrCode, Copy, ExternalLink, Share2, AlertCircle, CheckCircle, RefreshCw, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { validateBusiness } from '@/utils/qrValidation';
 
@@ -22,6 +21,7 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
   const [validationStatus, setValidationStatus] = useState<'pending' | 'valid' | 'invalid'>('pending');
   const [qrGenerated, setQrGenerated] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
   
   const bookingUrl = `${window.location.origin}/book/${businessId}`;
   
@@ -45,12 +45,12 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
 
       setValidationStatus('valid');
       
-      // Generate QR code
+      // Generate QR code with enhanced settings
       if (canvasRef.current) {
         setIsGenerating(true);
         await QRCode.toCanvas(canvasRef.current, bookingUrl, {
-          width: 300,
-          margin: 2,
+          width: 320,
+          margin: 3,
           errorCorrectionLevel: 'H',
           color: {
             dark: '#1f2937',
@@ -58,7 +58,11 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
           }
         });
         
+        // Store data URL for download/print
+        const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
+        setQrDataUrl(dataUrl);
         setQrGenerated(true);
+        
         console.log('QR Generator: QR code generated successfully');
         toast.success('QR code generated successfully');
       }
@@ -73,17 +77,51 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
   };
 
   useEffect(() => {
-    validateAndGenerateQR();
+    if (businessId) {
+      validateAndGenerateQR();
+    }
   }, [businessId]);
 
   const downloadQR = () => {
-    if (canvasRef.current && validationStatus === 'valid' && qrGenerated) {
+    if (validationStatus === 'valid' && qrGenerated && qrDataUrl) {
       const link = document.createElement('a');
       const timestamp = new Date().toISOString().split('T')[0];
       link.download = `${businessName}-booking-qr-${timestamp}.png`;
-      link.href = canvasRef.current.toDataURL('image/png', 1.0);
+      link.href = qrDataUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
       toast.success('QR code downloaded successfully');
+    }
+  };
+
+  const printQR = () => {
+    if (validationStatus === 'valid' && qrGenerated && qrDataUrl) {
+      const printWindow = window.open('', '_blank');
+      printWindow?.document.write(`
+        <html>
+          <head>
+            <title>QR Code - ${businessName}</title>
+            <style>
+              body { margin: 0; padding: 30px; text-align: center; font-family: Arial, sans-serif; }
+              img { max-width: 100%; height: auto; border: 2px solid #e5e7eb; border-radius: 8px; }
+              h1 { color: #1f2937; margin-bottom: 10px; font-size: 24px; }
+              h2 { color: #374151; margin-bottom: 20px; font-size: 18px; }
+              p { color: #6b7280; margin: 10px 0; font-size: 14px; }
+              .url { font-family: monospace; background: #f3f4f6; padding: 10px; border-radius: 4px; word-break: break-all; }
+            </style>
+          </head>
+          <body>
+            <h1>${businessName}</h1>
+            <h2>Scan to Book Services</h2>
+            <img src="${qrDataUrl}" alt="QR Code" />
+            <p class="url">${bookingUrl}</p>
+            <p>Scan with any camera app or QR code scanner</p>
+          </body>
+        </html>
+      `);
+      printWindow?.document.close();
+      printWindow?.print();
     }
   };
 
@@ -156,13 +194,13 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-center pb-4">
-        <CardTitle className="flex items-center justify-center gap-2 text-lg">
+    <Card className="w-full max-w-md mx-auto shadow-lg">
+      <CardHeader className="text-center pb-4 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <CardTitle className="flex items-center justify-center gap-2 text-lg text-blue-800">
           <QrCode className="w-5 h-5 text-blue-600" />
           Business QR Code
         </CardTitle>
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-2 mt-2">
           {getStatusBadge()}
           <Button
             variant="ghost"
@@ -174,24 +212,27 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
             <RefreshCw className={`w-3 h-3 ${isValidating || isGenerating ? 'animate-spin' : ''}`} />
           </Button>
         </div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-blue-600 font-medium">
           Validated QR code for client bookings
         </p>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6 p-6">
         {/* QR Code Display */}
-        <div className="flex justify-center p-4 bg-white border-2 border-gray-200 rounded-lg">
+        <div className="flex justify-center p-6 bg-white border-2 border-gray-200 rounded-xl shadow-inner">
           {validationStatus === 'valid' && qrGenerated ? (
-            <canvas 
-              ref={canvasRef} 
-              className="max-w-full h-auto"
-            />
+            <div className="text-center">
+              <canvas 
+                ref={canvasRef} 
+                className="max-w-full h-auto border border-gray-100 rounded-lg shadow-sm"
+              />
+              <p className="text-xs text-green-600 mt-2 font-medium">✓ Ready for use</p>
+            </div>
           ) : (
-            <div className="w-[300px] h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
+            <div className="w-[320px] h-[320px] flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
               {isValidating || isGenerating ? (
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                  <p className="text-sm text-gray-600">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-3 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-sm text-gray-600 font-medium">
                     {isValidating ? 'Validating business...' : 'Generating QR code...'}
                   </p>
                 </div>
@@ -199,13 +240,13 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
                 <div className="text-center p-4">
                   {validationStatus === 'invalid' ? (
                     <>
-                      <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                      <p className="text-sm text-red-600 mb-2">Business validation failed</p>
+                      <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                      <p className="text-sm text-red-600 mb-3 font-medium">Business validation failed</p>
                     </>
                   ) : (
                     <>
-                      <QrCode className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500 mb-2">Ready to generate QR code</p>
+                      <QrCode className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-sm text-gray-500 mb-3 font-medium">Ready to generate QR code</p>
                     </>
                   )}
                   <Button
@@ -224,17 +265,17 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
         </div>
         
         {/* Booking URL Display */}
-        <div className="text-center">
-          <p className="text-xs text-gray-500 mb-2 font-medium">Booking URL:</p>
-          <div className="bg-gray-100 p-3 rounded-lg border">
-            <p className="text-xs font-mono break-all text-gray-700">
+        <div className="text-center bg-gray-50 p-4 rounded-lg">
+          <p className="text-xs text-gray-600 mb-2 font-semibold uppercase tracking-wide">Booking URL:</p>
+          <div className="bg-white p-3 rounded-lg border border-gray-200">
+            <p className="text-xs font-mono break-all text-gray-700 leading-relaxed">
               {bookingUrl}
             </p>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <Button 
             onClick={shareUrl} 
             variant="default" 
@@ -251,6 +292,7 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
             variant="outline" 
             size="sm"
             disabled={validationStatus !== 'valid'}
+            className="hover:bg-gray-50"
           >
             <Copy className="w-4 h-4 mr-2" />
             Copy Link
@@ -261,45 +303,58 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
             variant="outline" 
             size="sm"
             disabled={validationStatus !== 'valid' || !qrGenerated}
+            className="hover:bg-green-50 hover:border-green-200"
           >
             <Download className="w-4 h-4 mr-2" />
             Download
           </Button>
           
           <Button 
-            onClick={testBooking} 
+            onClick={printQR} 
             variant="outline" 
             size="sm"
-            disabled={validationStatus !== 'valid'}
+            disabled={validationStatus !== 'valid' || !qrGenerated}
+            className="hover:bg-purple-50 hover:border-purple-200"
           >
-            <ExternalLink className="w-4 h-4 mr-2" />
-            Test
+            <Printer className="w-4 h-4 mr-2" />
+            Print
           </Button>
         </div>
 
+        <Button 
+          onClick={testBooking} 
+          variant="outline" 
+          size="sm"
+          disabled={validationStatus !== 'valid'}
+          className="w-full hover:bg-indigo-50 hover:border-indigo-200"
+        >
+          <ExternalLink className="w-4 h-4 mr-2" />
+          Test Booking Page
+        </Button>
+
         {/* Status Messages */}
         {validationStatus === 'valid' && qrGenerated && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <h5 className="font-medium text-green-900 mb-2 text-sm flex items-center gap-2">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h5 className="font-semibold text-green-900 mb-2 text-sm flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
-              QR Code Active!
+              QR Code Active & Verified!
             </h5>
-            <ul className="text-xs text-green-800 space-y-1">
+            <ul className="text-xs text-green-800 space-y-1.5">
               <li>• High error correction (30% damage tolerance)</li>
               <li>• Optimized for mobile camera scanning</li>
               <li>• Points to verified business booking page</li>
-              <li>• Ready to share with customers</li>
+              <li>• Download or print for offline sharing</li>
             </ul>
           </div>
         )}
 
         {validationStatus === 'invalid' && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <h5 className="font-medium text-red-900 mb-2 text-sm flex items-center gap-2">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h5 className="font-semibold text-red-900 mb-2 text-sm flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
               Validation Failed
             </h5>
-            <ul className="text-xs text-red-800 space-y-1">
+            <ul className="text-xs text-red-800 space-y-1.5">
               <li>• Business ID is invalid or business not found</li>
               <li>• Ensure business is active and published</li>
               <li>• Contact support if problem persists</li>

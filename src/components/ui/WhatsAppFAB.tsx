@@ -4,7 +4,7 @@ import { MessageCircle } from 'lucide-react';
 
 export const WhatsAppFAB: React.FC = () => {
   const whatsappNumber = '254769829304';
-  const defaultMessage = "Hello Boinvit! I need help with...";
+  const defaultMessage = "Hello! I need help with Boinvit services.";
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(defaultMessage)}`;
 
   return (
@@ -13,7 +13,8 @@ export const WhatsAppFAB: React.FC = () => {
         href={whatsappUrl} 
         target="_blank" 
         rel="noopener noreferrer"
-        className="bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg flex items-center justify-center transition-colors"
+        className="bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 transform hover:scale-110 animate-bounce"
+        title="Chat with us on WhatsApp"
       >
         <MessageCircle className="w-6 h-6" />
       </a>

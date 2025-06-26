@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ServicesList } from '@/components/services/ServicesList';
@@ -7,7 +8,7 @@ import { BusinessPaymentSetup } from '@/components/business/BusinessPaymentSetup
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { EnhancedQRGenerator } from '@/components/qr/EnhancedQRGenerator';
+import { ConsolidatedQRGenerator } from '@/components/qr/ConsolidatedQRGenerator';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -102,21 +103,26 @@ const ServicesPage = () => {
           </div>
         )}
 
-        {/* Enhanced QR Code Section */}
+        {/* Consolidated QR Code Section */}
         <div className="mt-12">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Service Booking QR Code</h2>
           <p className="text-gray-600 mb-4">
             Reliable QR code that customers can scan to view and book your services directly.
           </p>
-          {!business && isLoadingBusiness ? (
-            <div className="text-gray-400">Loading QR code...</div>
+          {isLoadingBusiness ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2 text-gray-600">Loading QR code...</span>
+            </div>
           ) : business ? (
-            <EnhancedQRGenerator 
+            <ConsolidatedQRGenerator 
               businessId={business.id} 
-              businessName={business.name}
+              businessName={business.name || 'Your Business'}
             />
           ) : (
-            <div className="text-red-500">Unable to load business QR code</div>
+            <div className="text-red-500 bg-red-50 border border-red-200 rounded-lg p-4">
+              Unable to load business QR code. Please refresh the page or contact support.
+            </div>
           )}
         </div>
       </div>

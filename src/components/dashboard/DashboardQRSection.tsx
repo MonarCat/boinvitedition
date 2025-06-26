@@ -3,8 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { EnhancedQRCodeGenerator } from '@/components/qr/EnhancedQRCodeGenerator';
-import { QRAnalytics } from '@/components/qr/QRAnalytics';
+import { ConsolidatedQRGenerator } from '@/components/qr/ConsolidatedQRGenerator';
 import { QrCode, BarChart3, Settings, Palette } from 'lucide-react';
 
 interface DashboardQRSectionProps {
@@ -35,22 +34,18 @@ export const DashboardQRSection: React.FC<DashboardQRSectionProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <QrCode className="w-5 h-5" />
-          Enhanced QR Code System
+          QR Code System
         </CardTitle>
         <p className="text-sm text-gray-600">
-          Professional QR codes with analytics, branding, and permanent links
+          Generate and manage QR codes for customer bookings with reliable functionality
         </p>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="generator" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="generator" className="flex items-center gap-2">
               <QrCode className="w-4 h-4" />
               Generator
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Analytics
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -69,65 +64,22 @@ export const DashboardQRSection: React.FC<DashboardQRSectionProps> = ({
                   className="flex items-center gap-2"
                 >
                   <Palette className="w-4 h-4" />
-                  {showBranding ? 'Hide' : 'Show'} Branding
+                  {showBranding ? 'Hide' : 'Show'} Options
                 </Button>
               </div>
               
-              <EnhancedQRCodeGenerator 
+              <ConsolidatedQRGenerator 
                 businessId={business.id} 
                 businessName={business.name || 'Your Business'}
                 showTitle={false}
-                showAnalytics={true}
-                customColors={customColors}
-                logoUrl={showBranding ? business.logo_url : undefined}
-                size={320}
               />
             </div>
-          </TabsContent>
-          
-          <TabsContent value="analytics" className="mt-6">
-            <QRAnalytics businessId={business.id} />
           </TabsContent>
           
           <TabsContent value="settings" className="mt-6">
             <div className="space-y-6">
               <div>
-                <h3 className="font-medium mb-3">QR Code Customization</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Foreground Color
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={customColors.dark}
-                        onChange={(e) => updateColors({ ...customColors, dark: e.target.value })}
-                        className="w-12 h-8 rounded border"
-                      />
-                      <span className="text-sm text-gray-600">{customColors.dark}</span>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Background Color
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={customColors.light}
-                        onChange={(e) => updateColors({ ...customColors, light: e.target.value })}
-                        className="w-12 h-8 rounded border"
-                      />
-                      <span className="text-sm text-gray-600">{customColors.light}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="border-t pt-6">
-                <h3 className="font-medium mb-3">URL Management</h3>
+                <h3 className="font-medium mb-3">QR Code Information</h3>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm font-medium mb-2">Permanent Booking URL:</p>
                   <code className="text-xs bg-white p-2 rounded border block">
@@ -141,7 +93,7 @@ export const DashboardQRSection: React.FC<DashboardQRSectionProps> = ({
               </div>
               
               <div className="border-t pt-6">
-                <h3 className="font-medium mb-3">Advanced Features</h3>
+                <h3 className="font-medium mb-3">Features</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                     <div>
@@ -153,16 +105,16 @@ export const DashboardQRSection: React.FC<DashboardQRSectionProps> = ({
                   
                   <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                     <div>
-                      <p className="font-medium text-green-900">Cross-Platform Compatible</p>
-                      <p className="text-sm text-green-700">Works on all mobile devices</p>
+                      <p className="font-medium text-green-900">Universal Compatibility</p>
+                      <p className="text-sm text-green-700">Works on all mobile devices and cameras</p>
                     </div>
                     <span className="text-green-600 font-medium">✓ Active</span>
                   </div>
                   
                   <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
                     <div>
-                      <p className="font-medium text-purple-900">Scan Analytics</p>
-                      <p className="text-sm text-purple-700">Track QR code performance</p>
+                      <p className="font-medium text-purple-900">Reliable Generation</p>
+                      <p className="text-sm text-purple-700">Enhanced validation and error handling</p>
                     </div>
                     <span className="text-green-600 font-medium">✓ Active</span>
                   </div>

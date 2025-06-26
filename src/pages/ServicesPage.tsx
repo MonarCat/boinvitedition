@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ServicesList } from '@/components/services/ServicesList';
@@ -8,7 +7,7 @@ import { BusinessPaymentSetup } from '@/components/business/BusinessPaymentSetup
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ConsolidatedQRGenerator } from '@/components/qr/ConsolidatedQRGenerator';
+import { QRCodeGenerator } from '@/components/qr/QRCodeGenerator';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -115,7 +114,7 @@ const ServicesPage = () => {
               <span className="ml-2 text-gray-600">Loading QR code...</span>
             </div>
           ) : business ? (
-            <ConsolidatedQRGenerator 
+            <QRCodeGenerator 
               businessId={business.id} 
               businessName={business.name || 'Your Business'}
             />

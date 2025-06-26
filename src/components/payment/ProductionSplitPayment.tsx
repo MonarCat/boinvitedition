@@ -258,10 +258,7 @@ export const ProductionSplitPayment: React.FC<ProductionSplitPaymentProps> = ({
           payment_type: 'client_to_business',
           business_id: businessId,
           booking_id: bookingId,
-          business_name: businessName,
-          platform_fee: splitConfig.platform_amount,
-          business_amount: splitConfig.business_amount,
-          subaccount_code: splitConfig.subaccount_code
+          business_name: businessName
         }}
         onSuccess={handlePaymentSuccess}
         onError={handlePaymentError}

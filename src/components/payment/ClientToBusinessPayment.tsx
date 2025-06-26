@@ -36,8 +36,7 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
   };
 
   return (
-    
-
+    <div className="space-y-6">
       {/* Direct Payment Component */}
       <DirectPaystackPayment
         amount={amount}

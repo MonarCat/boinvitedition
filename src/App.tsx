@@ -1,127 +1,191 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
-import { SecurityHeaders } from "@/components/security/SecurityHeaders";
-import AuthenticatedApp from "@/pages/AuthenticatedApp";
-import LandingPage from "@/pages/LandingPage";
-import AuthPage from "@/pages/AuthPage";
-import DemoPage from "@/pages/DemoPage";
-import PublicBookingPage from "@/pages/PublicBookingPage";
-import TermsOfService from "@/pages/TermsOfService";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import CookiePolicy from "@/pages/CookiePolicy";
-import SafetyTips from "@/pages/SafetyTips";
-import NotFound from "@/pages/NotFound";
-import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
-import { EnhancedPWAManager } from "@/components/pwa/EnhancedPWAManager";
-import { useSystemDarkMode } from "@/lib/useSystemDarkMode";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { ThemeProvider } from "@/lib/ThemeProvider";
+
+// Production Pages
+import ProductionAuthPage from "./pages/ProductionAuthPage";
+import ProductionOnboardingPage from "./pages/ProductionOnboardingPage";
+import QRScannerPage from "./pages/QRScannerPage";
+
+// Existing Pages
+import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
+import ServicesPage from "./pages/ServicesPage";
+import BookingManagementPage from "./pages/BookingManagementPage";
+import ClientsPage from "./pages/ClientsPage";
+import StaffPage from "./pages/StaffPage";
+import InvoicesPage from "./pages/InvoicesPage";
+import SettingsPage from "./pages/SettingsPage";
+import SubscriptionPage from "./pages/SubscriptionPage";
+import PublicBookingPage from "./pages/PublicBookingPage";
+import BusinessDiscoveryPage from "./pages/BusinessDiscoveryPage";
+
+// Other Pages
+import AuthPage from "./pages/AuthPage";
+import AuthenticatedApp from "./pages/AuthenticatedApp";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import CookiePolicy from "./pages/CookiePolicy";
+import SafetyTips from "./pages/SafetyTips";
+import NotFound from "./pages/NotFound";
+
+// Production WhatsApp Button
+import { ProductionWhatsAppButton } from "./components/ui/ProductionWhatsAppButton";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error: any) => {
-        // Don't retry on auth errors or client errors
-        if (error?.status >= 400 && error?.status < 500) {
-          return false;
-        }
-        return failureCount < 3;
-      },
       staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: (failureCount, error: any) => {
+        if (error?.status === 404) return false;
+        return failureCount < 2;
+      },
     },
   },
 });
 
-const App = () => {
-  useSystemDarkMode();
-  
-  // Enhanced feature verification console log
-  console.log('🚀 Boinvit Mobile-First PWA Loaded:', {
-    timestamp: new Date().toISOString(),
-    version: '3.0.0',
-    features: {
-      '✅ Mobile-First Design': 'Bottom tabs, gestures, FAB',
-      '✅ PWA Enhancements': 'Enhanced install, notifications, offline',
-      '✅ Native App Experience': 'Pull-to-refresh, swipe navigation',
-      '✅ Offline Capabilities': 'Data caching and sync',
-      '✅ Performance Optimized': 'Lazy loading and code splitting',
-      '✅ Touch Optimized': 'Tap targets and gesture support'
-    },
-    mobile: {
-      'Bottom Navigation': 'Touch-friendly tab bar',
-      'Floating Action Button': 'Quick actions for common tasks',
-      'Pull to Refresh': 'Native-like refresh interaction',
-      'Swipe Gestures': 'Navigate between tabs with swipes',
-      'Offline Support': 'Works without internet connection'
-    }
-  });
-  
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Public Route Component (redirects authenticated users)
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+function App() {
   return (
-    <>
-      <SecurityHeaders />
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="light" storageKey="boinvit-theme">
         <TooltipProvider>
-          <Toaster 
-            position="top-center"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                fontSize: '14px',
-              },
-              className: 'text-sm',
-            }}
-          />
+          <Toaster />
           <BrowserRouter>
             <AuthProvider>
-              <div className="relative min-h-screen">
+              <div className="min-h-screen bg-background">
                 <Routes>
-                  {/* Landing page as default */}
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/demo" element={<DemoPage />} />
+                  {/* Public Routes */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={
+                    <PublicRoute>
+                      <ProductionAuthPage />
+                    </PublicRoute>
+                  } />
+                  <Route path="/onboarding" element={
+                    <ProtectedRoute>
+                      <ProductionOnboardingPage />
+                    </ProtectedRoute>
+                  } />
                   
-                  {/* Business Discovery Map */}
+                  {/* QR Scanner */}
+                  <Route path="/scan" element={<QRScannerPage />} />
+                  
+                  {/* Public Booking */}
+                  <Route path="/book/:businessId" element={<PublicBookingPage />} />
                   <Route path="/discover" element={<BusinessDiscoveryPage />} />
                   
-                  {/* QR Code booking routes - Multiple variations for reliability */}
-                  <Route path="/book/:businessId" element={<PublicBookingPage />} />
-                  <Route path="/booking/:businessId" element={<PublicBookingPage />} />
-                  <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
+                  {/* Protected Dashboard Routes */}
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/services" element={
+                    <ProtectedRoute>
+                      <ServicesPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/bookings" element={
+                    <ProtectedRoute>
+                      <BookingManagementPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/clients" element={
+                    <ProtectedRoute>
+                      <ClientsPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/staff" element={
+                    <ProtectedRoute>
+                      <StaffPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/invoices" element={
+                    <ProtectedRoute>
+                      <InvoicesPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings" element={
+                    <ProtectedRoute>
+                      <SettingsPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/subscription" element={
+                    <ProtectedRoute>
+                      <SubscriptionPage />
+                    </ProtectedRoute>
+                  } />
                   
-                  {/* Authenticated app routes */}
-                  <Route path="/app/*" element={<AuthenticatedApp />} />
+                  {/* Legacy Routes */}
+                  <Route path="/login" element={<AuthPage />} />
+                  <Route path="/app" element={<AuthenticatedApp />} />
                   
-                  {/* Legal pages */}
+                  {/* Legal Pages */}
                   <Route path="/terms" element={<TermsOfService />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/cookies" element={<CookiePolicy />} />
                   <Route path="/safety" element={<SafetyTips />} />
                   
-                  {/* Legacy route redirects */}
-                  <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
-                  <Route path="/services" element={<Navigate to="/app/services" replace />} />
-                  <Route path="/booking-management" element={<Navigate to="/app/bookings" replace />} />
-                  <Route path="/clients" element={<Navigate to="/app/clients" replace />} />
-                  <Route path="/staff" element={<Navigate to="/app/staff" replace />} />
-                  <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
-                  <Route path="/invoices" element={<Navigate to="/app/invoices" replace />} />
-                  <Route path="/subscription" element={<Navigate to="/app/subscription" replace />} />
-                  
-                  {/* Catch all - 404 page */}
+                  {/* 404 */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 
-                {/* Enhanced PWA Manager */}
-                <EnhancedPWAManager />
+                {/* Global WhatsApp Button */}
+                <ProductionWhatsAppButton />
               </div>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
-      </QueryClientProvider>
-    </>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
-};
+}
 
 export default App;

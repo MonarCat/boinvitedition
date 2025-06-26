@@ -108,20 +108,18 @@ export const SalonBooking: React.FC<SalonBookingProps> = ({
         if (existingClient) {
           clientId = existingClient.id;
         } else {
-          const { data: newClient, error: clientError } = await supabase
+          const { data: newClient } = await supabase
             .from('clients')
             .insert({
               business_id: businessId,
               name: customerInfo.name,
               phone: customerInfo.phone,
-              email: customerInfo.email || `${customerInfo.phone.replace(/\D/g, '')}@salon.booking`
+              email: customerInfo.email || `${customerInfo.phone}@salon.booking`
             })
             .select()
-            .single();
+            .maybeSingle();
 
-          if (clientError) {
-            console.warn('Client creation failed, proceeding with booking:', clientError);
-          } else {
+          if (newClient) {
             clientId = newClient.id;
           }
         }
@@ -133,7 +131,7 @@ export const SalonBooking: React.FC<SalonBookingProps> = ({
       const bookingData = {
         service_id: selectedService.id,
         business_id: businessId,
-        client_id: clientId || '00000000-0000-0000-0000-000000000000', // Fallback UUID
+        client_id: clientId || '00000000-0000-0000-0000-000000000000',
         staff_id: selectedStylist?.id || null,
         booking_date: bookingDateTime.toISOString().split('T')[0],
         booking_time: bookingDateTime.toTimeString().split(' ')[0],
@@ -141,7 +139,7 @@ export const SalonBooking: React.FC<SalonBookingProps> = ({
         total_amount: selectedService.price,
         customer_name: customerInfo.name,
         customer_phone: customerInfo.phone,
-        customer_email: customerInfo.email || `${customerInfo.phone.replace(/\D/g, '')}@salon.booking`,
+        customer_email: customerInfo.email || `${customerInfo.phone}@salon.booking`,
         notes: `Salon booking - Deposit required: KSh ${calculateDeposit()}`,
         status: 'pending_payment',
         payment_status: 'pending'
@@ -153,10 +151,7 @@ export const SalonBooking: React.FC<SalonBookingProps> = ({
         .select()
         .single();
 
-      if (error) {
-        console.error('Booking creation error:', error);
-        throw new Error(error.message || 'Failed to create booking');
-      }
+      if (error) throw error;
 
       // Send WhatsApp confirmation
       sendWhatsAppConfirmation({
@@ -172,7 +167,7 @@ export const SalonBooking: React.FC<SalonBookingProps> = ({
 
     } catch (error) {
       console.error('Booking error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create booking. Please try again.');
+      toast.error('Failed to create booking. Please try again.');
     } finally {
       setIsLoading(false);
     }

@@ -23,9 +23,9 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
   businessName
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isValidating, setIsValidating] = useState(false);
   const [validationStatus, setValidationStatus] = useState<'pending' | 'valid' | 'invalid'>('pending');
   const [qrGenerated, setQrGenerated] = useState(false);
-  const [isValidating, setIsValidating] = useState(false);
   
   // Generate reliable booking URL
   const baseUrl = window.location.origin;
@@ -64,7 +64,7 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
         .from('businesses')
         .select('id, name, is_active')
         .eq('id', businessId)
-        .maybeSingle(); // Use maybeSingle to avoid errors when no data found
+        .single();
 
       if (error) {
         console.error('QR Generator: Database error:', error);
@@ -91,35 +91,23 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
       setValidationStatus('valid');
 
       // Generate QR code with high error correction
-      // Wait for canvas to be available with retry logic
-      let canvasReady = false;
-      for (let attempt = 0; attempt < 10; attempt++) {
-        if (canvasRef.current) {
-          canvasReady = true;
-          break;
-        }
-        await new Promise(resolve => setTimeout(resolve, 100));
+      if (canvasRef.current) {
+        console.log('QR Generator: Generating QR code for URL:', bookingUrl);
+        
+        await QRCode.toCanvas(canvasRef.current, bookingUrl, {
+          width: 300,
+          margin: 2,
+          errorCorrectionLevel: 'H', // 30% error correction
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
+        });
+        
+        setQrGenerated(true);
+        console.log('QR Generator: QR code generated successfully');
+        toast.success('QR code generated successfully');
       }
-      
-      if (!canvasReady) {
-        throw new Error('Canvas element not available after waiting');
-      }
-      
-      console.log('QR Generator: Generating QR code for URL:', bookingUrl);
-      
-      await QRCode.toCanvas(canvasRef.current, bookingUrl, {
-        width: 300,
-        margin: 2,
-        errorCorrectionLevel: 'H', // 30% error correction
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF'
-        }
-      });
-      
-      setQrGenerated(true);
-      console.log('QR Generator: QR code generated successfully');
-      toast.success('QR code generated successfully');
     } catch (error) {
       console.error('QR Generator: Validation error:', error);
       setValidationStatus('invalid');
@@ -131,12 +119,7 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
 
   // Validate business ID and generate QR code on mount
   useEffect(() => {
-    // Add a small delay to ensure the canvas is mounted before generating QR
-    const timer = setTimeout(() => {
-      validateAndGenerateQR();
-    }, 100);
-    
-    return () => clearTimeout(timer);
+    validateAndGenerateQR();
   }, [businessId]);
 
   const downloadQR = () => {

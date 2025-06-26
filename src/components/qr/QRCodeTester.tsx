@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { QRCodeGenerator } from '@/components/qr/QRCodeGenerator';
+import { BusinessQRGenerator } from '@/components/business/BusinessQRGenerator';
 import { CheckCircle, AlertCircle, TestTube } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -112,7 +112,7 @@ export const QRCodeTester: React.FC<QRCodeTesterProps> = ({ businessId }) => {
             <CardTitle>Live QR Code Preview</CardTitle>
           </CardHeader>
           <CardContent>
-            <QRCodeGenerator 
+            <BusinessQRGenerator 
               businessId={currentBusinessId}
               businessName={currentBusinessName}
             />

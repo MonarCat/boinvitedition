@@ -66,6 +66,43 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
 
   const { hasAccess, validateBusinessAccess } = useSecureBusinessAccess(business?.id);
 
+  // Watch form values for real-time sanitization
+  const watchedValues = watch();
+
+  React.useEffect(() => {
+    // Sanitize inputs in real-time with proper typing
+    if (watchedValues.email) {
+      const sanitized = sanitizeEmail(watchedValues.email);
+      if (sanitized !== watchedValues.email) {
+        setValue('email', sanitized);
+      }
+    }
+    if (watchedValues.phone) {
+      const sanitized = sanitizePhone(watchedValues.phone);
+      if (sanitized !== watchedValues.phone) {
+        setValue('phone', sanitized);
+      }
+    }
+    if (watchedValues.name) {
+      const sanitized = sanitizeText(watchedValues.name, { maxLength: 100 });
+      if (sanitized !== watchedValues.name) {
+        setValue('name', sanitized);
+      }
+    }
+    if (watchedValues.address) {
+      const sanitized = sanitizeText(watchedValues.address, { maxLength: 200 });
+      if (sanitized !== watchedValues.address) {
+        setValue('address', sanitized);
+      }
+    }
+    if (watchedValues.notes) {
+      const sanitized = sanitizeText(watchedValues.notes, { maxLength: 500 });
+      if (sanitized !== watchedValues.notes) {
+        setValue('notes', sanitized);
+      }
+    }
+  }, [watchedValues, setValue, sanitizeText, sanitizeEmail, sanitizePhone]);
+
   const createClientMutation = useMutation({
     mutationFn: async (data: ClientFormData) => {
       if (!business) {
@@ -81,36 +118,35 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
         throw new Error('Access denied');
       }
 
-      // Validate required fields
+      // Additional server-side validation
       const nameError = validateRequired(data.name, 'Name');
       if (nameError) {
         throw new Error(nameError);
       }
 
-      // Sanitize inputs
-      const sanitizedData = {
+      if (data.email && !data.email.includes('@')) {
+        throw new Error('Invalid email format');
+      }
+
+      // Sanitize all inputs before sending to database
+      const clientData = {
         business_id: business.id,
         name: sanitizeText(data.name, { maxLength: 100 }),
-        email: data.email ? sanitizeEmail(data.email) : null,
+        email: data.email ? sanitizeEmail(data.email) : `client-${Date.now()}@temp.local`,
         phone: data.phone ? sanitizePhone(data.phone) : null,
         address: data.address ? sanitizeText(data.address, { maxLength: 200 }) : null,
         notes: data.notes ? sanitizeText(data.notes, { maxLength: 500 }) : null,
       };
 
       // Validate sanitized data
-      if (!sanitizedData.name) {
+      if (!clientData.name) {
         throw new Error('Name cannot be empty after validation');
       }
 
-      // Validate email format if provided
-      if (sanitizedData.email && !sanitizedData.email.includes('@')) {
-        throw new Error('Invalid email format');
-      }
-
-      console.log('Creating client with data:', sanitizedData);
+      console.log('Creating client with data:', clientData);
 
       if (client) {
-        // Update existing client
+        // First verify ownership of the client being updated
         const { data: existingClient, error: checkError } = await supabase
           .from('clients')
           .select('business_id')
@@ -127,7 +163,7 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
 
         const { error } = await supabase
           .from('clients')
-          .update(sanitizedData)
+          .update(clientData)
           .eq('id', client.id)
           .eq('business_id', business.id);
 
@@ -136,10 +172,9 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
           throw error;
         }
       } else {
-        // Create new client
         const { error } = await supabase
           .from('clients')
-          .insert([sanitizedData]);
+          .insert([clientData]);
 
         if (error) {
           console.error('Insert error:', error);
@@ -148,7 +183,7 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
       }
     },
     onSuccess: () => {
-      toast.success(client ? 'Client updated successfully' : 'Client created successfully');
+      toast.success(client ? 'Client updated successfully' : 'Client added successfully');
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       onSuccess?.();
     },
@@ -208,7 +243,7 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
             },
             maxLength: { value: 254, message: 'Email must be less than 254 characters' }
           })}
-          placeholder="client@example.com (optional)"
+          placeholder="client@example.com"
           maxLength={254}
         />
         {errors.email && (
@@ -269,8 +304,8 @@ export const SecureClientForm = ({ client, onSuccess, onCancel }: SecureClientFo
           className="flex-1"
         >
           {createClientMutation.isPending 
-            ? (client ? 'Updating...' : 'Creating...') 
-            : (client ? 'Update Client' : 'Create Client')
+            ? (client ? 'Updating...' : 'Adding...') 
+            : (client ? 'Update Client' : 'Add Client')
           }
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>

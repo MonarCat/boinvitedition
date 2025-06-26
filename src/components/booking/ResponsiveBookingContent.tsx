@@ -8,7 +8,7 @@ import { ServicesList } from './ServicesList';
 import { EmptyServiceSelection } from './EmptyServiceSelection';
 import { PublicBookingCalendar } from './PublicBookingCalendar';
 import { BusinessPaymentInstructions } from '@/components/business/BusinessPaymentInstructions';
-import { QRCodeGenerator } from '@/components/qr/QRCodeGenerator';
+import { UnifiedQRGenerator } from '@/components/qr/UnifiedQRGenerator';
 import { ClientToBusinessPayment } from '@/components/payment/ClientToBusinessPayment';
 
 interface Service {
@@ -122,7 +122,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <QRCodeGenerator
+              <UnifiedQRGenerator
                 businessId={businessId}
                 businessName={business.name}
                 showTitle={false}

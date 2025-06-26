@@ -1,12 +1,10 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { CreditCard } from 'lucide-react';
 
 interface PaymentAmountDisplayProps {
   amount: number;
   currency: string;
-  paymentType: string;
+  paymentType: 'client_to_business' | 'subscription';
 }
 
 export const PaymentAmountDisplay: React.FC<PaymentAmountDisplayProps> = ({
@@ -14,41 +12,33 @@ export const PaymentAmountDisplay: React.FC<PaymentAmountDisplayProps> = ({
   currency,
   paymentType
 }) => {
-  const formatAmount = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
-
-  const getPaymentTypeLabel = (type: string) => {
-    switch (type) {
-      case 'client_to_business':
-        return 'Service Payment';
-      case 'subscription':
-        return 'Subscription Fee';
-      default:
-        return 'Payment';
-    }
+  const formatCurrency = (amount: number, currency: string) => {
+    const symbols: { [key: string]: string } = {
+      'KES': 'KSh ',
+      'USD': '$',
+      'EUR': '€',
+      'GBP': '£'
+    };
+    return `${symbols[currency] || currency} ${amount.toLocaleString()}`;
   };
 
   return (
-    <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-      <CardContent className="p-4 text-center">
-        <div className="flex items-center justify-center mb-2">
-          <CreditCard className="w-5 h-5 text-blue-600 mr-2" />
-          <span className="text-sm font-medium text-blue-800">
-            {getPaymentTypeLabel(paymentType)}
-          </span>
+    <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 text-center border border-green-100">
+      <div className="text-3xl font-bold text-green-700 mb-2">
+        {formatCurrency(amount, currency)}
+      </div>
+      {paymentType === 'client_to_business' && (
+        <div className="text-xs text-gray-600 space-y-1">
+          <div className="flex justify-between items-center">
+            <span>Business receives:</span>
+            <span className="font-medium">{formatCurrency(amount * 0.95, currency)}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span>Platform fee (5%):</span>
+            <span className="font-medium">{formatCurrency(amount * 0.05, currency)}</span>
+          </div>
         </div>
-        <div className="text-3xl font-bold text-blue-900 mb-1">
-          {formatAmount(amount, currency)}
-        </div>
-        <p className="text-xs text-blue-600">
-          Secure payment processing
-        </p>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 };

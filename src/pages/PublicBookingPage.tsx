@@ -1,64 +1,67 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { EnhancedPublicBookingContent } from '@/components/booking/EnhancedPublicBookingContent';
+import { BookingPageError } from '@/components/booking/BookingPageError';
 import { BookingPageLoading } from '@/components/booking/BookingPageLoading';
-import { BusinessNotFound } from './BusinessNotFound';
+import { CleanBookingLayout } from '@/components/booking/CleanBookingLayout';
+import { ResponsiveBookingContent } from '@/components/booking/ResponsiveBookingContent';
+import { usePublicBookingData } from '@/hooks/usePublicBookingData';
+import { isValidUUID, logQRCodeDebugInfo } from '@/utils/uuidValidation';
 
 const PublicBookingPage = () => {
   const { businessId } = useParams<{ businessId: string }>();
 
-  const { data: business, isLoading: businessLoading, error: businessError } = useQuery({
-    queryKey: ['public-business', businessId],
-    queryFn: async () => {
-      if (!businessId) throw new Error('Business ID required');
+  // Enhanced validation and error handling
+  React.useEffect(() => {
+    if (businessId) {
+      logQRCodeDebugInfo(businessId);
+    }
+  }, [businessId]);
 
-      const { data, error: supabaseError } = await supabase
-        .from('businesses')
-        .select('*, business_settings(*)')
-        .eq('id', businessId)
-        .eq('is_active', true)
-        .single();
+  // Validate UUID format before making database calls
+  if (businessId && !isValidUUID(businessId)) {
+    return (
+      <BookingPageError 
+        type="invalid-format" 
+        businessId={businessId} 
+      />
+    );
+  }
 
-      if (supabaseError) throw supabaseError;
-      if (!data) throw new Error('Business not found');
-      
-      return data;
-    },
-    retry: false
-  });
+  const { 
+    business, 
+    businessLoading, 
+    businessError, 
+    services, 
+    servicesLoading 
+  } = usePublicBookingData(businessId);
 
-  const { data: services, isLoading: servicesLoading } = useQuery({
-    queryKey: ['public-services', businessId],
-    queryFn: async () => {
-      if (!businessId) return [];
+  if (!businessId) {
+    return <BookingPageError type="no-business-id" />;
+  }
 
-      const { data, error } = await supabase
-        .from('services')
-        .select('*')
-        .eq('business_id', businessId)
-        .eq('is_active', true)
-        .order('name');
+  if (businessLoading || servicesLoading) {
+    return <BookingPageLoading businessId={businessId} />;
+  }
 
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!businessId && !!business,
-  });
-
-  const isLoading = businessLoading || servicesLoading;
-
-  if (isLoading) return <BookingPageLoading businessId={businessId || ''} />;
-  if (businessError || !business) return <BusinessNotFound businessId={businessId} />;
+  if (businessError || !business) {
+    return (
+      <BookingPageError 
+        type="not-found" 
+        businessId={businessId}
+        errorMessage={businessError?.message}
+      />
+    );
+  }
 
   return (
-    <EnhancedPublicBookingContent 
-      business={business} 
-      services={services || []}
-      businessId={businessId || ''} 
-    />
+    <CleanBookingLayout>
+      <ResponsiveBookingContent 
+        business={business}
+        services={services || []}
+        businessId={businessId}
+      />
+    </CleanBookingLayout>
   );
 };
 

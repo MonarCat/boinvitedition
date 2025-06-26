@@ -1,15 +1,11 @@
 
 import React from 'react';
-import { FindServicesMap } from '@/components/map/FindServicesMap';
-import { WhatsAppFAB } from '@/components/ui/WhatsAppFAB';
+import { BusinessMap } from '@/components/map/BusinessMap';
 
 const BusinessDiscoveryPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
-      <FindServicesMap />
-      
-      {/* WhatsApp Support Button */}
-      <WhatsAppFAB />
+      <BusinessMap />
     </div>
   );
 };

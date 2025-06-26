@@ -21,7 +21,6 @@ import { FloatingActionButton } from '@/components/mobile/FloatingActionButton';
 import { MobileGestures } from '@/components/mobile/MobileGestures';
 import { PullToRefresh } from '@/components/mobile/PullToRefresh';
 import { OfflineManager } from '@/components/mobile/OfflineManager';
-import { WhatsAppFAB } from '@/components/ui/WhatsAppFAB';
 import { toast } from 'sonner';
 
 const navigation = [
@@ -208,9 +207,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         <BottomTabBar />
         <FloatingActionButton />
         <OfflineManager />
-        
-        {/* WhatsApp Support Button */}
-        <WhatsAppFAB />
       </div>
     </MobileGestures>
   );

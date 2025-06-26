@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { GlobalPartnersSlider } from '@/components/landing/GlobalPartnersSlider';
 import { PricingSection } from '@/components/landing/PricingSection';
-import { WhatsAppFAB } from '@/components/ui/WhatsAppFAB';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -351,9 +350,6 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
-      
-      {/* WhatsApp Support Button */}
-      <WhatsAppFAB />
     </div>
   );
 };

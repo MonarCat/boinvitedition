@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,7 +26,7 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
   const baseUrl = window.location.origin;
   const bookingUrl = `${baseUrl}/book/${businessId}`;
   
-  const validateAndGenerateQR = useCallback(async (skipCache = false) => {
+  const validateAndGenerateQR = async (skipCache = false) => {
     if (!businessId || retryCount > 3) {
       setValidationStatus('invalid');
       return;
@@ -73,41 +73,29 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
       setValidationStatus('valid');
 
       // Generate QR code with enhanced error correction
-      // Wait for canvas to be available with retry logic
-      let canvasReady = false;
-      for (let attempt = 0; attempt < 10; attempt++) {
-        if (canvasRef.current) {
-          canvasReady = true;
-          break;
+      if (canvasRef.current) {
+        await QRCode.toCanvas(canvasRef.current, bookingUrl, {
+          width: 300,
+          margin: 3,
+          errorCorrectionLevel: 'H', // Highest error correction
+          color: {
+            dark: '#1a1a1a',
+            light: '#ffffff'
+          },
+          rendererOpts: {
+            quality: 1
+          }
+        });
+        
+        setQrGenerated(true);
+        setRetryCount(0);
+        console.log('Enhanced QR: Generated successfully');
+        
+        if (retryCount > 0) {
+          toast.success('QR code generated successfully after retry');
         }
-        await new Promise(resolve => setTimeout(resolve, 100));
       }
-      
-      if (!canvasReady) {
-        throw new Error('Canvas element not available after waiting');
-      }
-
-      await QRCode.toCanvas(canvasRef.current, bookingUrl, {
-        width: 300,
-        margin: 3,
-        errorCorrectionLevel: 'H', // Highest error correction
-        color: {
-          dark: '#1a1a1a',
-          light: '#ffffff'
-        },
-        rendererOpts: {
-          quality: 1
-        }
-      });
-      
-      setQrGenerated(true);
-      setRetryCount(0);
-      console.log('Enhanced QR: Generated successfully');
-      
-      if (retryCount > 0) {
-        toast.success('QR code generated successfully after retry');
-      }
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Enhanced QR: Validation error:', error);
       setValidationStatus('invalid');
       setRetryCount(prev => prev + 1);
@@ -120,16 +108,11 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
     } finally {
       setIsValidating(false);
     }
-  }, [businessId, bookingUrl, retryCount]);
+  };
 
   useEffect(() => {
-    // Add a small delay to ensure the canvas is mounted before generating QR
-    const timer = setTimeout(() => {
-      validateAndGenerateQR();
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, [businessId, validateAndGenerateQR]);
+    validateAndGenerateQR();
+  }, [businessId]);
 
   const handleRetry = () => {
     setQrGenerated(false);

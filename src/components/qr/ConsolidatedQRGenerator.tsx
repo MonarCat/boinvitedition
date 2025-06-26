@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
@@ -22,8 +21,21 @@ export const ConsolidatedQRGenerator: React.FC<ConsolidatedQRGeneratorProps> = (
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [error, setError] = useState<string | null>(null);
+  const [canvasReady, setCanvasReady] = useState(false);
   
   const bookingUrl = `${window.location.origin}/book/${businessId}`;
+
+  // Ensure canvas is ready before generating QR
+  useEffect(() => {
+    const checkCanvas = () => {
+      if (canvasRef.current) {
+        setCanvasReady(true);
+      } else {
+        setTimeout(checkCanvas, 100);
+      }
+    };
+    checkCanvas();
+  }, []);
 
   const validateAndGenerateQR = async () => {
     try {
@@ -42,7 +54,8 @@ export const ConsolidatedQRGenerator: React.FC<ConsolidatedQRGeneratorProps> = (
         throw new Error('Invalid business ID format');
       }
 
-      if (!canvasRef.current) {
+      // Wait for canvas to be ready
+      if (!canvasReady || !canvasRef.current) {
         throw new Error('Canvas not initialized');
       }
 
@@ -89,6 +102,13 @@ export const ConsolidatedQRGenerator: React.FC<ConsolidatedQRGeneratorProps> = (
       setError(errorMessage);
     }
   };
+
+  // Generate QR when canvas is ready and business ID is available
+  useEffect(() => {
+    if (canvasReady && businessId) {
+      validateAndGenerateQR();
+    }
+  }, [canvasReady, businessId]);
 
   const downloadQR = async () => {
     if (canvasRef.current && status === 'ready') {
@@ -154,12 +174,6 @@ export const ConsolidatedQRGenerator: React.FC<ConsolidatedQRGeneratorProps> = (
       toast.error('Failed to open booking page');
     }
   };
-
-  useEffect(() => {
-    if (businessId) {
-      validateAndGenerateQR();
-    }
-  }, [businessId]);
 
   const getStatusBadge = () => {
     switch (status) {

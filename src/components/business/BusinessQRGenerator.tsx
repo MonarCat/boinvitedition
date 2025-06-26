@@ -1,5 +1,4 @@
-
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,13 +15,26 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
   businessName
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [canvasReady, setCanvasReady] = useState(false);
   
   // Use the correct booking URL format
   const bookingUrl = `${window.location.origin}/book/${businessId}`;
   
-  React.useEffect(() => {
+  // Ensure canvas is ready before generating QR
+  useEffect(() => {
+    const checkCanvas = () => {
+      if (canvasRef.current) {
+        setCanvasReady(true);
+      } else {
+        setTimeout(checkCanvas, 100);
+      }
+    };
+    checkCanvas();
+  }, []);
+  
+  useEffect(() => {
     const generateQR = async () => {
-      if (canvasRef.current && businessId) {
+      if (canvasReady && canvasRef.current && businessId) {
         try {
           await QRCode.toCanvas(canvasRef.current, bookingUrl, {
             width: 200,
@@ -40,8 +52,10 @@ export const BusinessQRGenerator: React.FC<BusinessQRGeneratorProps> = ({
       }
     };
 
-    generateQR();
-  }, [bookingUrl, businessId]);
+    if (canvasReady) {
+      generateQR();
+    }
+  }, [bookingUrl, businessId, canvasReady]);
 
   const downloadQR = () => {
     if (canvasRef.current) {

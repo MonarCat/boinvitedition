@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DateTimeSelectionCardProps {
@@ -30,50 +29,57 @@ export const DateTimeSelectionCard: React.FC<DateTimeSelectionCardProps> = ({
   ];
 
   return (
-    <Card>
+    <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 shadow-md hover:shadow-xl transition-shadow duration-300">
       <CardHeader>
-        <CardTitle>Select Date & Time</CardTitle>
-        <CardDescription>Choose your preferred appointment slot</CardDescription>
+        <CardTitle className="text-2xl font-bold text-slate-900 dark:text-slate-100">Select Date & Time</CardTitle>
+        <CardDescription className="text-slate-600 dark:text-slate-400">Choose your preferred appointment slot.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <Label>Select Date</Label>
+            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Select Date</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "w-full justify-start text-left font-normal h-12 px-4 rounded-lg",
+                    "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600",
+                    "hover:bg-slate-50 dark:hover:bg-slate-700",
                     !selectedDate && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                  <CalendarIcon className="mr-3 h-5 w-5 text-slate-500 dark:text-slate-400" />
+                  {selectedDate ? format(selectedDate, "PPP") : <span className="text-slate-500 dark:text-slate-400">Pick a date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded-lg shadow-lg" align="start">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={onDateSelect}
-                  disabled={(date) => date < new Date()}
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                   initialFocus
-                  className="pointer-events-auto"
+                  className="p-2"
                 />
               </PopoverContent>
             </Popover>
           </div>
 
           <div>
-            <Label>Select Time</Label>
+            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Select Time</Label>
             <Select value={selectedTime} onValueChange={onTimeSelect}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose time slot" />
+              <SelectTrigger className="h-12 px-4 rounded-lg bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
+                <SelectValue placeholder={
+                  <div className="flex items-center text-slate-500 dark:text-slate-400">
+                    <Clock className="mr-3 h-5 w-5" />
+                    <span>Choose time slot</span>
+                  </div>
+                } />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded-lg shadow-lg">
                 {timeSlots.map((time) => (
-                  <SelectItem key={time} value={time}>
+                  <SelectItem key={time} value={time} className="hover:bg-slate-100 dark:hover:bg-slate-700 h-10">
                     {time}
                   </SelectItem>
                 ))}

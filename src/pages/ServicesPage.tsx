@@ -7,14 +7,15 @@ import { BusinessPaymentSetup } from '@/components/business/BusinessPaymentSetup
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { EnhancedQRGenerator } from '@/components/qr/EnhancedQRGenerator';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { ServiceBookingQRGenerator } from '@/components/qr/ServiceBookingQRGenerator';
+import { Service, Business } from '@/types';
 
 const ServicesPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingService, setEditingService] = useState(null);
+  const [editingService, setEditingService] = useState<Service | null>(null);
   const { user } = useAuth();
 
   const handleCreateService = () => {
@@ -22,7 +23,7 @@ const ServicesPage = () => {
     setIsFormOpen(true);
   };
 
-  const handleEditService = (service: any) => {
+  const handleEditService = (service: Service) => {
     setEditingService(service);
     setIsFormOpen(true);
   };
@@ -102,23 +103,17 @@ const ServicesPage = () => {
           </div>
         )}
 
-        {/* Enhanced QR Code Section */}
-        <div className="mt-12">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Service Booking QR Code</h2>
-          <p className="text-gray-600 mb-4">
-            Reliable QR code that customers can scan to view and book your services directly.
-          </p>
-          {!business && isLoadingBusiness ? (
-            <div className="text-gray-400">Loading QR code...</div>
-          ) : business ? (
-            <EnhancedQRGenerator 
+        {/* Service Booking QR Code Section */}
+        {business && (
+          <div className="mt-8">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Service Booking QR Code</h2>
+            <p className="text-gray-600 mb-4">Clients can scan this QR code to book your services directly.</p>
+            <ServiceBookingQRGenerator 
               businessId={business.id} 
               businessName={business.name}
             />
-          ) : (
-            <div className="text-red-500">Unable to load business QR code</div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

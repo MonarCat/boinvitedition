@@ -1,18 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { Clock, CreditCard, Calendar } from 'lucide-react';
-
-interface Service {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  duration_minutes: number;
-  currency?: string;
-}
+import { Clock, CreditCard, Calendar, CheckCircle } from 'lucide-react';
+import { Service } from '@/types';
 
 interface BookingSummaryCardProps {
   selectedService: string;
@@ -39,29 +30,29 @@ export const BookingSummaryCard: React.FC<BookingSummaryCardProps> = ({
   const selectedServiceData = services.find(s => s.id === selectedService);
 
   return (
-    <Card className="border-2 border-blue-100 bg-gradient-to-br from-blue-50 to-white">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-blue-900">
-          <CreditCard className="w-5 h-5" />
-          Booking Summary
+    <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 shadow-lg rounded-xl overflow-hidden">
+      <CardHeader className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 p-4">
+        <CardTitle className="flex items-center gap-3 text-xl font-bold text-slate-900 dark:text-slate-100">
+          <CreditCard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <span>Booking Summary</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {selectedServiceData && (
-          <div className="bg-white rounded-lg p-4 border border-blue-200">
+      <CardContent className="p-6 space-y-5">
+        {selectedServiceData ? (
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
             <div className="flex justify-between items-start mb-2">
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">{selectedServiceData.name}</h3>
-                <p className="text-sm text-gray-600 mt-1">{selectedServiceData.description}</p>
+                <h3 className="font-semibold text-lg text-slate-800 dark:text-slate-200">{selectedServiceData.name}</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{selectedServiceData.description}</p>
               </div>
-              <Badge variant="secondary" className="ml-2">
-                <Clock className="w-3 h-3 mr-1" />
-                {selectedServiceData.duration_minutes}min
+              <Badge variant="outline" className="ml-2 text-sm font-medium border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300">
+                <Clock className="w-4 h-4 mr-1.5" />
+                {selectedServiceData.duration_minutes} min
               </Badge>
             </div>
-            <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-              <span className="text-sm text-gray-600">Service Price:</span>
-              <span className="font-bold text-lg text-blue-600">
+            <div className="flex justify-between items-center pt-3 mt-3 border-t border-slate-200 dark:border-slate-700">
+              <span className="text-sm text-slate-600 dark:text-slate-400">Service Price:</span>
+              <span className="font-bold text-lg text-blue-600 dark:text-blue-400">
                 {formatPrice(
                   selectedServiceData.price,
                   selectedServiceData.currency || business?.currency || 'KES'
@@ -69,45 +60,50 @@ export const BookingSummaryCard: React.FC<BookingSummaryCardProps> = ({
               </span>
             </div>
           </div>
+        ) : (
+          <div className="text-center py-6 text-slate-500 dark:text-slate-400">
+            <p>Select a service to see the summary.</p>
+          </div>
         )}
 
         <div className="space-y-3">
           {selectedDate && (
-            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
-              <Calendar className="w-4 h-4 text-blue-600" />
+            <div className="flex items-center gap-4 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+              <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               <div>
-                <div className="text-sm font-medium text-gray-900">
+                <div className="text-sm font-medium text-slate-800 dark:text-slate-200">
                   {format(selectedDate, "EEEE, MMMM d, yyyy")}
                 </div>
-                <div className="text-xs text-gray-500">Appointment Date</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">Appointment Date</div>
               </div>
             </div>
           )}
 
           {selectedTime && (
-            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
-              <Clock className="w-4 h-4 text-blue-600" />
+            <div className="flex items-center gap-4 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+              <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               <div>
-                <div className="text-sm font-medium text-gray-900">{selectedTime}</div>
-                <div className="text-xs text-gray-500">Appointment Time</div>
+                <div className="text-sm font-medium text-slate-800 dark:text-slate-200">{selectedTime}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">Appointment Time</div>
               </div>
             </div>
           )}
         </div>
 
         {selectedServiceData && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700/50 rounded-lg p-4 mt-4">
             <div className="flex justify-between items-center">
-              <span className="font-semibold text-green-800">Total Amount:</span>
-              <span className="text-xl font-bold text-green-700">
+              <span className="font-semibold text-lg text-green-800 dark:text-green-200">Total Amount:</span>
+              <span className="text-2xl font-bold text-green-700 dark:text-green-300">
                 {formatPrice(
                   selectedServiceData.price,
                   selectedServiceData.currency || business?.currency || 'KES'
                 )}
               </span>
             </div>
-            <p className="text-xs text-green-600 mt-1">
-              Payment required to confirm booking
+            <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1.5">
+              <CheckCircle className="w-3.5 h-3.5"/>
+              Payment is required to confirm your booking.
             </p>
           </div>
         )}

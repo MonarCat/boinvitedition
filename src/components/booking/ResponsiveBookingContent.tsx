@@ -1,14 +1,12 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Phone, Clock, Star, ChevronLeft, QrCode, CreditCard } from 'lucide-react';
+import { MapPin, Phone, Clock, Star, ChevronLeft, CreditCard } from 'lucide-react';
 import { ServicesList } from './ServicesList';
 import { EmptyServiceSelection } from './EmptyServiceSelection';
 import { PublicBookingCalendar } from './PublicBookingCalendar';
 import { BusinessPaymentInstructions } from '@/components/business/BusinessPaymentInstructions';
-import { UnifiedQRGenerator } from '@/components/qr/UnifiedQRGenerator';
 import { ClientToBusinessPayment } from '@/components/payment/ClientToBusinessPayment';
 
 interface Service {
@@ -32,7 +30,6 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
   businessId
 }) => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [showQR, setShowQR] = useState(false);
   const [showClientPayment, setShowClientPayment] = useState(false);
 
   const handleServiceSelect = (service: Service) => {
@@ -91,46 +88,10 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                 <CreditCard className="w-4 h-4" />
                 Pay
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowQR(!showQR)}
-                className="flex items-center gap-1"
-              >
-                <QrCode className="w-4 h-4" />
-                QR
-              </Button>
             </div>
           </div>
         </div>
       </div>
-
-      {/* QR Code Overlay */}
-      {showQR && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                Scan to Book
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowQR(false)}
-                >
-                  ×
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <UnifiedQRGenerator
-                businessId={businessId}
-                businessName={business.name}
-                showTitle={false}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      )}
 
       {/* Client Payment Overlay */}
       {showClientPayment && selectedService && (

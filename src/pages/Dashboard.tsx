@@ -5,7 +5,6 @@ import { DashboardKPISection } from '@/components/dashboard/DashboardKPISection'
 import { DashboardQuickActions } from '@/components/dashboard/DashboardQuickActions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { EnhancedQRGenerator } from '@/components/qr/EnhancedQRGenerator';
 import { SecurityDashboard } from '@/components/security/SecurityDashboard';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,7 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSpreadsheetExport } from '@/hooks/useSpreadsheetExport';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useDashboardHandlers } from '@/hooks/useDashboardHandlers';
-import { QrCode, Download, Shield, Users, TrendingUp } from 'lucide-react';
+import { Download, Shield, Users, TrendingUp } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -152,29 +151,6 @@ const Dashboard = () => {
             </>
           )}
         </div>
-
-        {/* QR Code Section - Using EnhancedQRGenerator */}
-        {business && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <QrCode className="w-5 h-5" />
-                Service Booking QR Code
-              </CardTitle>
-              <p className="text-sm text-gray-600">
-                Enhanced QR code for customers to easily book your services
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-center">
-                <EnhancedQRGenerator 
-                  businessId={business.id} 
-                  businessName={business.name || 'Your Business'}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Security Dashboard Section */}
         <Card>

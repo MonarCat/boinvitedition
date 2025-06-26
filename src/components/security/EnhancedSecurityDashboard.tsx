@@ -1,274 +1,278 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Shield, AlertTriangle, Activity, Eye, Lock, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
-import { Shield, AlertTriangle, CheckCircle, Activity, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
-
-interface SecurityMetrics {
-  totalEvents: number;
-  criticalEvents: number;
-  rateLimit: number;
-  failedLogins: number;
-  lastSecurityScan: Date;
-}
+import { toast } from 'sonner';
 
 export const EnhancedSecurityDashboard: React.FC = () => {
   const { securityEvents, isLoading, fetchSecurityEvents } = useSecurityMonitoring();
-  const [metrics, setMetrics] = useState<SecurityMetrics>({
-    totalEvents: 0,
-    criticalEvents: 0,
-    rateLimit: 0,
-    failedLogins: 0,
-    lastSecurityScan: new Date()
-  });
+  const [activeThreats, setActiveThreats] = useState(0);
+  const [securityScore, setSecurityScore] = useState(85);
+  const [recentAlerts, setRecentAlerts] = useState<any[]>([]);
 
   useEffect(() => {
-    if (securityEvents.length > 0) {
-      const now = new Date();
-      const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      
-      const recentEvents = securityEvents.filter(event => 
-        new Date(event.created_at) > last24Hours
-      );
+    fetchSecurityEvents();
+    calculateSecurityMetrics();
+  }, []);
 
-      const criticalEvents = recentEvents.filter(event => 
-        event.event_type?.includes('UNAUTHORIZED') || 
-        event.event_type?.includes('FAILED_LOGIN') ||
-        event.event_type?.includes('RATE_LIMIT')
-      );
+  const calculateSecurityMetrics = () => {
+    const now = new Date();
+    const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    
+    const recentEvents = securityEvents.filter(event => 
+      new Date(event.created_at) > last24h
+    );
+    
+    const highSeverityEvents = recentEvents.filter(event => 
+      event.new_values && 
+      typeof event.new_values === 'object' && 
+      'severity' in event.new_values &&
+      event.new_values.severity === 'high'
+    );
+    
+    setActiveThreats(highSeverityEvents.length);
+    setRecentAlerts(recentEvents.slice(0, 5));
+    
+    // Calculate security score based on recent activity
+    let score = 100;
+    score -= highSeverityEvents.length * 10;
+    score -= recentEvents.length * 2;
+    setSecurityScore(Math.max(score, 0));
+  };
 
-      const rateLimitEvents = recentEvents.filter(event => 
-        event.event_type?.includes('RATE_LIMIT')
-      );
-
-      const failedLoginEvents = recentEvents.filter(event => 
-        event.event_type?.includes('FAILED_LOGIN')
-      );
-
-      setMetrics({
-        totalEvents: recentEvents.length,
-        criticalEvents: criticalEvents.length,
-        rateLimit: rateLimitEvents.length,
-        failedLogins: failedLoginEvents.length,
-        lastSecurityScan: now
-      });
+  const getEventSeverityColor = (event: any) => {
+    const severity = event.new_values?.severity || 'low';
+    switch (severity) {
+      case 'high': return 'destructive';
+      case 'medium': return 'secondary';
+      default: return 'outline';
     }
-  }, [securityEvents]);
-
-  const getEventSeverityColor = (eventType: string): string => {
-    if (eventType?.includes('UNAUTHORIZED') || eventType?.includes('INVALID')) {
-      return 'destructive';
-    }
-    if (eventType?.includes('RATE_LIMIT') || eventType?.includes('FAILED')) {
-      return 'secondary';
-    }
-    return 'outline';
   };
 
   const getEventIcon = (eventType: string) => {
-    if (eventType?.includes('UNAUTHORIZED') || eventType?.includes('INVALID')) {
-      return <AlertTriangle className="w-4 h-4" />;
+    switch (eventType) {
+      case 'UNAUTHORIZED_ACCESS':
+      case 'BUSINESS_ACCESS_DENIED':
+        return <Lock className="w-4 h-4" />;
+      case 'HIGH_VALUE_PAYMENT':
+      case 'HIGH_PAYMENT_FREQUENCY':
+        return <AlertTriangle className="w-4 h-4" />;
+      case 'RATE_LIMIT_EXCEEDED':
+        return <Clock className="w-4 h-4" />;
+      default:
+        return <Activity className="w-4 h-4" />;
     }
-    if (eventType?.includes('SUCCESSFUL') || eventType?.includes('COMPLETED')) {
-      return <CheckCircle className="w-4 h-4" />;
-    }
-    return <Activity className="w-4 h-4" />;
   };
+
+  const refreshSecurityData = () => {
+    fetchSecurityEvents();
+    calculateSecurityMetrics();
+    toast.success('Security data refreshed');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Security Metrics Overview */}
+      {/* Security Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Events (24h)</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalEvents}</div>
-            <p className="text-xs text-muted-foreground">
-              Security events tracked
-            </p>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Security Score</p>
+                <p className="text-2xl font-bold text-green-600">{securityScore}%</p>
+              </div>
+              <Shield className="w-8 h-8 text-green-600" />
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Critical Events</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">{metrics.criticalEvents}</div>
-            <p className="text-xs text-muted-foreground">
-              Requiring attention
-            </p>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Threats</p>
+                <p className="text-2xl font-bold text-red-600">{activeThreats}</p>
+              </div>
+              <AlertTriangle className="w-8 h-8 text-red-600" />
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Rate Limit Events</CardTitle>
-            <Shield className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{metrics.rateLimit}</div>
-            <p className="text-xs text-muted-foreground">
-              Blocked attempts
-            </p>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Events (24h)</p>
+                <p className="text-2xl font-bold">{recentAlerts.length}</p>
+              </div>
+              <Activity className="w-8 h-8 text-blue-600" />
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Failed Logins</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{metrics.failedLogins}</div>
-            <p className="text-xs text-muted-foreground">
-              Authentication failures
-            </p>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Monitoring</p>
+                <p className="text-sm font-bold text-green-600">Active</p>
+              </div>
+              <Eye className="w-8 h-8 text-green-600" />
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Security Events List */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Recent Security Events
-              </CardTitle>
-              <CardDescription>
-                Monitor and review security-related activities
-              </CardDescription>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={fetchSecurityEvents}
-              disabled={isLoading}
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : securityEvents.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Shield className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No security events recorded yet</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {securityEvents.slice(0, 10).map((event) => (
-                <div 
-                  key={event.id} 
-                  className="flex items-start justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-start space-x-3">
-                    <div className="mt-1">
-                      {getEventIcon(event.event_type || '')}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge 
-                          variant={getEventSeverityColor(event.event_type || '') as any}
-                          className="text-xs"
-                        >
-                          {event.event_type || 'UNKNOWN'}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {format(new Date(event.created_at), 'MMM dd, HH:mm')}
-                        </span>
-                      </div>
-                      <p className="text-sm font-medium">
-                        {event.description || 'Security event recorded'}
-                      </p>
-                      {event.new_values && typeof event.new_values === 'object' && (
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          <pre className="bg-muted/50 p-2 rounded text-xs overflow-x-auto">
-                            {JSON.stringify(event.new_values, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Security Tabs */}
+      <Tabs defaultValue="events" className="space-y-4">
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="events">Security Events</TabsTrigger>
+            <TabsTrigger value="alerts">Recent Alerts</TabsTrigger>
+            <TabsTrigger value="settings">Security Settings</TabsTrigger>
+          </TabsList>
+          
+          <Button onClick={refreshSecurityData} variant="outline" size="sm">
+            <Activity className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
 
-      {/* Security Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-green-500" />
-            Security Status
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">RLS Policies</span>
-                <Badge variant="outline" className="text-green-600 border-green-600">
-                  ✓ Active
-                </Badge>
+        <TabsContent value="events">
+          <Card>
+            <CardHeader>
+              <CardTitle>Security Events Log</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {securityEvents.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Shield className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No security events recorded</p>
+                  </div>
+                ) : (
+                  securityEvents.slice(0, 10).map((event) => (
+                    <div key={event.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                      <div className="mt-1">
+                        {getEventIcon(event.table_name)}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-sm">{event.table_name}</span>
+                          <Badge variant={getEventSeverityColor(event)}>
+                            {event.new_values?.severity || 'low'}
+                          </Badge>
+                        </div>
+                        
+                        <p className="text-sm text-gray-600 mb-2">
+                          {event.description || 'Security event detected'}
+                        </p>
+                        
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <span>{format(new Date(event.created_at), 'MMM dd, HH:mm')}</span>
+                          {event.new_values?.business_id && (
+                            <span>Business: {event.new_values.business_id.slice(0, 8)}...</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Rate Limiting</span>
-                <Badge variant="outline" className="text-green-600 border-green-600">
-                  ✓ Enabled
-                </Badge>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="alerts">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Security Alerts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {recentAlerts.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <CheckCircle className="w-12 h-12 mx-auto mb-4 text-green-300" />
+                    <p>No recent alerts - all systems secure</p>
+                  </div>
+                ) : (
+                  recentAlerts.map((alert) => (
+                    <div key={alert.id} className="flex items-center gap-3 p-3 border rounded-lg bg-orange-50">
+                      <AlertTriangle className="w-5 h-5 text-orange-600" />
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{alert.table_name}</p>
+                        <p className="text-sm text-gray-600">
+                          {alert.description || 'Security alert triggered'}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {format(new Date(alert.created_at), 'MMM dd, yyyy HH:mm')}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Input Validation</span>
-                <Badge variant="outline" className="text-green-600 border-green-600">
-                  ✓ Enhanced
-                </Badge>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Security Configuration</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Enhanced Monitoring</p>
+                    <p className="text-sm text-gray-600">Real-time security event tracking</p>
+                  </div>
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Rate Limiting</p>
+                    <p className="text-sm text-gray-600">Protection against abuse</p>
+                  </div>
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Access Control</p>
+                    <p className="text-sm text-gray-600">Business ownership validation</p>
+                  </div>
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Payment Security</p>
+                    <p className="text-sm text-gray-600">Transaction monitoring and validation</p>
+                  </div>
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Webhook Security</span>
-                <Badge variant="outline" className="text-green-600 border-green-600">
-                  ✓ Hardened
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Authentication</span>
-                <Badge variant="outline" className="text-green-600 border-green-600">
-                  ✓ Multi-layer
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Audit Logging</span>
-                <Badge variant="outline" className="text-green-600 border-green-600">
-                  ✓ Comprehensive
-                </Badge>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 pt-4 border-t">
-            <p className="text-xs text-muted-foreground">
-              Last security scan: {format(metrics.lastSecurityScan, 'PPpp')}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

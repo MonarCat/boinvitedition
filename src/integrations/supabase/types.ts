@@ -1534,6 +1534,10 @@ export type Database = {
         Args: { business_id: string }
         Returns: boolean
       }
+      validate_payment_security: {
+        Args: { _amount: number; _business_id: string; _metadata?: Json }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

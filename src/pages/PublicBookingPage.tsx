@@ -19,7 +19,7 @@ const PublicBookingPage = () => {
   }, [businessId]);
 
   // Fetch business data with enhanced error handling
-  const { data: business, isLoading, error } = useQuery({
+  const { data: business, isLoading: businessLoading, error: businessError } = useQuery({
     queryKey: ['public-business', businessId],
     queryFn: async () => {
       if (!businessId) {
@@ -63,16 +63,47 @@ const PublicBookingPage = () => {
     },
   });
 
+  // Fetch services data
+  const { data: services, isLoading: servicesLoading } = useQuery({
+    queryKey: ['public-services', businessId],
+    queryFn: async () => {
+      if (!businessId) return [];
+      
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('business_id', businessId)
+        .eq('is_active', true)
+        .order('name');
+      
+      if (error) {
+        console.error('Services fetch error:', error);
+        throw error;
+      }
+      
+      return data || [];
+    },
+    enabled: !!businessId && !!business,
+  });
+
+  const isLoading = businessLoading || servicesLoading;
+
   if (isLoading) {
-    return <BookingPageLoading />;
+    return <BookingPageLoading businessId={businessId || ''} />;
   }
 
-  if (error || !business) {
-    console.log('Business not found or error occurred:', { error, businessId });
+  if (businessError || !business) {
+    console.log('Business not found or error occurred:', { businessError, businessId });
     return <BusinessNotFound businessId={businessId} />;
   }
 
-  return <EnhancedPublicBookingContent business={business} />;
+  return (
+    <EnhancedPublicBookingContent 
+      business={business} 
+      services={services || []} 
+      businessId={businessId || ''} 
+    />
+  );
 };
 
 export default PublicBookingPage;

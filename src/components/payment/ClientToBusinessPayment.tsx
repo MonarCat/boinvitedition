@@ -36,37 +36,7 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
   };
 
   return (
-    <div className="space-y-6">
-      {/* Business Info */}
-      <Card className="border-green-200 bg-green-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-800">
-            <CreditCard className="w-5 h-5" />
-            Pay {businessName}
-          </CardTitle>
-        </CardHeader>
-      </Card>
-
-      {/* Payment Methods Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Available Payment Methods</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-2">
-            <div className="flex items-center gap-2 p-3 bg-white rounded border border-green-200">
-              <CreditCard className="w-4 h-4 text-blue-600" />
-              <span className="text-sm">Cards (Visa, Mastercard)</span>
-              <Badge className="ml-auto bg-green-500">Available</Badge>
-            </div>
-            <div className="flex items-center gap-2 p-3 bg-white rounded border border-green-200">
-              <Smartphone className="w-4 h-4 text-green-600" />
-              <span className="text-sm">Mobile Money (M-Pesa, Airtel)</span>
-              <Badge className="ml-auto bg-green-500">Available</Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    
 
       {/* Direct Payment Component */}
       <DirectPaystackPayment

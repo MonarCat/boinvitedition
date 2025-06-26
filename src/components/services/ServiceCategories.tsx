@@ -10,6 +10,7 @@ export const SERVICE_CATEGORIES = [
   { value: 'skincare', label: 'Skincare Clinic', icon: '✨' },
   { value: 'tattoo-piercing', label: 'Tattoo & Piercing', icon: '🎨' },
   { value: 'makeup', label: 'Makeup Artist', icon: '💄' },
+  { value: 'wellness', label: 'Wellness Center', icon: '🧘' },
   
   // Health & Medical
   { value: 'medical', label: 'Medical Services', icon: '🏥' },
@@ -29,6 +30,8 @@ export const SERVICE_CATEGORIES = [
   { value: 'pilates', label: 'Pilates', icon: '🤸‍♀️' },
   { value: 'martial-arts', label: 'Martial Arts', icon: '🥋' },
   { value: 'swimming', label: 'Swimming Pool', icon: '🏊‍♂️' },
+  { value: 'crossfit', label: 'CrossFit', icon: '🏋️' },
+  { value: 'dance', label: 'Dance Studio', icon: '💃' },
   
   // Professional Services
   { value: 'consulting', label: 'Business Consulting', icon: '💼' },
@@ -53,6 +56,8 @@ export const SERVICE_CATEGORIES = [
   
   // Transport Services
   { value: 'taxi', label: 'Taxi Services', icon: '🚕' },
+  { value: 'matatu', label: 'Matatu Services', icon: '🚐' },
+  { value: 'shuttle', label: 'Shuttle Services', icon: '🚌' },
   { value: 'bus', label: 'Bus Services', icon: '🚌' },
   { value: 'train', label: 'Train Services', icon: '🚆' },
   { value: 'ride-sharing', label: 'Ride Sharing', icon: '🚗' },
@@ -60,7 +65,8 @@ export const SERVICE_CATEGORIES = [
   { value: 'car-rental', label: 'Car Rental', icon: '🚙' },
   { value: 'airport-shuttle', label: 'Airport Shuttle', icon: '✈️' },
   { value: 'boat-ferry', label: 'Boat & Ferry', icon: '⛴️' },
-  { value: 'motorcycle-taxi', label: 'Motorcycle Taxi', icon: '🏍️' },
+  { value: 'motorcycle-taxi', label: 'Motorcycle Taxi (Boda Boda)', icon: '🏍️' },
+  { value: 'truck-transport', label: 'Truck Transport', icon: '🚛' },
   
   // Home Services
   { value: 'cleaning', label: 'Cleaning Services', icon: '🧹' },
@@ -106,41 +112,115 @@ export const getCategoryLabel = (category: string) => {
   return categoryData?.label || category;
 };
 
-// Service templates for different industries
+// Enhanced service templates for different industries
 export const SERVICE_TEMPLATES = {
-  'hotel': [
-    { name: 'Room Booking', description: 'Standard room reservation', duration: 1440, price: 100 },
-    { name: 'Suite Booking', description: 'Luxury suite reservation', duration: 1440, price: 250 },
-    { name: 'Conference Room', description: 'Meeting room rental', duration: 480, price: 150 },
-    { name: 'Spa Services', description: 'Hotel spa treatments', duration: 90, price: 80 },
-    { name: 'Airport Pickup', description: 'Transportation service', duration: 60, price: 30 }
+  // Transport Services
+  'taxi': [
+    { name: 'City Ride', description: 'Within city transportation', duration: 30, price: 500 },
+    { name: 'Airport Transfer', description: 'Airport pickup/drop-off', duration: 60, price: 1200 },
+    { name: 'Hourly Hire', description: 'Vehicle rental per hour', duration: 60, price: 800 },
+    { name: 'Long Distance', description: 'Inter-city travel', duration: 240, price: 3000 },
+    { name: 'Night Ride', description: 'Late night transportation', duration: 30, price: 700 }
   ],
-  'airbnb': [
-    { name: 'Entire Place', description: 'Whole apartment/house', duration: 1440, price: 80 },
-    { name: 'Private Room', description: 'Single room in shared space', duration: 1440, price: 45 },
-    { name: 'Shared Room', description: 'Bed in shared room', duration: 1440, price: 25 },
-    { name: 'Cleaning Service', description: 'Professional cleaning', duration: 120, price: 40 },
-    { name: 'Check-in Assistance', description: 'Guided check-in', duration: 30, price: 15 }
+  'matatu': [
+    { name: 'Nairobi-Nakuru', description: 'Daily route service', duration: 180, price: 350 },
+    { name: 'Nairobi-Mombasa', description: 'Long distance travel', duration: 600, price: 1200 },
+    { name: 'City Route', description: 'Urban commuter service', duration: 45, price: 50 },
+    { name: 'Express Service', description: 'Non-stop premium route', duration: 150, price: 500 },
+    { name: 'Night Travel', description: 'Overnight journey', duration: 480, price: 800 }
+  ],
+  'shuttle': [
+    { name: 'Airport Shuttle', description: '14-seater airport transfer', duration: 90, price: 300 },
+    { name: 'Hotel Shuttle', description: 'Hotel pickup/drop service', duration: 45, price: 200 },
+    { name: 'Event Shuttle', description: 'Group event transportation', duration: 120, price: 1500 },
+    { name: 'School Run', description: 'Student transportation', duration: 60, price: 150 },
+    { name: 'Corporate Shuttle', description: 'Office transportation', duration: 90, price: 400 }
+  ],
+  
+  // Beauty & Wellness
+  'hair-salon': [
+    { name: 'Hair Cut & Style', description: 'Professional cut and styling', duration: 60, price: 1500 },
+    { name: 'Hair Wash & Blow Dry', description: 'Cleansing and styling', duration: 45, price: 800 },
+    { name: 'Hair Coloring', description: 'Professional hair coloring', duration: 120, price: 3500 },
+    { name: 'Hair Treatment', description: 'Deep conditioning treatment', duration: 90, price: 2000 },
+    { name: 'Bridal Hair Styling', description: 'Special occasion styling', duration: 150, price: 5000 },
+    { name: 'Hair Extensions', description: 'Hair extension installation', duration: 180, price: 4000 },
+    { name: 'Perm Service', description: 'Hair perming treatment', duration: 120, price: 2500 }
+  ],
+  'barber': [
+    { name: 'Classic Haircut', description: 'Traditional mens haircut', duration: 30, price: 500 },
+    { name: 'Beard Trim', description: 'Professional beard grooming', duration: 20, price: 300 },
+    { name: 'Hot Towel Shave', description: 'Traditional wet shave', duration: 45, price: 800 },
+    { name: 'Hair & Beard Combo', description: 'Complete grooming package', duration: 60, price: 1000 },
+    { name: 'Fade Cut', description: 'Modern fade haircut', duration: 45, price: 700 },
+    { name: 'Mustache Trim', description: 'Precision mustache grooming', duration: 15, price: 200 },
+    { name: 'Head Shave', description: 'Complete head shaving', duration: 30, price: 400 }
   ],
   'beauty-spa': [
-    { name: 'Facial Treatment', description: 'Deep cleansing facial', duration: 60, price: 50 },
-    { name: 'Full Body Massage', description: 'Relaxing massage therapy', duration: 90, price: 70 },
-    { name: 'Manicure & Pedicure', description: 'Nail care service', duration: 75, price: 35 },
-    { name: 'Hair Styling', description: 'Professional hair styling', duration: 120, price: 60 },
-    { name: 'Eyebrow Shaping', description: 'Eyebrow threading/waxing', duration: 30, price: 20 }
+    { name: 'Facial Treatment', description: 'Deep cleansing facial', duration: 60, price: 2500 },
+    { name: 'Full Body Massage', description: 'Relaxing massage therapy', duration: 90, price: 3500 },
+    { name: 'Manicure & Pedicure', description: 'Complete nail care', duration: 90, price: 1800 },
+    { name: 'Body Scrub', description: 'Exfoliating body treatment', duration: 75, price: 2800 },
+    { name: 'Eyebrow Threading', description: 'Precision eyebrow shaping', duration: 30, price: 600 },
+    { name: 'Waxing Service', description: 'Professional hair removal', duration: 45, price: 1500 },
+    { name: 'Anti-Aging Treatment', description: 'Skin rejuvenation therapy', duration: 120, price: 4500 }
   ],
+  'wellness': [
+    { name: 'Aromatherapy Massage', description: 'Essential oil massage', duration: 90, price: 3000 },
+    { name: 'Reflexology', description: 'Foot pressure point therapy', duration: 60, price: 2000 },
+    { name: 'Acupuncture Session', description: 'Traditional acupuncture', duration: 75, price: 2500 },
+    { name: 'Meditation Class', description: 'Guided meditation session', duration: 45, price: 800 },
+    { name: 'Wellness Consultation', description: 'Health and wellness assessment', duration: 60, price: 1500 },
+    { name: 'Detox Treatment', description: 'Body detoxification therapy', duration: 120, price: 4000 }
+  ],
+  
+  // Fitness & Gym
   'gym': [
-    { name: 'Day Pass', description: 'Single day gym access', duration: 480, price: 15 },
-    { name: 'Personal Training', description: '1-on-1 fitness session', duration: 60, price: 50 },
-    { name: 'Group Class', description: 'Fitness group session', duration: 45, price: 20 },
-    { name: 'Swimming Pool', description: 'Pool access', duration: 120, price: 10 },
-    { name: 'Sauna Session', description: 'Relaxation therapy', duration: 30, price: 25 }
+    { name: 'Day Pass', description: 'Single day gym access', duration: 240, price: 500 },
+    { name: 'Personal Training', description: '1-on-1 fitness session', duration: 60, price: 2000 },
+    { name: 'Group Fitness Class', description: 'Instructor-led group workout', duration: 45, price: 800 },
+    { name: 'Swimming Pool Access', description: 'Pool facilities usage', duration: 120, price: 600 },
+    { name: 'Sauna & Steam Room', description: 'Relaxation facilities', duration: 30, price: 400 },
+    { name: 'Fitness Assessment', description: 'Body composition analysis', duration: 45, price: 1200 },
+    { name: 'Nutrition Consultation', description: 'Diet planning session', duration: 60, price: 1500 }
   ],
-  'transport': [
-    { name: 'City Transfer', description: 'Local transportation', duration: 30, price: 10 },
-    { name: 'Airport Transfer', description: 'Airport pickup/drop', duration: 60, price: 25 },
-    { name: 'Long Distance', description: 'Inter-city travel', duration: 240, price: 80 },
-    { name: 'Hourly Rental', description: 'Vehicle rental per hour', duration: 60, price: 15 },
-    { name: 'Tour Package', description: 'Sightseeing tour', duration: 480, price: 120 }
+  'personal-training': [
+    { name: 'Strength Training', description: 'Weight lifting session', duration: 60, price: 2500 },
+    { name: 'Cardio Workout', description: 'Cardiovascular training', duration: 45, price: 2000 },
+    { name: 'HIIT Training', description: 'High-intensity interval training', duration: 30, price: 1800 },
+    { name: 'Functional Training', description: 'Movement-based exercises', duration: 60, price: 2200 },
+    { name: 'Sports-Specific Training', description: 'Sport-focused conditioning', duration: 75, price: 2800 },
+    { name: 'Rehabilitation Training', description: 'Injury recovery exercises', duration: 60, price: 3000 }
+  ],
+  'yoga': [
+    { name: 'Hatha Yoga Class', description: 'Gentle yoga practice', duration: 60, price: 1000 },
+    { name: 'Vinyasa Flow', description: 'Dynamic yoga sequences', duration: 75, price: 1200 },
+    { name: 'Hot Yoga Session', description: 'Heated room yoga practice', duration: 90, price: 1500 },
+    { name: 'Private Yoga Lesson', description: '1-on-1 yoga instruction', duration: 60, price: 2500 },
+    { name: 'Meditation & Mindfulness', description: 'Guided meditation session', duration: 45, price: 800 },
+    { name: 'Prenatal Yoga', description: 'Pregnancy-safe yoga practice', duration: 60, price: 1300 }
+  ],
+  'crossfit': [
+    { name: 'WOD (Workout of the Day)', description: 'Daily CrossFit workout', duration: 60, price: 1500 },
+    { name: 'Olympic Lifting', description: 'Weightlifting technique class', duration: 90, price: 2000 },
+    { name: 'Beginner Fundamentals', description: 'CrossFit basics training', duration: 75, price: 1800 },
+    { name: 'Competition Prep', description: 'Advanced training for competitions', duration: 120, price: 3000 },
+    { name: 'Open Gym Access', description: 'Self-directed training time', duration: 120, price: 800 }
+  ],
+  
+  // Existing templates (keeping the good ones)
+  'hotel': [
+    { name: 'Standard Room', description: 'Comfortable accommodation', duration: 1440, price: 5000 },
+    { name: 'Deluxe Suite', description: 'Luxury suite with amenities', duration: 1440, price: 12000 },
+    { name: 'Conference Room', description: 'Meeting room rental', duration: 480, price: 8000 },
+    { name: 'Spa Services', description: 'Hotel spa treatments', duration: 90, price: 4000 },
+    { name: 'Airport Pickup', description: 'Transportation service', duration: 60, price: 1500 }
+  ],
+  'airbnb': [
+    { name: 'Entire Apartment', description: 'Whole apartment rental', duration: 1440, price: 4000 },
+    { name: 'Private Room', description: 'Single room in shared space', duration: 1440, price: 2500 },
+    { name: 'Shared Room', description: 'Bed in shared accommodation', duration: 1440, price: 1200 },
+    { name: 'Cleaning Service', description: 'Professional cleaning', duration: 120, price: 2000 },
+    { name: 'Check-in Assistance', description: 'Guided check-in support', duration: 30, price: 500 }
   ]
 };

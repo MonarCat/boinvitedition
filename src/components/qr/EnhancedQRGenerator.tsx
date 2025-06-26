@@ -1,10 +1,9 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Download, QrCode, Copy, ExternalLink, Share2, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Download, QrCode, Copy, ExternalLink, Share2, AlertCircle, CheckCircle, RefreshCw, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -20,6 +19,7 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [validationStatus, setValidationStatus] = useState<'pending' | 'valid' | 'invalid'>('pending');
   const [qrGenerated, setQrGenerated] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [retryCount, setRetryCount] = useState(0);
   const [isValidating, setIsValidating] = useState(false);
   
@@ -87,6 +87,8 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
           }
         });
         
+        const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
+        setQrDataUrl(dataUrl);
         setQrGenerated(true);
         setRetryCount(0);
         console.log('Enhanced QR: Generated successfully');
@@ -121,13 +123,51 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
   };
 
   const downloadQR = () => {
-    if (canvasRef.current && validationStatus === 'valid' && qrGenerated) {
+    if (validationStatus === 'valid' && qrGenerated && qrDataUrl) {
       const link = document.createElement('a');
       const timestamp = new Date().toISOString().split('T')[0];
       link.download = `${businessName.replace(/[^a-zA-Z0-9]/g, '-')}-qr-${timestamp}.png`;
-      link.href = canvasRef.current.toDataURL('image/png', 1.0);
+      link.href = qrDataUrl;
       link.click();
       toast.success('QR code downloaded');
+    } else {
+      toast.error('QR code is not available for download.');
+    }
+  };
+
+  const printQR = () => {
+    if (validationStatus === 'valid' && qrGenerated && qrDataUrl) {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>Print QR Code - ${businessName}</title>
+              <style>
+                body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
+                .container { border: 1px solid #ccc; padding: 20px; display: inline-block; border-radius: 8px; }
+                h1 { text-transform: uppercase; font-size: 24px; margin: 0 0 10px; }
+                h2 { font-size: 18px; margin: 0 0 20px; color: #333; }
+                img { width: 300px; height: 300px; }
+                p { font-size: 14px; color: #555; margin-top: 15px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <h1>SCAN TO BOOK</h1>
+                <h2>${businessName}</h2>
+                <img src="${qrDataUrl}" alt="QR Code for ${businessName}" />
+                <p>Point your camera at the QR code to book your appointment instantly.</p>
+              </div>
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+      } else {
+        toast.error('Could not open print window. Please disable pop-up blockers.');
+      }
     }
   };
 
@@ -295,6 +335,17 @@ export const EnhancedQRGenerator: React.FC<EnhancedQRGeneratorProps> = ({
           >
             <Download className="w-3 h-3 mr-1" />
             Download
+          </Button>
+          
+          <Button 
+            onClick={printQR} 
+            variant="outline" 
+            size="sm"
+            disabled={validationStatus !== 'valid' || !qrGenerated}
+            className="w-full"
+          >
+            <Printer className="w-3 h-3 mr-1" />
+            Print
           </Button>
           
           <Button 

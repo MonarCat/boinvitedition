@@ -98,30 +98,36 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
   const printQR = () => {
     if (validationStatus === 'valid' && qrGenerated && qrDataUrl) {
       const printWindow = window.open('', '_blank');
-      printWindow?.document.write(`
-        <html>
-          <head>
-            <title>QR Code - ${businessName}</title>
-            <style>
-              body { margin: 0; padding: 30px; text-align: center; font-family: Arial, sans-serif; }
-              img { max-width: 100%; height: auto; border: 2px solid #e5e7eb; border-radius: 8px; }
-              h1 { color: #1f2937; margin-bottom: 10px; font-size: 24px; }
-              h2 { color: #374151; margin-bottom: 20px; font-size: 18px; }
-              p { color: #6b7280; margin: 10px 0; font-size: 14px; }
-              .url { font-family: monospace; background: #f3f4f6; padding: 10px; border-radius: 4px; word-break: break-all; }
-            </style>
-          </head>
-          <body>
-            <h1>${businessName}</h1>
-            <h2>Scan to Book Services</h2>
-            <img src="${qrDataUrl}" alt="QR Code" />
-            <p class="url">${bookingUrl}</p>
-            <p>Scan with any camera app or QR code scanner</p>
-          </body>
-        </html>
-      `);
-      printWindow?.document.close();
-      printWindow?.print();
+      if (printWindow) {
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>Print QR Code - ${businessName}</title>
+              <style>
+                body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
+                .container { border: 1px solid #ccc; padding: 20px; display: inline-block; border-radius: 8px; }
+                h1 { text-transform: uppercase; font-size: 24px; margin: 0 0 10px; }
+                h2 { font-size: 18px; margin: 0 0 20px; color: #333; }
+                img { width: 300px; height: 300px; }
+                p { font-size: 14px; color: #555; margin-top: 15px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <h1>SCAN TO BOOK</h1>
+                <h2>${businessName}</h2>
+                <img src="${qrDataUrl}" alt="QR Code for ${businessName}" />
+                <p>Point your camera at the QR code to book your appointment instantly.</p>
+              </div>
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+      } else {
+        toast.error('Could not open print window. Please disable pop-up blockers.');
+      }
     }
   };
 
@@ -302,21 +308,21 @@ export const ReliableQRGenerator: React.FC<ReliableQRGeneratorProps> = ({
             onClick={downloadQR} 
             variant="outline" 
             size="sm"
-            disabled={validationStatus !== 'valid' || !qrGenerated}
-            className="hover:bg-green-50 hover:border-green-200"
+            disabled={!qrGenerated}
+            className="w-full"
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="w-3 h-3 mr-1" />
             Download
           </Button>
-          
+
           <Button 
             onClick={printQR} 
             variant="outline" 
             size="sm"
-            disabled={validationStatus !== 'valid' || !qrGenerated}
-            className="hover:bg-purple-50 hover:border-purple-200"
+            disabled={!qrGenerated}
+            className="w-full"
           >
-            <Printer className="w-4 h-4 mr-2" />
+            <Printer className="w-3 h-3 mr-1" />
             Print
           </Button>
         </div>

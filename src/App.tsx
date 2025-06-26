@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -18,6 +17,7 @@ import NotFound from "@/pages/NotFound";
 import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
 import { EnhancedPWAManager } from "@/components/pwa/EnhancedPWAManager";
 import { useSystemDarkMode } from "@/lib/useSystemDarkMode";
+import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -115,6 +115,7 @@ const App = () => {
                 
                 {/* Enhanced PWA Manager */}
                 <EnhancedPWAManager />
+                <WhatsAppFAB />
               </div>
             </AuthProvider>
           </BrowserRouter>

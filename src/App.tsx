@@ -9,9 +9,9 @@ import { ThemeProvider } from "@/lib/ThemeProvider";
 import ProductionAuthPage from "./pages/ProductionAuthPage";
 import ProductionOnboardingPage from "./pages/ProductionOnboardingPage";
 import QRScannerPage from "./pages/QRScannerPage";
+import LandingPage from "./pages/LandingPage";
 
 // Existing Pages
-import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import ServicesPage from "./pages/ServicesPage";
 import BookingManagementPage from "./pages/BookingManagementPage";
@@ -102,7 +102,7 @@ function App() {
               <div className="min-h-screen bg-background">
                 <Routes>
                   {/* Public Routes */}
-                  <Route path="/" element={<Index />} />
+                  <Route path="/" element={<LandingPage />} />
                   <Route path="/auth" element={
                     <PublicRoute>
                       <ProductionAuthPage />

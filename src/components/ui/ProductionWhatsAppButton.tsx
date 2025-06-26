@@ -10,7 +10,7 @@ interface ProductionWhatsAppButtonProps {
   businessName?: string;
   position?: 'fixed' | 'inline';
   variant?: 'fab' | 'button' | 'card';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'default' | 'lg';
 }
 
 export const ProductionWhatsAppButton: React.FC<ProductionWhatsAppButtonProps> = ({
@@ -19,7 +19,7 @@ export const ProductionWhatsAppButton: React.FC<ProductionWhatsAppButtonProps> =
   businessName = 'Boinvit Support',
   position = 'fixed',
   variant = 'fab',
-  size = 'md'
+  size = 'default'
 }) => {
   const handleWhatsAppClick = () => {
     const cleanPhone = phoneNumber.replace(/\D/g, '');

@@ -27,8 +27,13 @@ export const ProductionQRScanner: React.FC<ProductionQRScannerProps> = ({
       setError(null);
       setIsScanning(true);
 
+      // Check if mediaDevices is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera not supported on this device');
+      }
+
       // Request camera permission
-      const stream = await Navigator.mediaDevices.getUserMedia({
+      const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: 'environment', // Use back camera if available
           width: { ideal: 640 },

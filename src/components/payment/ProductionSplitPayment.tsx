@@ -110,7 +110,6 @@ export const ProductionSplitPayment: React.FC<ProductionSplitPaymentProps> = ({
           } : null,
           metadata: {
             service_id: serviceId,
-            split_enabled: true,
             payment_method: 'paystack'
           }
         });
@@ -260,7 +259,6 @@ export const ProductionSplitPayment: React.FC<ProductionSplitPaymentProps> = ({
           business_id: businessId,
           booking_id: bookingId,
           business_name: businessName,
-          split_enabled: true,
           platform_fee: splitConfig.platform_amount,
           business_amount: splitConfig.business_amount,
           subaccount_code: splitConfig.subaccount_code

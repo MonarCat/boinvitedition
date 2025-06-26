@@ -94,7 +94,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="boinvit-theme">
+      <ThemeProvider>
         <TooltipProvider>
           <Toaster />
           <BrowserRouter>

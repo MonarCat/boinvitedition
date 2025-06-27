@@ -67,7 +67,7 @@ export const BookingPageContent: React.FC<BookingPageContentProps> = ({
           </button>
           <PublicBookingCalendar 
             businessId={businessId} 
-            selectedService={selectedService}
+            service={selectedService}
             onBookingComplete={handleBackToServices}
           />
         </div>

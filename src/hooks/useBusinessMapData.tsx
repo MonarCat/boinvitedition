@@ -1,7 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { BusinessHours } from '@/types';
 
 interface Business {
   id: string;
@@ -19,7 +19,7 @@ interface Business {
   longitude: number;
   average_rating: number;
   total_reviews: number;
-  business_hours: BusinessHours;
+  business_hours: any; // Allow any type for business_hours
   is_verified: boolean;
   service_radius_km: number;
   currency: string;
@@ -74,7 +74,7 @@ export const useBusinessMapData = (searchQuery: string) => {
         }
         
         console.log('Search function results:', data?.length || 0);
-        return data || [];
+        return (data || []) as Business[];
       } else {
         // Fallback to regular business fetching
         return await fetchBusinessesFallback();
@@ -118,17 +118,15 @@ export const useBusinessMapData = (searchQuery: string) => {
       console.log('Fetched businesses (fallback):', data?.length || 0);
       
       // Transform the data to match our interface
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const businesses = (data || []).map((business: any) => {
+      const businesses = (data || []).map((business: any): Business => {
         const result = {
           ...business,
           show_on_map: business.business_settings?.show_on_map ?? true,
           map_description: business.business_settings?.map_description || business.description,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           service_categories: business.services?.map((s: any) => s.category).filter(Boolean) || [],
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           service_names: business.services?.map((s: any) => s.name).filter(Boolean) || [],
-           total_services: business.services?.length || 0
+          total_services: business.services?.length || 0,
+          business_hours: business.business_hours || {} // Cast to allow any type
          };
 
          // Calculate distance if user location is available

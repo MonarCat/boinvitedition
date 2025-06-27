@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,9 +33,10 @@ interface Staff {
 interface PublicBookingCalendarProps {
   businessId: string;
   service: Service;
-  businessHours: BusinessHours;
-  onDateTimeSelect: (date: Date, time: string) => void;
-  onBack: () => void;
+  businessHours?: BusinessHours;
+  onDateTimeSelect?: (date: Date, time: string) => void;
+  onBack?: () => void;
+  onBookingComplete?: () => void;
 }
 
 interface BusinessHours {
@@ -56,7 +58,8 @@ export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
   service,
   businessHours,
   onDateTimeSelect,
-  onBack
+  onBack,
+  onBookingComplete
 }) => {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -163,7 +166,7 @@ export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += slotDuration) {
         const slotTime = setMinutes(setHours(new Date(), hour), minute);
-        const slotEndTime = addMinutes(slotTime, selectedService.duration_minutes);
+        const slotEndTime = addMinutes(slotTime, service.duration_minutes);
         
         // Check if slot fits within business hours
         if (slotEndTime.getHours() <= endHour) {
@@ -242,19 +245,19 @@ export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
 
       // Step 2: Create booking
       const ticketNumber = `TKT-${Date.now()}`;
-      const currency = business?.currency || selectedService.currency || 'USD';
+      const currency = business?.currency || service.currency || 'USD';
 
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert({
           business_id: businessId,
           client_id: clientId,
-          service_id: selectedService.id,
+          service_id: service.id,
           staff_id: selectedStaff?.id || null,
           booking_date: format(selectedDate, 'yyyy-MM-dd'),
           booking_time: selectedTime,
-          duration_minutes: selectedService.duration_minutes,
-          total_amount: selectedService.price,
+          duration_minutes: service.duration_minutes,
+          total_amount: service.price,
           status: 'confirmed',
           ticket_number: ticketNumber,
           notes: customerInfo.notes?.trim() || null,
@@ -278,6 +281,9 @@ export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
       setSelectedStaff(null);
       setSelectedTime(null);
       setCustomerInfo({ name: '', email: '', phone: '', notes: '' });
+      
+      // Call the completion handler
+      onBookingComplete?.();
     },
     onError: (error: any) => {
       console.error('Booking failed:', error);
@@ -290,7 +296,7 @@ export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
   };
 
   const isFormValid = customerInfo.name.trim() && customerInfo.email.trim() && selectedDate && selectedTime;
-  const currency = business?.currency || selectedService.currency || 'USD';
+  const currency = business?.currency || service.currency || 'USD';
 
   return (
     <Card>
@@ -322,15 +328,16 @@ export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
               <div className="space-y-2">
                 <h4 className="font-medium">Available Times</h4>
                 <div className="grid grid-cols-3 gap-2">
-                  {generateTimeSlots(businessHours, selectedDate).map((time) => (
+                  {timeSlots.map((slot) => (
                     <Button
-                      key={time}
-                      variant={selectedTime === time ? "default" : "outline"}
+                      key={slot.time}
+                      variant={selectedTime === slot.time ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setSelectedTime(time)}
+                      onClick={() => setSelectedTime(slot.time)}
+                      disabled={!slot.available}
                       className="w-full text-xs"
                     >
-                      {time}
+                      {slot.time}
                     </Button>
                   ))}
                 </div>
@@ -465,25 +472,4 @@ export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
       </CardContent>
     </Card>
   );
-};
-
-const generateTimeSlots = (businessHours: BusinessHours, date: Date): string[] => {
-  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase();
-  const hours = businessHours[dayOfWeek];
-  
-  if (!hours) return [];
-  
-  const slots: string[] = [];
-  const [openHour, openMinute] = hours.open.split(':').map(Number);
-  const [closeHour, closeMinute] = hours.close.split(':').map(Number);
-  
-  let current = setHours(setMinutes(date, openMinute), openHour);
-  const end = setHours(setMinutes(date, closeMinute), closeHour);
-  
-  while (current < end) {
-    slots.push(format(current, 'HH:mm'));
-    current = addMinutes(current, 30); // 30-minute intervals
-  }
-  
-  return slots;
 };

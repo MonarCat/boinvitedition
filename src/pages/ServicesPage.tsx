@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ServicesList } from '@/components/services/ServicesList';
@@ -11,7 +12,14 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { ServiceBookingQRGenerator } from '@/components/qr/ServiceBookingQRGenerator';
-import { Service, Business } from '@/types';
+import { Service } from '@/types';
+
+interface LocalBusiness {
+  id: string;
+  name: string;
+  business_hours?: any;
+  [key: string]: unknown;
+}
 
 const ServicesPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -23,8 +31,8 @@ const ServicesPage = () => {
     setIsFormOpen(true);
   };
 
-  const handleEditService = (service: Service) => {
-    setEditingService(service);
+  const handleEditService = (service: any) => {
+    setEditingService(service as Service);
     setIsFormOpen(true);
   };
 
@@ -44,7 +52,7 @@ const ServicesPage = () => {
         .eq('user_id', user.id)
         .single();
       if (error) throw error;
-      return data;
+      return data as LocalBusiness;
     },
     enabled: !!user?.id,
   });

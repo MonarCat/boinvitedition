@@ -73,6 +73,10 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
     setShowCalendar(false);
   };
 
+  const handleDateTimeSelect = () => {
+    setShowClientPayment(true);
+  };
+
   const formatBusinessHours = (hours: BusinessHours) => {
     if (!hours || typeof hours !== 'object') return 'Hours not specified';
     
@@ -146,13 +150,28 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
           id="booking-section"
           className={cn(
             "md:col-span-5 lg:col-span-4",
-            !showCalendar && "md:sticky md:top-24"
+            !selectedService && "md:sticky md:top-24"
           )}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
           <AnimatePresence mode="wait">
-            {selectedService ? (
+            {showCalendar && selectedService ? (
+              <motion.div
+                key="calendar"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <PublicBookingCalendar
+                  businessId={businessId}
+                  businessHours={business.business_hours}
+                  service={selectedService}
+                  onDateTimeSelect={handleDateTimeSelect}
+                  onBack={handleBackToServices}
+                />
+              </motion.div>
+            ) : selectedService ? (
               <motion.div
                 key="booking"
                 initial={{ opacity: 0, x: 20 }}

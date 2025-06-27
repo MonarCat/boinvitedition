@@ -2,6 +2,7 @@ import React from 'react';
 
 interface CleanBookingLayoutProps {
   children: React.ReactNode;
+  className?: string;
 }
 
 export const CleanBookingLayout: React.FC<CleanBookingLayoutProps> = ({ children }) => {

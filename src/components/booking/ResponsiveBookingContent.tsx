@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Phone, Clock, Star, ChevronLeft, CreditCard, Calendar, MessageCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { ServicesList } from './ServicesList';
 import { EmptyServiceSelection } from './EmptyServiceSelection';
 import { PublicBookingCalendar } from './PublicBookingCalendar';
@@ -229,6 +230,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showClientPayment, setShowClientPayment] = useState(false);
+  const [selectedDateTime, setSelectedDateTime] = useState<{ date: Date; time: string } | null>(null);
   const [clientDetails, setClientDetails] = useState<ClientDetails>({
     name: '',
     email: '',
@@ -269,7 +271,8 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
     }
   };
 
-  const handleDateTimeSelect = () => {
+  const handleDateTimeSelect = (date: Date, time: string) => {
+    setSelectedDateTime({ date, time });
     setShowClientPayment(true);
   };
 
@@ -490,7 +493,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
       </div>
 
       {/* Client Payment Overlay */}
-      {showClientPayment && selectedService && (
+      {showClientPayment && selectedService && selectedDateTime && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md">
             <div className="mb-4 flex justify-end">
@@ -508,7 +511,20 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
               businessName={business.name}
               amount={selectedService.price}
               currency={selectedService.currency || business.currency || 'KES'}
-              onSuccess={() => setShowClientPayment(false)}
+              bookingDetails={{
+                service: selectedService.name,
+                date: selectedDateTime.date.toLocaleDateString(),
+                time: selectedDateTime.time,
+                clientName: clientDetails.name
+              }}
+              onSuccess={() => {
+                toast.success('Booking confirmed successfully!');
+                setShowClientPayment(false);
+                setSelectedService(null);
+                setShowCalendar(false);
+                setSelectedDateTime(null);
+              }}
+              onClose={() => setShowClientPayment(false)}
             />
           </div>
         </div>

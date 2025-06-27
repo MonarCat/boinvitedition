@@ -11,7 +11,14 @@ interface ClientToBusinessPaymentProps {
   amount: number;
   currency: string;
   bookingId?: string;
+  bookingDetails?: {
+    service: string;
+    date?: string;
+    time?: string;
+    clientName?: string;
+  };
   onSuccess?: () => void;
+  onClose?: () => void;
 }
 
 export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = ({

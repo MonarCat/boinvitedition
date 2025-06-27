@@ -33,7 +33,7 @@ interface PublicBookingCalendarProps {
   businessId: string;
   service: Service;
   businessHours: BusinessHours;
-  onDateTimeSelect: () => void;
+  onDateTimeSelect: (date: Date, time: string) => void;
   onBack: () => void;
 }
 

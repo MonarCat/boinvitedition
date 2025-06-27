@@ -108,7 +108,7 @@ export const EnhancedPublicBookingContent: React.FC<EnhancedPublicBookingContent
           ) : (
             <PublicBookingCalendar 
               businessId={businessId} 
-              selectedService={selectedService}
+              service={selectedService}
               onBookingComplete={handleBackToServices}
             />
           )}

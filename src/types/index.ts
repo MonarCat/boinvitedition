@@ -1,3 +1,4 @@
+
 export interface Service {
   id: string;
   name: string;
@@ -5,6 +6,9 @@ export interface Service {
   price: number;
   duration_minutes: number;
   currency?: string;
+  category?: string;
+  is_transport_service?: boolean;
+  transport_details?: any;
   [key: string]: unknown; // Allow other properties
 }
 
@@ -20,6 +24,6 @@ export interface BusinessHours {
 export interface Business {
   id: string;
   name: string;
-  business_hours?: BusinessHours;
+  business_hours?: BusinessHours | any; // Allow Json type from Supabase
   [key: string]: unknown; // Allow other properties
 }

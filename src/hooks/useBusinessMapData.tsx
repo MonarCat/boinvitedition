@@ -118,17 +118,15 @@ export const useBusinessMapData = (searchQuery: string) => {
       console.log('Fetched businesses (fallback):', data?.length || 0);
       
       // Transform the data to match our interface
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const businesses = (data || []).map((business: any) => {
         const result = {
           ...business,
           show_on_map: business.business_settings?.show_on_map ?? true,
           map_description: business.business_settings?.map_description || business.description,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           service_categories: business.services?.map((s: any) => s.category).filter(Boolean) || [],
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           service_names: business.services?.map((s: any) => s.name).filter(Boolean) || [],
-           total_services: business.services?.length || 0
+          total_services: business.services?.length || 0,
+          business_hours: business.business_hours || {} // Cast to allow any type
          };
 
          // Calculate distance if user location is available

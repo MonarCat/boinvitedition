@@ -21,16 +21,14 @@ export const usePublicBookingData = (businessId: string | undefined) => {
         .maybeSingle();
       
       if (error) {
-        console.error('QR Code Error: Database error:', error);
-        throw new Error(`Database error: ${error.message}`);
+        throw new Error('Unable to fetch business details. Please try again.');
       }
       
       if (!data) {
-        console.error('QR Code Error: Business not found for ID:', businessId);
-        throw new Error('Business not found or inactive');
+        throw new Error('Business not found or is currently inactive.');
       }
-      
-      console.log('QR Code Debug: Business found:', data.name);
+
+      return data;
       return data;
     },
     enabled: !!businessId && isValidUUID(businessId || ''),
@@ -53,11 +51,10 @@ export const usePublicBookingData = (businessId: string | undefined) => {
         .order('name');
       
       if (error) {
-        console.error('QR Code Error: Error fetching services:', error);
-        throw error;
+        throw new Error('Unable to fetch services. Please try again.');
       }
-      
-      console.log('QR Code Debug: Services found:', data?.length || 0);
+
+      return data || [];
       return data || [];
     },
     enabled: !!businessId && !!businessQuery.data,

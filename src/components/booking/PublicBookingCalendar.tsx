@@ -31,8 +31,17 @@ interface Staff {
 
 interface PublicBookingCalendarProps {
   businessId: string;
-  selectedService: Service;
-  onBookingComplete?: () => void;
+  service: Service;
+  businessHours: BusinessHours;
+  onDateTimeSelect: () => void;
+  onBack: () => void;
+}
+
+interface BusinessHours {
+  [key: string]: {
+    open: string;
+    close: string;
+  };
 }
 
 const formatPrice = (price: number, currency: string = 'USD') => {
@@ -42,11 +51,17 @@ const formatPrice = (price: number, currency: string = 'USD') => {
   return `$${price}`;
 };
 
-export const PublicBookingCalendar = ({ businessId, selectedService, onBookingComplete }: PublicBookingCalendarProps) => {
+export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
+  businessId,
+  service,
+  businessHours,
+  onDateTimeSelect,
+  onBack
+}) => {
   const queryClient = useQueryClient();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     email: '',
@@ -184,7 +199,7 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
   // Improved booking mutation with better error handling
   const createBookingMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedDate || !selectedTimeSlot || !customerInfo.name.trim() || !customerInfo.email.trim()) {
+      if (!selectedDate || !selectedTime || !customerInfo.name.trim() || !customerInfo.email.trim()) {
         throw new Error('Please fill in all required fields');
       }
 
@@ -237,7 +252,7 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
           service_id: selectedService.id,
           staff_id: selectedStaff?.id || null,
           booking_date: format(selectedDate, 'yyyy-MM-dd'),
-          booking_time: selectedTimeSlot,
+          booking_time: selectedTime,
           duration_minutes: selectedService.duration_minutes,
           total_amount: selectedService.price,
           status: 'confirmed',
@@ -261,9 +276,8 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
       
       // Reset form
       setSelectedStaff(null);
-      setSelectedTimeSlot(null);
+      setSelectedTime(null);
       setCustomerInfo({ name: '', email: '', phone: '', notes: '' });
-      onBookingComplete?.();
     },
     onError: (error: any) => {
       console.error('Booking failed:', error);
@@ -275,15 +289,15 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
     createBookingMutation.mutate();
   };
 
-  const isFormValid = customerInfo.name.trim() && customerInfo.email.trim() && selectedDate && selectedTimeSlot;
+  const isFormValid = customerInfo.name.trim() && customerInfo.email.trim() && selectedDate && selectedTime;
   const currency = business?.currency || selectedService.currency || 'USD';
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Book {selectedService.name}</CardTitle>
+        <CardTitle>Book {service.name}</CardTitle>
         <p className="text-sm text-gray-600">
-          Duration: {selectedService.duration_minutes} minutes • Price: {formatPrice(selectedService.price, currency)}
+          Duration: {service.duration_minutes} minutes • Price: {formatPrice(service.price, currency)}
         </p>
       </CardHeader>
       <CardContent>
@@ -308,25 +322,16 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
               <div className="space-y-2">
                 <h4 className="font-medium">Available Times</h4>
                 <div className="grid grid-cols-3 gap-2">
-                  {timeSlots.map(({ time, available, currentBookings, maxCapacity, isBlocked }) => (
-                    <div key={time} className="relative">
-                      <Button
-                        variant={selectedTimeSlot === time ? "default" : "outline"}
-                        size="sm"
-                        disabled={!available}
-                        onClick={() => setSelectedTimeSlot(time)}
-                        className="w-full text-xs"
-                      >
-                        {time}
-                        {isBlocked && <Lock className="h-3 w-3 ml-1" />}
-                      </Button>
-                      <div className="flex items-center justify-center mt-1">
-                        <Badge variant={currentBookings >= maxCapacity ? "destructive" : "secondary"} className="text-xs">
-                          <Users className="h-3 w-3 mr-1" />
-                          {currentBookings}/{maxCapacity}
-                        </Badge>
-                      </div>
-                    </div>
+                  {generateTimeSlots(businessHours, selectedDate).map((time) => (
+                    <Button
+                      key={time}
+                      variant={selectedTime === time ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedTime(time)}
+                      className="w-full text-xs"
+                    >
+                      {time}
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -416,7 +421,7 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Service:</span>
-                    <span className="font-medium">{selectedService.name}</span>
+                    <span className="font-medium">{service.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Date:</span>
@@ -424,11 +429,11 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
                   </div>
                   <div className="flex justify-between">
                     <span>Time:</span>
-                    <span>{selectedTimeSlot}</span>
+                    <span>{selectedTime}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Duration:</span>
-                    <span>{selectedService.duration_minutes} minutes</span>
+                    <span>{service.duration_minutes} minutes</span>
                   </div>
                   {selectedStaff && (
                     <div className="flex justify-between">
@@ -438,7 +443,7 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
                   )}
                   <div className="flex justify-between font-bold border-t pt-2">
                     <span>Total:</span>
-                    <span>{formatPrice(selectedService.price, currency)}</span>
+                    <span>{formatPrice(service.price, currency)}</span>
                   </div>
                 </div>
               </div>
@@ -460,4 +465,25 @@ export const PublicBookingCalendar = ({ businessId, selectedService, onBookingCo
       </CardContent>
     </Card>
   );
+};
+
+const generateTimeSlots = (businessHours: BusinessHours, date: Date): string[] => {
+  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase();
+  const hours = businessHours[dayOfWeek];
+  
+  if (!hours) return [];
+  
+  const slots: string[] = [];
+  const [openHour, openMinute] = hours.open.split(':').map(Number);
+  const [closeHour, closeMinute] = hours.close.split(':').map(Number);
+  
+  let current = setHours(setMinutes(date, openMinute), openHour);
+  const end = setHours(setMinutes(date, closeMinute), closeHour);
+  
+  while (current < end) {
+    slots.push(format(current, 'HH:mm'));
+    current = addMinutes(current, 30); // 30-minute intervals
+  }
+  
+  return slots;
 };

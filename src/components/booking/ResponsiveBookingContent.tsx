@@ -3,13 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Phone, Clock, Star, ChevronLeft, CreditCard, Calendar } from 'lucide-react';
+import { MapPin, Phone, Clock, Star, ChevronLeft, CreditCard, Calendar, MessageCircle } from 'lucide-react';
 import { ServicesList } from './ServicesList';
 import { EmptyServiceSelection } from './EmptyServiceSelection';
 import { PublicBookingCalendar } from './PublicBookingCalendar';
 import { BusinessPaymentInstructions } from '@/components/business/BusinessPaymentInstructions';
 import { ClientToBusinessPayment } from '@/components/payment/ClientToBusinessPayment';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface Service {
   id: string;
@@ -18,6 +20,7 @@ interface Service {
   price: number;
   duration_minutes: number;
   currency?: string;
+  category?: 'transport' | 'general';
 }
 
 interface BusinessHours {
@@ -43,11 +46,180 @@ interface Business {
   featured_image_url?: string;
 }
 
+interface ClientDetails {
+  name: string;
+  email: string;
+  phone: string;
+  saveData: boolean;
+}
+
+interface TransportDetails {
+  from: string;
+  to: string;
+  passengers: {
+    adults: number;
+    children: number;
+    infants: number;
+  };
+}
+
 interface ResponsiveBookingContentProps {
   business: Business;
   services: Service[];
   businessId: string;
 }
+
+const ClientDetailsForm: React.FC<{
+  service: Service;
+  clientDetails: ClientDetails;
+  transportDetails: TransportDetails;
+  onUpdate: (details: ClientDetails, transport?: TransportDetails) => void;
+  onBack: () => void;
+  onNext: () => void;
+}> = ({ service, clientDetails, transportDetails, onUpdate, onBack, onNext }) => {
+  const [localClientDetails, setLocalClientDetails] = useState(clientDetails);
+  const [localTransportDetails, setLocalTransportDetails] = useState(transportDetails);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onUpdate(localClientDetails, service.category === 'transport' ? localTransportDetails : undefined);
+    onNext();
+  };
+
+  return (
+    <Card className="bg-white shadow-lg">
+      <CardContent className="p-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-4"
+          onClick={onBack}
+        >
+          <ChevronLeft className="w-4 h-4 mr-1" />
+          Back
+        </Button>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                value={localClientDetails.name}
+                onChange={(e) => setLocalClientDetails(prev => ({ ...prev, name: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={localClientDetails.email}
+                onChange={(e) => setLocalClientDetails(prev => ({ ...prev, email: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={localClientDetails.phone}
+                onChange={(e) => setLocalClientDetails(prev => ({ ...prev, phone: e.target.value }))}
+                required
+              />
+            </div>
+
+            {service.category === 'transport' && (
+              <div className="space-y-4 pt-4 border-t">
+                <h3 className="font-semibold">Transport Details</h3>
+                <div>
+                  <Label htmlFor="from">From</Label>
+                  <Input
+                    id="from"
+                    value={localTransportDetails.from}
+                    onChange={(e) => setLocalTransportDetails(prev => ({ ...prev, from: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="to">To</Label>
+                  <Input
+                    id="to"
+                    value={localTransportDetails.to}
+                    onChange={(e) => setLocalTransportDetails(prev => ({ ...prev, to: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Passengers</Label>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="adults">Adults</Label>
+                      <Input
+                        id="adults"
+                        type="number"
+                        min="1"
+                        value={localTransportDetails.passengers.adults}
+                        onChange={(e) => setLocalTransportDetails(prev => ({
+                          ...prev,
+                          passengers: { ...prev.passengers, adults: parseInt(e.target.value) }
+                        }))}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="children">Children</Label>
+                      <Input
+                        id="children"
+                        type="number"
+                        min="0"
+                        value={localTransportDetails.passengers.children}
+                        onChange={(e) => setLocalTransportDetails(prev => ({
+                          ...prev,
+                          passengers: { ...prev.passengers, children: parseInt(e.target.value) }
+                        }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="infants">Infants</Label>
+                      <Input
+                        id="infants"
+                        type="number"
+                        min="0"
+                        value={localTransportDetails.passengers.infants}
+                        onChange={(e) => setLocalTransportDetails(prev => ({
+                          ...prev,
+                          passengers: { ...prev.passengers, infants: parseInt(e.target.value) }
+                        }))}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="saveData"
+                checked={localClientDetails.saveData}
+                onChange={(e) => setLocalClientDetails(prev => ({ ...prev, saveData: e.target.checked }))}
+                className="rounded border-gray-300"
+              />
+              <Label htmlFor="saveData">Save my details for future bookings</Label>
+            </div>
+          </div>
+
+          <Button type="submit" className="w-full">
+            Continue to Date Selection
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+};
 
 export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> = ({
   business,
@@ -57,9 +229,26 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showClientPayment, setShowClientPayment] = useState(false);
+  const [clientDetails, setClientDetails] = useState<ClientDetails>({
+    name: '',
+    email: '',
+    phone: '',
+    saveData: false
+  });
+  const [transportDetails, setTransportDetails] = useState<TransportDetails>({
+    from: '',
+    to: '',
+    passengers: {
+      adults: 1,
+      children: 0,
+      infants: 0
+    }
+  });
+  const [showClientForm, setShowClientForm] = useState(false);
 
   const handleServiceSelect = (service: Service) => {
     setSelectedService(service);
+    setShowClientForm(true);
     // Smooth scroll to booking section on mobile
     if (window.innerWidth < 768) {
       setTimeout(() => {
@@ -71,6 +260,13 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
   const handleBackToServices = () => {
     setSelectedService(null);
     setShowCalendar(false);
+  };
+
+  const handleClientDetailsUpdate = (details: ClientDetails, transport?: TransportDetails) => {
+    setClientDetails(details);
+    if (transport) {
+      setTransportDetails(transport);
+    }
   };
 
   const handleDateTimeSelect = () => {
@@ -101,26 +297,68 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
         <img
           src={business.featured_image_url || '/placeholder.svg'}
           alt={business.name}
-          className="w-full h-full object-cover mix-blend-overlay"
+          className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 flex items-end p-6 bg-gradient-to-t from-black/60 via-black/40 to-transparent">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/40 to-transparent" />
+        
+        <div className="absolute top-4 left-4 z-10">
+          <motion.img 
+            src={business.logo_url || '/placeholder.svg'} 
+            alt={`${business.name} logo`} 
+            className="w-20 h-20 rounded-full border-4 border-white shadow-lg"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring' }}
+          />
+        </div>
+
+        <div className="absolute inset-0 flex items-end p-6">
           <div className="text-white">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">{business.name}</h1>
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
-                <span className="truncate max-w-[200px]">{business.address}</span>
-              </div>
-              {business.average_rating && (
-                <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <span>{business.average_rating.toFixed(1)}</span>
-                </div>
-              )}
-            </div>
+            <h1 className="text-2xl md:text-3xl font-bold">{business.name}</h1>
+            {business.is_verified && <Badge variant="secondary" className="mt-1">Verified</Badge>}
           </div>
         </div>
       </motion.div>
+
+      {/* Business Details */}
+      <Card className="mb-6">
+        <CardContent className="p-6 space-y-4">
+            <p className="text-gray-700">{business.description}</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-3">
+                  <MapPin className="w-5 h-5 text-gray-500" />
+                  <span className="text-gray-800">{business.address}, {business.city}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-gray-500" />
+                  <span className="text-gray-800">{formatBusinessHours(business.business_hours)}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-gray-500" />
+                  <span className="text-gray-800">{business.phone}</span>
+              </div>
+              {business.average_rating && (
+                <div className="flex items-center gap-3">
+                  <Star className="w-5 h-5 text-yellow-500 fill-current" />
+                  <span className="text-gray-800 font-semibold">{business.average_rating.toFixed(1)} ({business.total_reviews} reviews)</span>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-4 border-t">
+              <a 
+                  href={`https://wa.me/${business.phone.replace(/\D/g, '')}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold transition-colors duration-200"
+              >
+                  <MessageCircle className="w-5 h-5" />
+                  <span>Contact on WhatsApp</span>
+              </a>
+            </div>
+        </CardContent>
+      </Card>
 
       {/* Main Content */}
       <div className="grid md:grid-cols-12 gap-6">
@@ -168,7 +406,26 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                   businessHours={business.business_hours}
                   service={selectedService}
                   onDateTimeSelect={handleDateTimeSelect}
+                  onBack={() => setShowCalendar(false)}
+                />
+              </motion.div>
+            ) : showClientForm && selectedService ? (
+              <motion.div
+                key="clientForm"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <ClientDetailsForm
+                  service={selectedService}
+                  clientDetails={clientDetails}
+                  transportDetails={transportDetails}
+                  onUpdate={handleClientDetailsUpdate}
                   onBack={handleBackToServices}
+                  onNext={() => {
+                    setShowClientForm(false);
+                    setShowCalendar(true);
+                  }}
                 />
               </motion.div>
             ) : selectedService ? (

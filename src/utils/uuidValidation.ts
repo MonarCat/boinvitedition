@@ -5,12 +5,6 @@ export const isValidUUID = (uuid: string): boolean => {
 };
 
 export const logQRCodeDebugInfo = (businessId: string) => {
-  console.log('QR Code Debug: Business ID from URL:', businessId);
-  console.log('QR Code Debug: Current URL:', window.location.href);
-  console.log('QR Code Debug: UUID Valid:', isValidUUID(businessId));
-  
-  // Check if this came from a QR code scan
-  if (!document.referrer) {
-    console.log('QR Code Debug: Direct access detected (likely QR scan)');
-  }
+  // Silent validation - no console logs
+  return isValidUUID(businessId);
 };

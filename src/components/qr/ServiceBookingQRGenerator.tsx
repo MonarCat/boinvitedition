@@ -64,7 +64,7 @@ export const ServiceBookingQRGenerator: React.FC<ServiceBookingQRGeneratorProps>
         <head><title>Print QR Code</title></head>
         <body style="text-align: center; margin-top: 50px;">
           <h2>${businessName}</h2>
-          <p>Scan to book a service</p>
+          <p>Scan to book</p>
           <img src="${qrDataUrl}" alt="Booking QR Code" />
           <script>window.onload = () => { window.print(); window.close(); }</script>
         </body>

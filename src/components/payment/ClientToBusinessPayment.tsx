@@ -1,9 +1,9 @@
-
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CreditCard, Smartphone, CheckCircle, AlertTriangle } from 'lucide-react';
-import { DirectPaystackPayment, loadPaystackScript } from './DirectPaystackPayment';
+import { DirectPaystackPayment } from './DirectPaystackPayment';
+import { loadPaystackScript } from './PaystackScriptLoader';
 
 interface ClientToBusinessPaymentProps {
   businessId: string;
@@ -12,10 +12,14 @@ interface ClientToBusinessPaymentProps {
   currency: string;
   bookingId?: string;
   bookingDetails?: {
-    service: string;
+    serviceId?: string;
+    serviceName: string;
     date?: string;
     time?: string;
+    staffId?: string | null;
     clientName?: string;
+    clientEmail?: string;
+    clientPhone?: string;
   };
   onSuccess?: () => void;
   onClose?: () => void;
@@ -27,10 +31,22 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
   amount,
   currency,
   bookingId,
-  onSuccess
+  bookingDetails,
+  onSuccess,
+  onClose
 }) => {
   useEffect(() => {
-    loadPaystackScript().catch(console.error);
+    // Preload Paystack script when payment component mounts
+    const preloadScript = async () => {
+      try {
+        await loadPaystackScript();
+        console.log('ClientToBusinessPayment: Paystack script loaded successfully');
+      } catch (error) {
+        console.error('ClientToBusinessPayment: Failed to load Paystack script:', error);
+      }
+    };
+    
+    preloadScript();
   }, []);
 
   const handlePaymentSuccess = (reference: string) => {
@@ -52,6 +68,16 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
             Pay {businessName}
           </CardTitle>
         </CardHeader>
+        {bookingDetails && (
+          <CardContent>
+            <div className="text-sm text-green-700 space-y-1">
+              <p><strong>Service:</strong> {bookingDetails.serviceName}</p>
+              {bookingDetails.date && bookingDetails.time && (
+                <p><strong>When:</strong> {new Date(bookingDetails.date).toLocaleDateString()} at {bookingDetails.time}</p>
+              )}
+            </div>
+          </CardContent>
+        )}
       </Card>
 
       {/* Payment Methods Information */}
@@ -79,17 +105,25 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
       <DirectPaystackPayment
         amount={amount}
         currency={currency}
+        email={bookingDetails?.clientEmail}
         metadata={{
           payment_type: 'client_to_business',
           business_id: businessId,
           booking_id: bookingId,
-          business_name: businessName
+          business_name: businessName,
+          service_id: bookingDetails?.serviceId,
+          service_name: bookingDetails?.serviceName,
+          staff_id: bookingDetails?.staffId || undefined,
+          appointment_date: bookingDetails?.date,
+          appointment_time: bookingDetails?.time,
+          customer_name: bookingDetails?.clientName,
+          customer_phone: bookingDetails?.clientPhone
         }}
         onSuccess={handlePaymentSuccess}
         onError={handlePaymentError}
         title={`Pay ${businessName}`}
         description="Secure payment powered by Paystack"
-        showClientDetails={true}
+        showClientDetails={!bookingDetails?.clientEmail}
         buttonText="Pay"
       />
 

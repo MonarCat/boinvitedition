@@ -1,6 +1,6 @@
-
 import React, { useEffect } from 'react';
-import { DirectPaystackPayment, loadPaystackScript } from './DirectPaystackPayment';
+import { DirectPaystackPayment } from './DirectPaystackPayment';
+import { loadPaystackScript } from './PaystackScriptLoader';
 
 interface MultiProviderPaymentProps {
   plan: {

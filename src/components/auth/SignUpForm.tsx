@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Mail } from 'lucide-react';
 import { PasswordStrength } from './PasswordStrength';
+import { CountrySelector } from './CountrySelector';
 
 interface SignUpFormProps {
   loading: boolean;
@@ -24,6 +24,7 @@ export const SignUpForm = ({ loading, authError, onError, onSignUpSuccess, onTab
   const [lastName, setLastName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [country, setCountry] = useState<string | undefined>(undefined);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -55,6 +56,11 @@ export const SignUpForm = ({ loading, authError, onError, onSignUpSuccess, onTab
       return;
     }
 
+    if (!country) {
+      onError('Please select your country.');
+      return;
+    }
+
     if (password !== confirmPassword) {
       onError('Passwords do not match.');
       return;
@@ -68,7 +74,8 @@ export const SignUpForm = ({ loading, authError, onError, onSignUpSuccess, onTab
     try {
       const { error } = await signUp(email, password, {
         firstName: firstName.trim(),
-        lastName: lastName.trim()
+        lastName: lastName.trim(),
+        country: country,
       });
       
       if (error) {
@@ -87,6 +94,7 @@ export const SignUpForm = ({ loading, authError, onError, onSignUpSuccess, onTab
         setConfirmPassword('');
         setFirstName('');
         setLastName('');
+        setCountry(undefined);
       }
     } catch (error) {
       onError('An unexpected error occurred. Please try again.');
@@ -129,6 +137,13 @@ export const SignUpForm = ({ loading, authError, onError, onSignUpSuccess, onTab
             required
           />
         </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="country">Country</Label>
+        <CountrySelector 
+          value={country}
+          onValueChange={setCountry}
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="signup-email">Email</Label>

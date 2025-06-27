@@ -1,21 +1,31 @@
-
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 interface UserProfile {
   firstName?: string;
   lastName?: string;
+  country?: string;
+}
+
+interface AuthResponse {
+  data: { user: User | null; session: Session | null; } | { user: null; session: null; };
+  error: AuthError | null;
+}
+
+interface ResetPasswordResponse {
+  data: Record<string, never>;
+  error: AuthError | null;
 }
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, profile?: UserProfile) => Promise<any>;
-  signIn: (email: string, password: string) => Promise<any>;
+  signUp: (email: string, password: string, profile?: UserProfile) => Promise<AuthResponse>;
+  signIn: (email: string, password: string) => Promise<AuthResponse>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<any>;
+  resetPassword: (email: string) => Promise<ResetPasswordResponse>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,33 +44,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     console.log('Setting up auth state listener...');
-    
-    // Set up auth state listener first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
 
-        // Handle email confirmation
-        if (event === 'SIGNED_IN' && session?.user && !session.user.email_confirmed_at) {
-          console.log('User signed in but email not confirmed yet');
-        }
-        
-        if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
-          console.log('User signed in with confirmed email:', session.user.email);
-        }
-      }
-    );
-
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.email);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      if (event === 'INITIAL_SESSION') {
+        console.log('Initial session loaded:', session?.user?.email);
+      } else if (event === 'SIGNED_IN') {
+        console.log('User signed in:', session?.user?.email);
+        if (session?.user && !session.user.email_confirmed_at) {
+          console.log('User signed in but email not confirmed yet');
+        }
+      } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+      }
     });
 
     return () => {
@@ -69,7 +73,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, profile?: UserProfile) => {
+  const signUp = async (email: string, password: string, profile?: UserProfile): Promise<AuthResponse> => {
     setLoading(true);
     try {
       console.log('Attempting sign up for:', email, 'with profile:', profile);
@@ -85,6 +89,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           data: profile ? {
             first_name: profile.firstName,
             last_name: profile.lastName,
+            country: profile.country,
           } : undefined,
         },
       });
@@ -103,13 +108,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return { data, error };
     } catch (error) {
       console.error('Unexpected error in signUp:', error);
-      throw error;
+      return { data: { user: null, session: null }, error: error as AuthError };
     } finally {
       setLoading(false);
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     setLoading(true);
     try {
       console.log('Attempting sign in for:', email);
@@ -124,13 +129,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('Sign in error:', error);
         // Enhanced error handling
         if (error.message.includes('Invalid login credentials')) {
-          return { data, error: { ...error, message: 'Invalid email or password. Please check your credentials and try again.' } };
+          error.message = 'Invalid email or password. Please check your credentials and try again.';
         } else if (error.message.includes('Email not confirmed')) {
-          return { data, error: { ...error, message: 'Please check your email and click the confirmation link before signing in.' } };
+          error.message = 'Please check your email and click the confirmation link before signing in.';
         } else if (error.message.includes('Too many requests')) {
-          return { data, error: { ...error, message: 'Too many sign-in attempts. Please wait a moment and try again.' } };
+          error.message = 'Too many sign-in attempts. Please wait a moment and try again.';
         } else if (error.message.includes('User not found')) {
-          return { data, error: { ...error, message: 'No account found with this email address. Please sign up first.' } };
+          error.message = 'No account found with this email address. Please sign up first.';
         }
         return { data, error };
       }
@@ -142,7 +147,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return { data, error };
     } catch (error) {
       console.error('Unexpected error in signIn:', error);
-      throw error;
+      return { data: { user: null, session: null }, error: error as AuthError };
     } finally {
       setLoading(false);
     }
@@ -163,7 +168,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = async (email: string): Promise<ResetPasswordResponse> => {
     try {
       console.log('Attempting password reset for:', email);
       const redirectUrl = `${window.location.origin}/`;
@@ -171,10 +176,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         redirectTo: redirectUrl
       });
       console.log('Password reset result:', { data, error });
-      return { data, error };
+      if (error) {
+        return { data: {}, error };
+      }
+      return { data: data || {}, error };
     } catch (error) {
       console.error('Error in resetPassword:', error);
-      throw error;
+      return { data: {}, error: error as AuthError };
     }
   };
 

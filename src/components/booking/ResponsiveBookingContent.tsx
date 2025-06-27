@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Phone, Clock, Star, ChevronLeft, CreditCard, Calendar, MessageCircle } from 'lucide-react';
+import { MapPin, Phone, Clock, Star, ChevronLeft, CreditCard, Calendar, MessageCircle, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { ServicesList } from './ServicesList';
 import { EmptyServiceSelection } from './EmptyServiceSelection';
@@ -13,6 +13,8 @@ import { ClientToBusinessPayment } from '@/components/payment/ClientToBusinessPa
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Service {
   id: string;
@@ -22,6 +24,13 @@ interface Service {
   duration_minutes: number;
   currency?: string;
   category?: 'transport' | 'general';
+  image_url?: string;
+}
+
+interface Staff {
+  id: string;
+  name: string;
+  avatar_url?: string;
 }
 
 interface BusinessHours {
@@ -45,6 +54,7 @@ interface Business {
   phone: string;
   currency: string;
   featured_image_url?: string;
+  payment_policy?: 'pay_on_booking' | 'pay_after_service';
 }
 
 interface ClientDetails {
@@ -208,6 +218,7 @@ const ClientDetailsForm: React.FC<{
                 checked={localClientDetails.saveData}
                 onChange={(e) => setLocalClientDetails(prev => ({ ...prev, saveData: e.target.checked }))}
                 className="rounded border-gray-300"
+                title="Save my details for future bookings"
               />
               <Label htmlFor="saveData">Save my details for future bookings</Label>
             </div>
@@ -222,15 +233,79 @@ const ClientDetailsForm: React.FC<{
   );
 };
 
+interface StaffData {
+  id: string;
+  user: {
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+}
+
+const StaffSelector: React.FC<{
+  businessId: string;
+  selectedStaffId: string | null;
+  onSelectStaff: (staffId: string) => void;
+}> = ({ businessId, selectedStaffId, onSelectStaff }) => {
+  const { data: staff, isLoading } = useQuery<Staff[]>({
+    queryKey: ['business-staff', businessId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('staff')
+        .select('id, user:users(full_name, avatar_url)')
+        .eq('business_id', businessId)
+        .eq('is_active', true);
+
+      if (error) throw new Error(error.message);
+
+      return (data as StaffData[]).map((s) => ({ 
+        id: s.id, 
+        name: s.user?.full_name || 'Unnamed Staff', 
+        avatar_url: s.user?.avatar_url 
+      }));
+    },
+  });
+
+  if (isLoading) return <div>Loading staff...</div>;
+
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold">Select Staff (Optional)</h3>
+      <div className="grid grid-cols-3 gap-4">
+        {(staff || []).map((member) => (
+          <button
+            key={member.id}
+            className={cn(
+              "p-2 border rounded-lg flex flex-col items-center gap-2 transition-colors",
+              selectedStaffId === member.id
+                ? "bg-blue-100 border-blue-500"
+                : "hover:bg-gray-50"
+            )}
+            onClick={() => onSelectStaff(member.id)}
+          >
+            <img 
+              src={member.avatar_url || '/placeholder.svg'} 
+              alt={member.name} 
+              className="w-16 h-16 rounded-full object-cover"
+            />
+            <span className="text-sm text-center">{member.name}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> = ({
   business,
   services,
   businessId
 }) => {
+  type BookingStep = 'serviceSelection' | 'clientDetails' | 'calendar' | 'staffSelection' | 'payment' | 'confirmation';
+
+  const [bookingStep, setBookingStep] = useState<BookingStep>('serviceSelection');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [showClientPayment, setShowClientPayment] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState<{ date: Date; time: string } | null>(null);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [clientDetails, setClientDetails] = useState<ClientDetails>({
     name: '',
     email: '',
@@ -246,11 +321,31 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
       infants: 0
     }
   });
-  const [showClientForm, setShowClientForm] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const images = [
+    business.featured_image_url,
+    ...services.flatMap(s => s.image_url ? [s.image_url] : [])
+  ].filter(Boolean) as string[];
+
+  const resetBookingFlow = () => {
+    setBookingStep('serviceSelection');
+    setSelectedService(null);
+    setSelectedDateTime(null);
+    setSelectedStaffId(null);
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % (images.length || 1));
+  };
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex - 1 + (images.length || 1)) % (images.length || 1));
+  };
 
   const handleServiceSelect = (service: Service) => {
     setSelectedService(service);
-    setShowClientForm(true);
+    setBookingStep('clientDetails');
     // Smooth scroll to booking section on mobile
     if (window.innerWidth < 768) {
       setTimeout(() => {
@@ -261,7 +356,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
 
   const handleBackToServices = () => {
     setSelectedService(null);
-    setShowCalendar(false);
+    setBookingStep('serviceSelection');
   };
 
   const handleClientDetailsUpdate = (details: ClientDetails, transport?: TransportDetails) => {
@@ -269,11 +364,229 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
     if (transport) {
       setTransportDetails(transport);
     }
+    setBookingStep('calendar');
   };
 
   const handleDateTimeSelect = (date: Date, time: string) => {
     setSelectedDateTime({ date, time });
-    setShowClientPayment(true);
+    setBookingStep('staffSelection');
+  };
+
+  const handleStaffSelect = (staffId: string) => {
+    setSelectedStaffId(staffId);
+  };
+
+  const handleProceedToPayment = () => {
+    // If payment is required on booking, proceed to payment step
+    if (paymentPolicy === 'pay_on_booking') {
+      setBookingStep('payment');
+    } else {
+      // If payment is after service, skip payment and go to confirmation
+      handleBookingConfirmation();
+    }
+  };
+
+  const handleBookingConfirmation = async () => {
+    // Validate all required data before attempting to create booking
+    if (!selectedService) {
+      toast.error('Please select a service');
+      return;
+    }
+
+    if (!selectedDateTime || !selectedDateTime.date || !selectedDateTime.time) {
+      toast.error('Please select a date and time');
+      return;
+    }
+
+    if (!clientDetails.name || !clientDetails.email || !clientDetails.phone) {
+      toast.error('Please provide all required client details');
+      setBookingStep('clientDetails');
+      return;
+    }
+
+    // Show loading toast
+    const loadingToast = toast.loading('Creating your booking...');
+
+    try {
+      console.log('Starting booking creation process...');
+      // Step 1: Find or create a client record
+      let clientId: string;
+      
+      // Check if client already exists
+      console.log('Looking up existing client with email:', clientDetails.email);
+      const { data: existingClients, error: clientLookupError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('business_id', businessId)
+        .eq('email', clientDetails.email)
+        .limit(1);
+      
+      if (clientLookupError) {
+        console.error('Client lookup error:', clientLookupError);
+        throw new Error(`Error looking up client: ${clientLookupError.message}`);
+      }
+      
+      if (existingClients && existingClients.length > 0) {
+        // Use existing client
+        clientId = existingClients[0].id;
+        console.log('Using existing client ID:', clientId);
+        
+        // Update client details if needed
+        console.log('Updating client details...');
+        const { error: updateClientError } = await supabase
+          .from('clients')
+          .update({
+            name: clientDetails.name,
+            phone: clientDetails.phone,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', clientId);
+          
+        if (updateClientError) {
+          console.warn('Failed to update client details:', updateClientError);
+          // Continue anyway since we have the client ID
+        } else {
+          console.log('Client details updated successfully');
+        }
+      } else {
+        // Create new client
+        console.log('Creating new client...');
+        const { data: newClient, error: createClientError } = await supabase
+          .from('clients')
+          .insert({
+            business_id: businessId,
+            name: clientDetails.name,
+            email: clientDetails.email,
+            phone: clientDetails.phone
+          })
+          .select('id')
+          .single();
+        
+        if (createClientError || !newClient) {
+          console.error('Client creation error:', createClientError);
+          throw new Error(`Error creating client: ${createClientError?.message || 'Unknown error'}`);
+        }
+        
+        clientId = newClient.id;
+        console.log('New client created with ID:', clientId);
+      }
+      
+      // Step 2: Get the service details
+      console.log('Fetching service details for service ID:', selectedService.id);
+      const { data: service, error: serviceError } = await supabase
+        .from('services')
+        .select('price, duration_minutes')
+        .eq('id', selectedService.id)
+        .single();
+      
+      if (serviceError || !service) {
+        console.error('Service fetch error:', serviceError);
+        throw new Error(`Error retrieving service details: ${serviceError?.message || 'Unknown error'}`);
+      }
+      
+      console.log('Service details retrieved:', service);
+      
+      // Step 3: Create the booking
+      // Prepare booking data - only include fields that exist in the schema
+      const bookingData = {
+        business_id: businessId,
+        client_id: clientId,
+        service_id: selectedService.id,
+        staff_id: selectedStaffId,
+        booking_date: selectedDateTime.date.toISOString().split('T')[0],
+        booking_time: selectedDateTime.time,
+        duration_minutes: service.duration_minutes,
+        total_amount: service.price,
+        status: 'confirmed',
+        notes: `Customer: ${clientDetails.name}, Phone: ${clientDetails.phone}, Email: ${clientDetails.email}`
+      };
+      
+      // Add payment_status if the column exists (check during insert)
+      if (paymentPolicy === 'pay_on_booking') {
+        // @ts-expect-error - We'll try to add this field and handle any errors if it doesn't exist
+        bookingData.payment_status = 'paid';
+      } else {
+        // @ts-expect-error - We'll try to add this field and handle any errors if it doesn't exist
+        bookingData.payment_status = 'pending';
+      }
+      
+      console.log('Creating booking with data:', bookingData);
+      
+      const { data: bookingResult, error: bookingError } = await supabase
+        .from('bookings')
+        .insert(bookingData)
+        .select('id')
+        .single();
+      
+      if (bookingError) {
+        console.error('Booking creation error:', bookingError);
+        
+        // If there's a database schema mismatch, try again without custom fields
+        if (bookingError.message.includes('payment_status') || 
+            bookingError.message.includes('does not exist') || 
+            bookingError.message.includes('column')) {
+          
+          console.log('Trying again with simplified booking data...');
+          
+          // Remove potentially problematic fields
+          const simplifiedBookingData = {
+            business_id: businessId,
+            client_id: clientId,
+            service_id: selectedService.id,
+            staff_id: selectedStaffId,
+            booking_date: selectedDateTime.date.toISOString().split('T')[0],
+            booking_time: selectedDateTime.time,
+            duration_minutes: service.duration_minutes,
+            total_amount: service.price,
+            status: 'confirmed',
+            notes: `Customer: ${clientDetails.name}, Phone: ${clientDetails.phone}, Email: ${clientDetails.email}${
+              paymentPolicy === 'pay_on_booking' ? ', Payment: Paid' : ', Payment: Pending'
+            }`
+          };
+          
+          const { data: retryBooking, error: retryError } = await supabase
+            .from('bookings')
+            .insert(simplifiedBookingData)
+            .select('id')
+            .single();
+            
+          if (retryError) {
+            console.error('Retry booking creation failed:', retryError);
+            throw new Error(`Error creating booking: ${retryError.message}`);
+          }
+          
+          console.log('Booking created successfully on retry:', retryBooking);
+        } else {
+          throw new Error(`Error creating booking: ${bookingError.message}`);
+        }
+      } else {
+        console.log('Booking created successfully:', bookingResult);
+      }
+      
+      // Success!
+      toast.dismiss(loadingToast);
+      toast.success('Booking confirmed successfully!');
+      
+      // Reset flow and show confirmation
+      resetBookingFlow();
+      setBookingStep('confirmation');
+      
+    } catch (error: Error | unknown) {
+      console.error('Booking error:', error);
+      
+      toast.dismiss(loadingToast);
+      
+      // Provide more detailed error message based on error type
+      if (error.message.includes('foreign key constraint')) {
+        toast.error('Unable to complete your booking: There was a problem with the data associations. Please try again or contact support.');
+      } else if (error.message.includes('duplicate key')) {
+        toast.error('You already have a booking for this time slot. Please select a different time.');
+      } else if (error.message.includes('not found')) {
+        toast.error('Some information needed for your booking was not found. Please refresh and try again.');
+      } else {
+        toast.error(`Unable to complete your booking: ${error.message || 'Please try again'}`);
+      }
+    }
   };
 
   const formatBusinessHours = (hours: BusinessHours) => {
@@ -289,6 +602,9 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
     return 'Hours available on request';
   };
 
+  // Determine the payment policy, defaulting to pay_on_booking if not specified
+  const paymentPolicy = business.payment_policy || 'pay_on_booking';
+
   return (
     <div className="container mx-auto px-4 py-6">
       {/* Hero Section */}
@@ -297,16 +613,70 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
         animate={{ opacity: 1, y: 0 }}
         className="relative h-48 md:h-64 rounded-2xl overflow-hidden mb-8 bg-gradient-to-r from-blue-500 to-indigo-600"
       >
-        <img
-          src={business.featured_image_url || '/placeholder.svg'}
-          alt={business.name}
-          className="w-full h-full object-cover"
-        />
+        {images.length > 0 ? (
+          <AnimatePresence initial={false} custom={currentImageIndex}>
+            <motion.img
+              key={currentImageIndex}
+              src={images[currentImageIndex]}
+              alt={`${business.name} gallery image ${currentImageIndex + 1}`}
+              className="w-full h-full object-cover"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ opacity: { duration: 0.3 } }}
+            />
+          </AnimatePresence>
+        ) : (
+          <img
+            src={'/placeholder.svg'}
+            alt={business.name}
+            className="w-full h-full object-cover"
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/40 to-transparent" />
         
+        {images.length > 1 && (
+          <>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute left-2 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 rounded-full"
+              onClick={handlePrevImage}
+              aria-label="Go to previous image"
+              title="Go to previous image"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 rounded-full"
+              onClick={handleNextImage}
+              aria-label="Go to next image"
+              title="Go to next image"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </Button>
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  aria-label={`Go to image ${index + 1}`}
+                  title={`Go to image ${index + 1}`}
+                  className={cn(
+                    "w-2 h-2 rounded-full transition-colors duration-200",
+                    currentImageIndex === index ? "bg-white" : "bg-white/50 hover:bg-white/75"
+                  )}
+                  onClick={() => setCurrentImageIndex(index)}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
         <div className="absolute top-4 left-4 z-10">
           <motion.img 
-            src={business.logo_url || '/placeholder.svg'} 
+            src={business.logo_url || '/placeholder.svg'}
             alt={`${business.name} logo`} 
             className="w-20 h-20 rounded-full border-4 border-white shadow-lg"
             initial={{ scale: 0 }}
@@ -318,7 +688,12 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
         <div className="absolute inset-0 flex items-end p-6">
           <div className="text-white">
             <h1 className="text-2xl md:text-3xl font-bold">{business.name}</h1>
-            {business.is_verified && <Badge variant="secondary" className="mt-1">Verified</Badge>}
+            <div className="flex gap-2 items-center mt-1">
+              {business.is_verified && <Badge variant="secondary">Verified</Badge>}
+              <Badge variant={paymentPolicy === 'pay_on_booking' ? 'default' : 'outline'}>
+                {paymentPolicy === 'pay_on_booking' ? 'Pay on Booking' : 'Pay After Service'}
+              </Badge>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -369,7 +744,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
         <motion.div 
           className={cn(
             "md:col-span-7 lg:col-span-8",
-            showCalendar && "md:hidden"
+            bookingStep !== 'serviceSelection' && "md:hidden"
           )}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -391,28 +766,13 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
           id="booking-section"
           className={cn(
             "md:col-span-5 lg:col-span-4",
-            !selectedService && "md:sticky md:top-24"
+            bookingStep === 'serviceSelection' && "md:sticky md:top-24"
           )}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
           <AnimatePresence mode="wait">
-            {showCalendar && selectedService ? (
-              <motion.div
-                key="calendar"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-              >
-                <PublicBookingCalendar
-                  businessId={businessId}
-                  businessHours={business.business_hours}
-                  service={selectedService}
-                  onDateTimeSelect={handleDateTimeSelect}
-                  onBack={() => setShowCalendar(false)}
-                />
-              </motion.div>
-            ) : showClientForm && selectedService ? (
+            {bookingStep === 'clientDetails' && selectedService ? (
               <motion.div
                 key="clientForm"
                 initial={{ opacity: 0, x: 20 }}
@@ -425,56 +785,120 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                   transportDetails={transportDetails}
                   onUpdate={handleClientDetailsUpdate}
                   onBack={handleBackToServices}
-                  onNext={() => {
-                    setShowClientForm(false);
-                    setShowCalendar(true);
-                  }}
+                  onNext={() => setBookingStep('calendar')}
                 />
               </motion.div>
-            ) : selectedService ? (
+            ) : bookingStep === 'calendar' && selectedService ? (
               <motion.div
-                key="booking"
+                key="calendar"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
               >
-                <Card className="bg-white shadow-lg">
+                <PublicBookingCalendar
+                  businessId={businessId}
+                  businessHours={business.business_hours}
+                  service={selectedService}
+                  onDateTimeSelect={handleDateTimeSelect}
+                  onBack={() => setBookingStep('clientDetails')}
+                />
+              </motion.div>
+            ) : bookingStep === 'staffSelection' && selectedService && selectedDateTime ? (
+              <motion.div
+                key="staffSelection"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <Card>
                   <CardContent className="p-6">
                     <Button
                       variant="ghost"
                       size="sm"
                       className="mb-4"
-                      onClick={handleBackToServices}
+                      onClick={() => setBookingStep('calendar')}
                     >
                       <ChevronLeft className="w-4 h-4 mr-1" />
-                      Back to services
+                      Back to Calendar
                     </Button>
-
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="font-semibold text-lg">{selectedService.name}</h3>
-                        <p className="text-sm text-gray-600 mt-1">{selectedService.description}</p>
-                      </div>
-
-                      <div className="flex items-center justify-between py-3 border-y">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Clock className="w-4 h-4" />
-                          {selectedService.duration_minutes} minutes
-                        </div>
-                        <div className="font-semibold">
-                          {business.currency} {selectedService.price}
-                        </div>
-                      </div>
-
-                      <Button 
-                        className="w-full"
-                        size="lg"
-                        onClick={() => setShowCalendar(true)}
+                    <StaffSelector 
+                      businessId={businessId} 
+                      selectedStaffId={selectedStaffId} 
+                      onSelectStaff={handleStaffSelect} 
+                    />
+                    <Button onClick={handleProceedToPayment} className="w-full mt-4">
+                      {paymentPolicy === 'pay_on_booking' 
+                        ? 'Proceed to Payment' 
+                        : 'Complete Booking'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : bookingStep === 'payment' && selectedService && selectedDateTime ? (
+              <motion.div
+                key="payment"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                {paymentPolicy === 'pay_on_booking' ? (
+                  <ClientToBusinessPayment
+                    businessId={businessId}
+                    businessName={business.name}
+                    amount={selectedService.price}
+                    currency={selectedService.currency || business.currency || 'KES'}
+                    bookingDetails={{
+                      serviceId: selectedService.id,
+                      serviceName: selectedService.name,
+                      date: selectedDateTime.date.toISOString(),
+                      time: selectedDateTime.time,
+                      staffId: selectedStaffId,
+                      clientName: clientDetails.name,
+                      clientEmail: clientDetails.email,
+                      clientPhone: clientDetails.phone,
+                    }}
+                    onSuccess={() => {
+                      handleBookingConfirmation();
+                    }}
+                    onClose={() => setBookingStep('staffSelection')}
+                  />
+                ) : (
+                  <Card>
+                    <CardContent className="p-6">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mb-4"
+                        onClick={() => setBookingStep('staffSelection')}
                       >
-                        <Calendar className="w-4 h-4 mr-2" />
-                        Choose Date & Time
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        Back
                       </Button>
-                    </div>
+                      <div className="text-center space-y-4">
+                        <h3 className="text-xl font-bold">Pay After Service</h3>
+                        <p className="text-gray-600">
+                          This business collects payment after the service is completed.
+                          Your booking will be confirmed without an upfront payment.
+                        </p>
+                        <Button onClick={handleBookingConfirmation} className="w-full">
+                          Confirm Booking
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </motion.div>
+            ) : bookingStep === 'confirmation' ? (
+              <motion.div
+                key="confirmation"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <h3 className="text-xl font-bold mb-2">Booking Confirmed!</h3>
+                    <p className="text-gray-600 mb-4">You will receive a confirmation email shortly.</p>
+                    <Button onClick={resetBookingFlow}>Book Another Service</Button>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -492,64 +916,36 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
         </motion.div>
       </div>
 
-      {/* Client Payment Overlay */}
-      {showClientPayment && selectedService && selectedDateTime && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md">
-            <div className="mb-4 flex justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowClientPayment(false)}
-                className="text-white hover:bg-white/20"
-              >
-                ×
-              </Button>
-            </div>
-            <ClientToBusinessPayment
-              businessId={businessId}
-              businessName={business.name}
-              amount={selectedService.price}
-              currency={selectedService.currency || business.currency || 'KES'}
-              bookingDetails={{
-                service: selectedService.name,
-                date: selectedDateTime.date.toLocaleDateString(),
-                time: selectedDateTime.time,
-                clientName: clientDetails.name
-              }}
-              onSuccess={() => {
-                toast.success('Booking confirmed successfully!');
-                setShowClientPayment(false);
-                setSelectedService(null);
-                setShowCalendar(false);
-                setSelectedDateTime(null);
-              }}
-              onClose={() => setShowClientPayment(false)}
-            />
-          </div>
-        </div>
-      )}
-
       {/* Booking Instructions */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-blue-50 border-blue-200 mt-6">
         <CardContent className="p-4">
-          <h3 className="font-semibold text-blue-900 mb-3 text-sm">📋 How to Book</h3>
+          <h3 className="font-semibold text-blue-900 mb-3 text-sm">
+            📋 How to Book {paymentPolicy === 'pay_after_service' && '(Pay After Service)'}
+          </h3>
           <div className="space-y-2 text-blue-800 text-sm">
             <div className="flex items-start gap-2">
               <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
-              <span>Choose your preferred service</span>
+              <span>Choose your preferred service from the list.</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-              <span>Select date and time</span>
+              <span>Enter your details.</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
-              <span>Complete booking with payment</span>
+              <span>Select a date and time that works for you.</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">4</span>
-              <span>Receive confirmation!</span>
+              <span>Choose a staff member if you have a preference.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">5</span>
+              {paymentPolicy === 'pay_on_booking' ? (
+                <span>Complete your booking by making a payment.</span>
+              ) : (
+                <span>Confirm your booking (payment will be collected after service).</span>
+              )}
             </div>
           </div>
         </CardContent>

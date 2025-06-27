@@ -102,20 +102,55 @@ export const usePaystackPayment = () => {
     onError?: (error: string) => void
   ) => {
     if (!validateInputs(showClientDetails, clientDetails)) return;
+    
+    // Check if Paystack is loaded
     if (!window.PaystackPop) {
-      toast.error('Payment system not loaded. Please refresh the page.');
-      return;
+      console.log('PaystackPop not found, attempting to load script...');
+      try {
+        // Import the script loader dynamically to avoid circular dependencies
+        const { loadPaystackScript } = await import('@/components/payment/PaystackScriptLoader');
+        await loadPaystackScript();
+      } catch (error) {
+        console.error('Failed to load Paystack script:', error);
+        toast.error('Payment system failed to load. Please refresh the page and try again.');
+        onError?.('Payment system failed to load');
+        return;
+      }
+      
+      // Double-check after loading
+      if (!window.PaystackPop) {
+        console.error('PaystackPop still not available after loading script');
+        toast.error('Payment system not available. Please try again later or contact support.');
+        onError?.('Payment system not available');
+        return;
+      }
     }
 
     setIsProcessing(true);
     const reference = generateReference(metadata);
     const paymentEmail = showClientDetails ? clientDetails.email : email;
+    
+    console.log('Setting up Paystack payment:', {
+      amount,
+      currency,
+      email: paymentEmail,
+      reference
+    });
 
     try {
+      // First, pre-log the transaction attempt
+      try {
+        await logTransaction(reference, 'initiated', amount, currency, metadata, clientDetails);
+        console.log('Payment attempt logged');
+      } catch (logError) {
+        console.warn('Failed to log payment attempt:', logError);
+        // Continue anyway, this is not critical
+      }
+      
       const handler = window.PaystackPop.setup({
         key: 'pk_live_bf23005a6155ba4e9865b77bd07eebf4c2f52512',
         email: paymentEmail,
-        amount: amount * 100, // Convert to kobo
+        amount: amount * 100, // Convert to kobo/cents
         currency: currency,
         ref: reference,
         metadata: {
@@ -124,11 +159,13 @@ export const usePaystackPayment = () => {
           client_phone: clientDetails.phone,
           client_name: clientDetails.name
         },
-        callback: function(response: any) {
+        callback: function(response) {
+          console.log('Payment callback received:', response);
           setIsProcessing(false);
           
           // Log successful transaction
           logTransaction(response.reference, 'completed', amount, currency, metadata, clientDetails).then(() => {
+            console.log('Payment transaction logged successfully');
             toast.success('Payment successful!');
             onSuccess(response.reference);
           }).catch((error) => {
@@ -139,20 +176,30 @@ export const usePaystackPayment = () => {
           });
         },
         onClose: function() {
+          console.log('Payment modal closed by user');
           setIsProcessing(false);
-          toast.info('Payment cancelled');
+          
+          // Log cancelled transaction
+          logTransaction(reference, 'cancelled', amount, currency, metadata, clientDetails)
+            .catch(error => console.error('Failed to log cancelled transaction:', error));
+            
+          toast.info('Payment process cancelled');
         }
       });
 
+      console.log('Opening Paystack iframe...');
       handler.openIframe();
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error initializing payment:', error);
       setIsProcessing(false);
-      const errorMessage = error.message || 'Payment failed. Please try again.';
+      
+      const errorMessage = error instanceof Error ? error.message : 'Payment failed. Please try again.';
       toast.error(errorMessage);
       onError?.(errorMessage);
       
       // Log failed transaction
-      await logTransaction(reference, 'failed', amount, currency, metadata, clientDetails);
+      await logTransaction(reference, 'failed', amount, currency, metadata, clientDetails)
+        .catch(logError => console.error('Failed to log failed transaction:', logError));
     }
   };
 

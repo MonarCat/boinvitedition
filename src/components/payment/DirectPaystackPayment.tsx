@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CreditCard } from 'lucide-react';
 import { PaymentAmountDisplay } from './PaymentAmountDisplay';
@@ -8,6 +7,8 @@ import { PaymentMethodsInfo } from './PaymentMethodsInfo';
 import { PaymentButton } from './PaymentButton';
 import { PaymentSecurityNotice } from './PaymentSecurityNotice';
 import { usePaystackPayment } from '@/hooks/usePaystackPayment';
+import { loadPaystackScript } from './PaystackScriptLoader';
+import { toast } from 'sonner';
 
 interface DirectPaystackPaymentProps {
   amount: number;
@@ -20,6 +21,12 @@ interface DirectPaystackPaymentProps {
     plan_type?: string;
     business_name?: string;
     customer_name?: string;
+    service_id?: string;
+    service_name?: string;
+    staff_id?: string;
+    appointment_date?: string;
+    appointment_time?: string;
+    customer_phone?: string;
   };
   onSuccess: (reference: string) => void;
   onError?: (error: string) => void;
@@ -48,6 +55,21 @@ export const DirectPaystackPayment: React.FC<DirectPaystackPaymentProps> = ({
   });
 
   const { isProcessing, processPayment } = usePaystackPayment();
+
+  useEffect(() => {
+    // Preload Paystack script on component mount
+    const preloadScript = async () => {
+      try {
+        await loadPaystackScript();
+        console.log('DirectPaystackPayment: Paystack script loaded');
+      } catch (error) {
+        console.error('DirectPaystackPayment: Failed to load Paystack script:', error);
+        toast.error('Payment system could not be loaded. Please refresh the page and try again.');
+      }
+    };
+    
+    preloadScript();
+  }, []);
 
   const handlePayment = () => {
     processPayment(
@@ -103,5 +125,4 @@ export const DirectPaystackPayment: React.FC<DirectPaystackPaymentProps> = ({
   );
 };
 
-// Export the script loader for backward compatibility
-export { loadPaystackScript } from './PaystackScriptLoader';
+// No need to re-export since we're importing directly in components that need it

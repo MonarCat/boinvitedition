@@ -6,7 +6,7 @@ export interface Service {
   price: number;
   duration_minutes: number;
   currency?: string;
-  category?: string;
+  category?: string; // Allow any string, not just union types
   is_transport_service?: boolean;
   transport_details?: any;
   [key: string]: unknown; // Allow other properties

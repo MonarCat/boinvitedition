@@ -1,7 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { BusinessHours } from '@/types';
 
 interface Business {
   id: string;
@@ -19,7 +19,7 @@ interface Business {
   longitude: number;
   average_rating: number;
   total_reviews: number;
-  business_hours: BusinessHours;
+  business_hours: any; // Allow any type for business_hours
   is_verified: boolean;
   service_radius_km: number;
   currency: string;
@@ -74,7 +74,7 @@ export const useBusinessMapData = (searchQuery: string) => {
         }
         
         console.log('Search function results:', data?.length || 0);
-        return data || [];
+        return (data || []) as Business[];
       } else {
         // Fallback to regular business fetching
         return await fetchBusinessesFallback();
@@ -118,7 +118,7 @@ export const useBusinessMapData = (searchQuery: string) => {
       console.log('Fetched businesses (fallback):', data?.length || 0);
       
       // Transform the data to match our interface
-      const businesses = (data || []).map((business: any) => {
+      const businesses = (data || []).map((business: any): Business => {
         const result = {
           ...business,
           show_on_map: business.business_settings?.show_on_map ?? true,

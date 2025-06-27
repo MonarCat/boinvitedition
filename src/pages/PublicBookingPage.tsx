@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -7,7 +8,6 @@ import { CleanBookingLayout } from '@/components/booking/CleanBookingLayout';
 import { ResponsiveBookingContent } from '@/components/booking/ResponsiveBookingContent';
 import { usePublicBookingData } from '@/hooks/usePublicBookingData';
 import { isValidUUID, logQRCodeDebugInfo } from '@/utils/uuidValidation';
-import type { BusinessHours } from '@/types';
 
 const PublicBookingPage = () => {
   const { businessId } = useParams<{ businessId: string }>();
@@ -63,8 +63,8 @@ const PublicBookingPage = () => {
         transition={{ duration: 0.5 }}
       >
         <ResponsiveBookingContent 
-          business={business}
-          services={services || []}
+          business={business as any}
+          services={(services || []) as any[]}
           businessId={businessId}
         />
       </motion.div>

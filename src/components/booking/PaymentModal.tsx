@@ -23,9 +23,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center pb-4">
-          <CardTitle className="text-xl font-bold text-gray-900">
+      <Card enhanced className="w-full max-w-md">
+        <CardHeader className="text-center pb-4 bg-gradient-to-r from-royal-blue/10 to-transparent">
+          <CardTitle className="text-xl font-bold text-royal-blue dark:text-royal-blue-light">
             Pay to Confirm Booking
           </CardTitle>
           <p className="text-sm text-gray-600 mt-1">
@@ -81,7 +81,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           <Button
             variant="outline"
             onClick={onClose}
-            className="w-full mt-4"
+            className="w-full mt-4 border-gray-300 text-gray-700"
           >
             Cancel
           </Button>

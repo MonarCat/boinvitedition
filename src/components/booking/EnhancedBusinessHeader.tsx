@@ -40,8 +40,8 @@ export const EnhancedBusinessHeader: React.FC<EnhancedBusinessHeaderProps> = ({ 
   return (
     <div className="space-y-4 lg:space-y-6">
       {/* Hero Section - Mobile Optimized */}
-      <Card className="overflow-hidden">
-        <div className="relative h-32 sm:h-48 md:h-64 bg-gradient-to-r from-blue-600 to-purple-600">
+      <Card enhanced className="overflow-hidden">
+        <div className="relative h-32 sm:h-48 md:h-64 bg-gradient-to-r from-royal-blue-light to-royal-blue-dark">
           {business.featured_image_url && (
             <img
               src={business.featured_image_url}

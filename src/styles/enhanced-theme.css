@@ -1,0 +1,133 @@
+/* Enhanced Theme CSS */
+
+/* Glossy Button Effects */
+.btn-glossy-blue {
+  background: linear-gradient(135deg, hsl(var(--royal-blue-light)) 0%, hsl(var(--royal-blue)) 50%, hsl(var(--royal-blue-dark)) 100%);
+  color: hsl(var(--royal-blue-foreground));
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.btn-glossy-blue:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-glossy-red {
+  background: linear-gradient(135deg, hsl(var(--royal-red-light)) 0%, hsl(var(--royal-red)) 50%, hsl(var(--royal-red-dark)) 100%);
+  color: hsl(var(--royal-red-foreground));
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.btn-glossy-red:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Auth Button Enhancements */
+.auth-button {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  position: relative;
+  z-index: 100;
+  padding: 0.625rem 1.5rem;
+}
+
+.get-started-button {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  position: relative;
+  z-index: 100;
+  padding: 0.75rem 1.75rem;
+  font-size: 1.05rem;
+}
+
+/* Card Enhancements */
+.card-enhanced {
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.card-enhanced:hover {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure auth buttons stand out */
+.auth-container {
+  position: relative;
+  z-index: 50;
+}
+
+/* Button animation on click */
+.btn-animated:active {
+  transform: translateY(1px);
+}
+
+/* Custom form input focus */
+.input-enhanced:focus {
+  border-color: hsl(var(--royal-blue)) !important;
+  box-shadow: 0 0 0 2px hsla(var(--royal-blue), 0.25) !important;
+}
+
+/* Custom focus ring for interactive elements */
+.focus-enhanced:focus-visible {
+  outline: 2px solid hsl(var(--royal-blue));
+  outline-offset: 2px;
+}
+
+/* Mobile specific enhancements */
+@media (max-width: 768px) {
+  .auth-button, .get-started-button {
+    width: auto !important;
+    max-width: none !important;
+    margin: 0.5rem 0;
+  }
+  
+  .mobile-nav .auth-button {
+    display: block;
+    width: 100% !important;
+    text-align: center;
+    margin: 0.5rem 0;
+  }
+}
+
+/* Public booking page specific styles */
+.public-booking-container {
+  --booking-primary: hsl(var(--royal-blue));
+  --booking-secondary: hsl(var(--royal-red));
+  --booking-accent: hsl(var(--accent-green));
+}
+
+/* Feature highlight styles */
+.feature-highlight {
+  border-top: 3px solid hsl(var(--royal-blue));
+  transition: all 0.3s ease;
+}
+
+.feature-highlight:nth-child(2n) {
+  border-top-color: hsl(var(--royal-red));
+}
+
+.feature-highlight:nth-child(3n) {
+  border-top-color: hsl(var(--accent-green));
+}
+
+/* Special page section styles */
+.hero-section {
+  background: linear-gradient(135deg, hsl(var(--royal-blue)) 0%, hsl(var(--royal-blue-dark)) 100%);
+  color: white;
+  position: relative;
+}
+
+.hero-section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: linear-gradient(to bottom right, transparent 49%, hsl(var(--accent-green)) 50%);
+}

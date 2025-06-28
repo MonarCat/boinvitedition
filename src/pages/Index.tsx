@@ -20,19 +20,21 @@ import {
   Shield,
   Globe,
   Download,
-  Smartphone
+  Smartphone,
+  Users
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { useEffect, useState } from "react";
+import { ensureAuthButtonsVisible } from "@/utils/buttonVisibility";
 
 const businessTypes = [
-  { icon: Car, name: "Transport Services", desc: "Taxi, Bus & Ride Booking" },
-  { icon: Package, name: "Courier & Logistics", desc: "Parcel & Delivery Services" },
-  { icon: Scissors, name: "Beauty & Wellness", desc: "Salons, Spas & Barbershops" },
-  { icon: Sparkles, name: "Massage Therapy", desc: "Wellness & Therapeutic Services" },
-  { icon: Stethoscope, name: "Healthcare", desc: "Clinics & Medical Appointments" },
-  { icon: Plane, name: "Travel & Tourism", desc: "Air Tickets & Travel Booking" },
+  { icon: Car, name: "Taxi Services", desc: "On-demand ride services" },
+  { icon: Users, name: "Shuttle/Matatu", desc: "Multi-passenger transport" },
+  { icon: Scissors, name: "Beauty & Wellness", desc: "Complete beauty solutions" },
+  { icon: Sparkles, name: "Salons", desc: "Hair and nail care" },
+  { icon: Stethoscope, name: "Spa Services", desc: "Relaxation & treatments" },
+  { icon: Plane, name: "Barbershop", desc: "Men's grooming services" },
 ];
 
 const Index = () => {
@@ -44,6 +46,11 @@ const Index = () => {
     }, 3000);
     return () => clearInterval(timer);
   }, []);
+  
+  // Ensure auth buttons visibility
+  useEffect(() => {
+    ensureAuthButtonsVisible();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -54,12 +61,12 @@ const Index = () => {
             <Ticket className="h-8 w-8 text-royal-red" />
             <span className="text-2xl font-bold text-gray-900">Boinvit</span>
           </div>
-          <div className="space-x-4">
+          <div className="space-x-4 auth-container z-50">
             <Link to="/login">
-              <Button variant="outline">Sign In</Button>
+              <Button variant="signIn">Sign In</Button>
             </Link>
             <Link to="/signup">
-              <Button className="bg-royal-red hover:bg-royal-red-accent text-royal-red-foreground">Get Started Free</Button>
+              <Button variant="getStarted" size="lg">Get Started Free</Button>
             </Link>
           </div>
         </nav>
@@ -77,13 +84,15 @@ const Index = () => {
             From transport and logistics to beauty and healthcare - Boinvit powers booking, invoicing, and ticketing for diverse service businesses worldwide. Generate QR codes, accept payments, and delight customers with our all-in-one platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link to="/signup">
-              <Button size="lg" className="bg-gradient-to-r from-royal-red to-purple-600 hover:from-royal-red-accent hover:to-purple-700 text-white px-8 py-4">
-                <Zap className="mr-2 h-5 w-5" />
-                Start Free Trial - No Credit Card
-              </Button>
-            </Link>
-            <Button size="lg" variant="outline" className="px-8 py-4 border-royal-red text-royal-red hover:bg-royal-red-muted">
+            <div className="auth-container z-50">
+              <Link to="/signup">
+                <Button variant="getStarted" size="xl" className="px-8 py-4">
+                  <Zap className="mr-2 h-5 w-5" />
+                  Start Free Trial - No Credit Card
+                </Button>
+              </Link>
+            </div>
+            <Button size="lg" variant="blueGlossy" className="px-8 py-4">
               <Youtube className="mr-2 h-4 w-4" />
               Watch 2-Min Demo
             </Button>

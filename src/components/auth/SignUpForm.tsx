@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Mail } from 'lucide-react';
+import { Eye, EyeOff, Mail, Loader2 } from 'lucide-react';
 import { PasswordStrength } from './PasswordStrength';
 import { CountrySelector } from './CountrySelector';
 
@@ -226,13 +226,22 @@ export const SignUpForm = ({ loading, authError, onError, onSignUpSuccess, onTab
         </div>
       </div>
 
-      <Button 
-        type="submit" 
-        className="w-full bg-royal-red hover:bg-royal-red/90" 
-        disabled={isFormDisabled || password !== confirmPassword || passwordStrength < 3}
-      >
-        {isFormDisabled ? 'Creating account...' : 'Create Account'}
-      </Button>
+      <div className="auth-container z-50">
+        <Button 
+          type="submit" 
+          variant="signUp"
+          size="lg"
+          className="w-full" 
+          disabled={isFormDisabled || password !== confirmPassword || passwordStrength < 3}
+        >
+          {isFormDisabled ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating account...
+            </>
+          ) : 'Create Account'}
+        </Button>
+      </div>
       <p className="text-sm text-gray-600 text-center">
         Already have an account? Switch to the Sign In tab above.
       </p>

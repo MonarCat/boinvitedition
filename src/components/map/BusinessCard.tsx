@@ -98,6 +98,7 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
             <div className="flex gap-2">
               <Button
                 size="sm"
+                variant="blueGlossy"
                 className="flex-1 text-xs"
                 onClick={(e) => {
                   e.stopPropagation();

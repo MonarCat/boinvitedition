@@ -195,16 +195,24 @@ const SignInForm: React.FC<SignInFormProps> = ({
         )}
       </CardContent>
       <CardFooter className="flex flex-col space-y-2">
-        <Button onClick={handleSubmit} disabled={isFormDisabled} className="w-full">
-          {isFormDisabled ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Signing In...
-            </>
-          ) : (
-            'Sign In'
-          )}
-        </Button>
+        <div className="auth-container z-50">
+          <Button 
+            variant="signIn" 
+            onClick={handleSubmit} 
+            disabled={isFormDisabled} 
+            className="w-full"
+            size="lg"
+          >
+            {isFormDisabled ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing In...
+              </>
+            ) : (
+              'Sign In'
+            )}
+          </Button>
+        </div>
         <p className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer">
           Forgot password?
         </p>

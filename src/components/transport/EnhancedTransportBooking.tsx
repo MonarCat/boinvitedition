@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Users, Clock, Car, User } from 'lucide-react';
-import { SeatSelector } from './SeatSelector';
+import { ShuttleSeatMap } from './ShuttleSeatMap';
 
 interface TransportDetails {
   route: { from: string; to: string };
@@ -21,6 +21,8 @@ interface TransportDetails {
     driver_phone: string;
   };
   seat_layout?: string;
+  price_range?: { min: number; max: number };
+  exact_price?: number;
 }
 
 interface EnhancedTransportBookingProps {
@@ -94,6 +96,9 @@ export const EnhancedTransportBooking: React.FC<EnhancedTransportBookingProps> =
     }
   };
 
+  // Determine if this is a taxi service - replaces the isShuttle prop
+  const isTaxiService = transportDetails?.vehicle?.body_type?.toLowerCase().includes('taxi') || false;
+  
   const handleBookingSubmit = async () => {
     try {
       // Implementation for creating booking
@@ -348,7 +353,10 @@ export const EnhancedTransportBooking: React.FC<EnhancedTransportBookingProps> =
                 <p className="text-sm text-gray-600">Total Passengers: {getTotalPassengers()}</p>
                 <p className="text-lg font-semibold">Total: KSh {calculateTotalPrice().toLocaleString()}</p>
               </div>
-              <Button onClick={handleProceedToSeats} size="lg">
+              <Button 
+                onClick={handleProceedToSeats} 
+                size="lg"
+                variant={isShuttle ? "blueGlossy" : "redGlossy"}>
                 {isShuttle ? 'Select Seats' : 'Confirm Booking'}
               </Button>
             </div>
@@ -366,11 +374,14 @@ export const EnhancedTransportBooking: React.FC<EnhancedTransportBookingProps> =
             </p>
           </CardHeader>
           <CardContent>
-            <SeatSelector
-              layout={transportDetails.seat_layout || '14-seater'}
-              requiredSeats={getTotalPassengers()}
-              onSeatSelection={handleSeatSelection}
+            <ShuttleSeatMap
+              vehicleType={transportDetails.seat_layout?.includes('14') ? '14-seater' : 
+                          transportDetails.seat_layout?.includes('17') ? '17-seater' : 
+                          transportDetails.seat_layout?.includes('24') ? '24-seater' : '14-seater'}
               selectedSeats={bookingData.selectedSeats}
+              occupiedSeats={[]}
+              onSeatChange={handleSeatSelection}
+              maxSeats={getTotalPassengers()}
             />
             <div className="flex justify-between items-center mt-6 pt-4 border-t">
               <Button

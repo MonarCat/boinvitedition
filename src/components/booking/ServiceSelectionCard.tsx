@@ -25,9 +25,9 @@ export const ServiceSelectionCard: React.FC<ServiceSelectionCardProps> = ({
   };
 
   return (
-    <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 shadow-md hover:shadow-xl transition-shadow duration-300">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-slate-900 dark:text-slate-100">Select a Service</CardTitle>
+    <Card enhanced className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 shadow-md hover:shadow-xl transition-shadow duration-300">
+      <CardHeader className="bg-gradient-to-r from-royal-blue/10 to-transparent">
+        <CardTitle className="text-2xl font-bold text-royal-blue dark:text-royal-blue-light">Select a Service</CardTitle>
         <CardDescription className="text-slate-600 dark:text-slate-400">Choose from the list of available services below.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -40,8 +40,8 @@ export const ServiceSelectionCard: React.FC<ServiceSelectionCardProps> = ({
                 "hover:shadow-lg hover:-translate-y-1",
                 "dark:border-slate-700 dark:hover:border-blue-500",
                 selectedService === service.id
-                  ? "border-blue-600 bg-blue-50 dark:bg-blue-900/50 ring-2 ring-blue-500"
-                  : "border-slate-200 bg-white dark:bg-slate-800 hover:border-slate-300"
+                  ? "border-royal-blue bg-royal-blue/10 dark:bg-royal-blue/20 ring-2 ring-royal-blue"
+                  : "border-slate-200 bg-white dark:bg-slate-800 hover:border-royal-blue/30"
               )}
               onClick={() => onServiceSelect(service.id)}
             >

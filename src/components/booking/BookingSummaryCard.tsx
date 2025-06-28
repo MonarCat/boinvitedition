@@ -30,16 +30,16 @@ export const BookingSummaryCard: React.FC<BookingSummaryCardProps> = ({
   const selectedServiceData = services.find(s => s.id === selectedService);
 
   return (
-    <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 shadow-lg rounded-xl overflow-hidden">
-      <CardHeader className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 p-4">
-        <CardTitle className="flex items-center gap-3 text-xl font-bold text-slate-900 dark:text-slate-100">
-          <CreditCard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+    <Card enhanced className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 shadow-lg rounded-xl overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-royal-red/10 to-transparent border-b border-slate-200 dark:border-slate-700 p-4">
+        <CardTitle className="flex items-center gap-3 text-xl font-bold text-royal-red dark:text-royal-red-light">
+          <CreditCard className="w-6 h-6 text-royal-red dark:text-royal-red-light" />
           <span>Booking Summary</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6 space-y-5">
         {selectedServiceData ? (
-          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+          <div className="bg-royal-blue/5 dark:bg-royal-blue/10 rounded-lg p-4 border border-royal-blue/20 dark:border-royal-blue/30">
             <div className="flex justify-between items-start mb-2">
               <div className="flex-1">
                 <h3 className="font-semibold text-lg text-slate-800 dark:text-slate-200">{selectedServiceData.name}</h3>

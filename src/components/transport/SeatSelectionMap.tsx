@@ -21,8 +21,15 @@ const SEAT_LAYOUTS = {
     luxury: { rows: 10, seatsPerRow: 3, aisleAfter: [1], name: 'Luxury Bus (1+2)' },
     doubledecker: { rows: 20, seatsPerRow: 4, aisleAfter: [2], name: 'Double Decker (2+2)' }
   },
+  taxi: {
+    standard: { rows: 1, seatsPerRow: 4, aisleAfter: [], name: 'Standard Taxi (4 Seats)' },
+    sedan: { rows: 1, seatsPerRow: 4, aisleAfter: [], name: 'Sedan (4 Seats)' },
+    suv: { rows: 2, seatsPerRow: 3, aisleAfter: [], name: 'SUV (6 Seats)' }
+  },
   shuttle: {
-    minibus: { rows: 4, seatsPerRow: 4, aisleAfter: [2], name: '14-Seater Minibus' }
+    small: { rows: 4, seatsPerRow: 4, aisleAfter: [2], name: '14-Seater Minibus' },
+    medium: { rows: 5, seatsPerRow: 4, aisleAfter: [2], name: '17-Seater Shuttle' },
+    large: { rows: 6, seatsPerRow: 4, aisleAfter: [2], name: '24-Seater Matatu' }
   },
   train: {
     economy: { rows: 15, seatsPerRow: 6, aisleAfter: [2, 4], name: 'Economy Class (3+3)' },

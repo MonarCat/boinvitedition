@@ -5,15 +5,17 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const SERVICE_CLASSES = {
+  taxi: ['Standard', 'Premium', 'Executive'],
+  shuttle: ['14-Seater', '17-Seater', '24-Seater'],
   bus: ['Economy', 'VIP', 'Premium'],
-  shuttle: ['Standard', 'Premium'],
   flight: ['Economy', 'Business', 'First Class'],
   train: ['Economy', 'Business', 'First Class']
 };
 
 const DEFAULT_SEATS = {
-  bus: 50,
+  taxi: 4,
   shuttle: 14,
+  bus: 50,
   flight: 180,
   train: 120
 };
@@ -41,10 +43,11 @@ export const ServiceTypeSection = ({ setValue, watch }: ServiceTypeSectionProps)
             <SelectValue placeholder="Select service type" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="taxi">Taxi Service</SelectItem>
+            <SelectItem value="shuttle">Shuttle/Matatu Service</SelectItem>
             <SelectItem value="bus">Bus Service</SelectItem>
             <SelectItem value="train">Train Service</SelectItem>
             <SelectItem value="flight">Flight Service</SelectItem>
-            <SelectItem value="shuttle">Shuttle Service (14-seater)</SelectItem>
           </SelectContent>
         </Select>
       </div>

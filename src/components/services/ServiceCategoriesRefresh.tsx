@@ -165,10 +165,10 @@ export const ServiceCategoriesRefresh: React.FC = () => {
   return (
     <div className="w-full max-w-7xl mx-auto p-6">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-royal-blue to-royal-red bg-clip-text text-transparent mb-4">
+        <h1 className="text-4xl font-bold text-royal-blue mb-4">
           Service Categories
         </h1>
-        <p className="text-royal-blue/80 text-lg max-w-2xl mx-auto">
+        <p className="text-royal-blue/80 text-lg font-medium max-w-2xl mx-auto">
           Discover and book services across all categories. Choose from our comprehensive selection of professional services.
         </p>
       </div>
@@ -179,12 +179,12 @@ export const ServiceCategoriesRefresh: React.FC = () => {
           return (
             <Card 
               key={category.id} 
-              className="service-card group cursor-pointer relative overflow-hidden border-2 hover:border-royal-blue/30"
+              className="service-card group cursor-pointer relative overflow-hidden border-2 hover:border-royal-blue/30 bg-white/95 backdrop-blur-sm shadow-xl"
               onClick={() => handleCategorySelect(category)}
             >
               {category.trending && (
                 <div className="absolute top-3 right-3 z-10">
-                  <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 shadow-lg">
+                  <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 shadow-lg font-bold">
                     <Star className="h-3 w-3 mr-1" />
                     Trending
                   </Badge>
@@ -201,26 +201,26 @@ export const ServiceCategoriesRefresh: React.FC = () => {
               </CardHeader>
               
               <CardContent className="pt-0">
-                <p className="text-royal-blue/70 text-sm text-center mb-4 font-medium">
+                <p className="text-royal-blue/80 text-sm text-center mb-4 font-semibold">
                   {category.description}
                 </p>
                 
                 <div className="space-y-2 mb-4">
                   {category.services.slice(0, 3).map((service, index) => (
-                    <div key={index} className="flex items-center text-xs text-royal-blue/60">
+                    <div key={index} className="flex items-center text-sm text-royal-blue/70 font-medium">
                       <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${category.gradient} mr-2`}></div>
                       {service}
                     </div>
                   ))}
                   {category.services.length > 3 && (
-                    <div className="text-xs text-royal-blue/50 font-medium">
+                    <div className="text-xs text-royal-blue/60 font-bold">
                       +{category.services.length - 3} more services
                     </div>
                   )}
                 </div>
                 
                 <Button 
-                  className={`w-full bg-gradient-to-r ${category.gradient} text-white hover:shadow-lg transition-all duration-300 transform group-hover:scale-105`}
+                  className={`w-full bg-gradient-to-r ${category.gradient} text-white hover:shadow-lg transition-all duration-300 transform group-hover:scale-105 font-bold`}
                   size="sm"
                 >
                   <Calendar className="h-4 w-4 mr-2" />
@@ -233,7 +233,7 @@ export const ServiceCategoriesRefresh: React.FC = () => {
       </div>
 
       <div className="mt-12 text-center">
-        <Card className="bg-gradient-to-br from-cream-light to-cream border-2 border-royal-blue/20 max-w-2xl mx-auto">
+        <Card className="bg-gradient-to-br from-cream-light to-cream border-2 border-royal-blue/20 max-w-2xl mx-auto shadow-xl">
           <CardContent className="p-8">
             <div className="flex items-center justify-center mb-4">
               <div className="w-16 h-16 bg-gradient-to-br from-royal-blue to-royal-red rounded-full flex items-center justify-center shadow-lg">
@@ -241,16 +241,16 @@ export const ServiceCategoriesRefresh: React.FC = () => {
               </div>
             </div>
             <h3 className="text-2xl font-bold text-royal-blue mb-2">Can't Find Your Service?</h3>
-            <p className="text-royal-blue/70 mb-6">
+            <p className="text-royal-blue/80 mb-6 font-medium">
               Don't worry! We're constantly adding new service categories and providers. 
               Let us know what you're looking for and we'll help you find the perfect match.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-gradient-to-r from-royal-blue to-royal-blue-dark text-white shadow-lg hover:shadow-xl">
+              <Button className="bg-gradient-to-r from-royal-blue to-royal-blue-dark text-white shadow-lg hover:shadow-xl font-bold">
                 <MapPin className="h-4 w-4 mr-2" />
                 Find Nearby Services
               </Button>
-              <Button variant="outline" className="border-2 border-royal-red text-royal-red hover:bg-royal-red hover:text-white">
+              <Button variant="outline" className="border-2 border-royal-red text-royal-red hover:bg-royal-red hover:text-white font-bold">
                 Request New Category
               </Button>
             </div>

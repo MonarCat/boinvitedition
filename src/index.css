@@ -17,7 +17,7 @@
     --secondary: 254 247 237; /* cream */
     --secondary-foreground: 30 58 138;
     --muted: 254 247 237;
-    --muted-foreground: 107 114 128;
+    --muted-foreground: 75 85 99; /* Darker gray for better readability */
     --accent: 220 38 38; /* royal-red */
     --accent-foreground: 255 255 255;
     --destructive: 220 38 38;
@@ -104,19 +104,19 @@
 @layer components {
   /* Enhanced button styles with new theme colors */
   .btn-primary {
-    @apply bg-gradient-blue-glossy hover:from-royal-blue-light hover:to-royal-blue text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105;
+    @apply bg-gradient-blue-glossy hover:from-royal-blue-light hover:to-royal-blue text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105;
   }
 
   .btn-secondary {
-    @apply bg-gradient-red-glossy hover:from-royal-red-light hover:to-royal-red text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105;
+    @apply bg-gradient-red-glossy hover:from-royal-red-light hover:to-royal-red text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105;
   }
 
   .btn-outline {
-    @apply border-2 border-royal-blue text-royal-blue hover:bg-royal-blue hover:text-cream font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105;
+    @apply border-2 border-royal-blue text-royal-blue hover:bg-royal-blue hover:text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105;
   }
 
   .btn-cream {
-    @apply bg-gradient-cream text-royal-blue border border-royal-blue/20 hover:border-royal-blue/40 font-semibold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105;
+    @apply bg-gradient-cream text-royal-blue border border-royal-blue/20 hover:border-royal-blue/40 font-bold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105;
   }
 
   /* Card enhancements */
@@ -141,7 +141,7 @@
 
   /* Enhanced input styles */
   .input-royal {
-    @apply w-full px-4 py-3 rounded-xl border-2 border-royal-blue/20 bg-white/90 text-royal-blue placeholder:text-royal-blue/50 focus:ring-2 focus:ring-royal-blue focus:border-royal-blue/40 transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-xl border-2 border-royal-blue/20 bg-white/90 text-royal-blue placeholder:text-royal-blue/60 font-medium focus:ring-2 focus:ring-royal-blue focus:border-royal-blue/40 transition-all duration-200;
     min-height: 48px;
   }
 
@@ -175,9 +175,17 @@
     animation: shimmer 1.5s infinite;
   }
 
-  /* Service cards */
+  /* Service cards with better text visibility */
   .service-card {
     @apply bg-gradient-to-br from-white/95 to-cream/80 backdrop-blur-sm border border-royal-blue/10 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer;
+  }
+
+  .service-card h3 {
+    @apply text-royal-blue font-bold;
+  }
+
+  .service-card p {
+    @apply text-royal-blue/80 font-medium;
   }
 
   /* Booking cards */
@@ -189,6 +197,23 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Enhanced text utilities for better visibility */
+  .text-visible-dark {
+    @apply text-gray-800 font-semibold;
+  }
+
+  .text-visible-blue {
+    @apply text-royal-blue font-bold;
+  }
+
+  .text-visible-red {
+    @apply text-royal-red font-bold;
+  }
+
+  .text-contrast {
+    @apply text-gray-900 font-medium;
   }
 
   /* Theme-specific gradients */

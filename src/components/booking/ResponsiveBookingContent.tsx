@@ -150,14 +150,6 @@ const ClientDetailsForm: React.FC<{
   );
 };
 
-interface StaffData {
-  id: string;
-  user: {
-    full_name: string | null;
-    avatar_url: string | null;
-  } | null;
-}
-
 const StaffSelector: React.FC<{
   businessId: string;
   selectedStaffId: string | null;
@@ -170,16 +162,16 @@ const StaffSelector: React.FC<{
     queryFn: async () => {
       const { data, error } = await supabase
         .from('staff')
-        .select('id, user:users(full_name, avatar_url)')
+        .select('id, name, email')
         .eq('business_id', businessId)
         .eq('is_active', true);
 
       if (error) throw new Error(error.message);
 
-      return (data as StaffData[]).map((s) => ({ 
+      return data.map((s) => ({ 
         id: s.id, 
-        name: s.user?.full_name || 'Unnamed Staff', 
-        avatar_url: s.user?.avatar_url 
+        name: s.name || 'Unnamed Staff',
+        avatar_url: undefined // No avatar for now since we don't have user relation
       }));
     },
   });

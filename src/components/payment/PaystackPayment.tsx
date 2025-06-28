@@ -1,5 +1,7 @@
+
 import React, { useEffect } from 'react';
-import { DirectPaystackPayment, loadPaystackScript } from './DirectPaystackPayment';
+import { DirectPaystackPayment } from './DirectPaystackPayment';
+import { loadPaystackScript } from './PaystackScriptLoader';
 
 interface PaystackPaymentProps {
   amount: number;
@@ -48,5 +50,5 @@ export const PaystackPayment: React.FC<PaystackPaymentProps> = ({
   );
 };
 
-// Keep the loadPaystackScript function for backward compatibility
+// Export the loadPaystackScript function for backward compatibility
 export { loadPaystackScript };

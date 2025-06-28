@@ -94,7 +94,7 @@ export const LandingPage = () => {
       {/* Hero Section */}
       <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
-          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 shadow-lg mb-6 px-4 py-2 font-bold">
+          <Badge className="bg-gradient-to-r from-royal-blue to-royal-red text-white border-0 shadow-lg mb-6 px-4 py-2 font-bold">
             <Star className="h-4 w-4 mr-2" />
             #1 Booking Platform in Kenya
           </Badge>
@@ -123,7 +123,7 @@ export const LandingPage = () => {
             <Button 
               size="lg" 
               variant="outline"
-              onClick={() => navigate('/business-discovery')}
+              onClick={() => navigate('/discover')}
               className="border-2 border-royal-red text-royal-red hover:bg-royal-red hover:text-white font-bold px-8 py-4 text-lg"
             >
               <Globe className="mr-2 h-5 w-5" />
@@ -204,7 +204,7 @@ export const LandingPage = () => {
             <Button 
               size="lg" 
               variant="outline"
-              onClick={() => navigate('/business-discovery')}
+              onClick={() => navigate('/discover')}
               className="border-2 border-white text-white hover:bg-white hover:text-royal-blue font-bold px-8 py-4 text-lg"
             >
               <Clock className="mr-2 h-5 w-5" />

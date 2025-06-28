@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -184,7 +183,7 @@ export const ServiceCategoriesRefresh: React.FC = () => {
             >
               {category.trending && (
                 <div className="absolute top-3 right-3 z-10">
-                  <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 shadow-lg font-bold">
+                  <Badge className="bg-gradient-to-r from-royal-blue to-royal-red text-white border-0 shadow-lg font-bold">
                     <Star className="h-3 w-3 mr-1" />
                     Trending
                   </Badge>

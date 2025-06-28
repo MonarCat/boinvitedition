@@ -9,7 +9,7 @@ interface SubscriptionData {
   id: string;
   user_id: string;
   business_id: string;
-  plan_type: 'trial' | 'starter' | 'medium' | 'premium';
+  plan_type: 'trial' | 'starter' | 'economy' | 'medium' | 'premium';
   status: 'active' | 'expired' | 'cancelled';
   trial_ends_at: string | null;
   current_period_end: string;
@@ -78,8 +78,8 @@ export const useSubscription = () => {
           plan_type: planType,
           status: 'active',
           current_period_end: new Date(Date.now() + (planType === 'trial' ? 7 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000)).toISOString(),
-          staff_limit: planType === 'trial' ? 3 : planType === 'starter' ? 5 : planType === 'medium' ? 15 : null,
-          bookings_limit: planType === 'trial' ? 100 : planType === 'starter' ? 1000 : planType === 'medium' ? 5000 : null,
+          staff_limit: planType === 'trial' ? 3 : planType === 'starter' ? 1 : planType === 'economy' ? 5 : planType === 'medium' ? 15 : null,
+          bookings_limit: planType === 'trial' ? 100 : planType === 'starter' ? 500 : planType === 'economy' ? 1000 : planType === 'medium' ? 5000 : null,
           payment_interval: planType === 'trial' ? 'trial' : paymentInterval
         })
         .select()
@@ -137,7 +137,7 @@ export const useSubscription = () => {
 
   // Helper function to determine plan hierarchy
   const getPlanLevel = (planType: string): number => {
-    const levels = { trial: 0, starter: 1, medium: 2, premium: 3 };
+    const levels = { trial: 0, starter: 1, economy: 2, medium: 3, premium: 4 };
     return levels[planType as keyof typeof levels] || 0;
   };
 

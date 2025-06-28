@@ -27,13 +27,27 @@ export const PricingSection = () => {
     },
     {
       name: "Starter Plan",
+      price: "KES 399",
+      period: "/month",
+      features: [
+        "Up to 1 staff member",
+        "500 bookings/month",
+        "QR code booking system",
+        "WhatsApp notifications",
+        "Basic analytics",
+        "Email support"
+      ],
+      popular: false
+    },
+    {
+      name: "Economy Plan",
       price: "KES 1020",
       period: "/month",
       features: [
         "Up to 5 staff members",
         "1,000 bookings/month",
         "QR code booking system",
-        "WhatApp notifications",
+        "WhatsApp notifications",
         "Basic analytics",
         "Email support"
       ],
@@ -93,7 +107,7 @@ export const PricingSection = () => {
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
                 {pricingPlans.map((plan, index) => (
                   <Card key={index} className={`relative hover:shadow-lg transition-shadow ${plan.popular ? 'border-royal-red' : ''}`}>
                     {plan.popular && (

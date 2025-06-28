@@ -170,7 +170,7 @@ const SubscriptionPage = () => {
             <CardTitle>Plan Details & Features</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 text-sm">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-orange-600" />
@@ -184,9 +184,20 @@ const SubscriptionPage = () => {
                   <li>• No monthly charges</li>
                 </ul>
               </div>
+
+              <div className="space-y-3">
+                <Badge className="bg-green-100 text-green-800 mb-2">Starter</Badge>
+                <h4 className="font-semibold">KES 399/month</h4>
+                <ul className="space-y-1 text-gray-600">
+                  <li>• 1 staff member</li>
+                  <li>• 500 bookings/month</li>
+                  <li>• Basic features</li>
+                  <li>• Email support</li>
+                </ul>
+              </div>
              
               <div className="space-y-3">
-                <Badge className="bg-blue-100 text-blue-800 mb-2">Starter</Badge>
+                <Badge className="bg-blue-100 text-blue-800 mb-2">Economy</Badge>
                 <h4 className="font-semibold">KES 1,020/month</h4>
                 <ul className="space-y-1 text-gray-600">
                   <li>• 5 staff members</li>

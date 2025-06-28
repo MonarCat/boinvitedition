@@ -62,6 +62,27 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
     {
       id: 'starter',
       name: 'Starter',
+      price: 399,
+      currency: 'KES',
+      interval: 'month',
+      description: 'Perfect for solo entrepreneurs',
+      features: [
+        'Up to 1 staff member',
+        'Up to 500 bookings/month',
+        'QR code & online booking',
+        'WhatsApp notifications',
+        'Payment processing',
+        'Basic analytics',
+        'Email support'
+      ],
+      popular: false,
+      staffLimit: 1,
+      bookingsLimit: 500,
+      color: 'border-green-200'
+    },
+    {
+      id: 'economy',
+      name: 'Economy',
       price: 1020,
       currency: 'KES',
       interval: 'month',
@@ -127,7 +148,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
   ];
 
   const getPlanLevel = (planId: string): number => {
-    const levels = { trial: 0, starter: 1, medium: 2, premium: 3 };
+    const levels = { trial: 0, starter: 1, economy: 2, medium: 3, premium: 4 };
     return levels[planId as keyof typeof levels] || 0;
   };
 
@@ -229,7 +250,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {plans.map((plan) => {
           const changeType = getChangeType(plan.id);
           const ButtonIcon = getButtonIcon(plan);

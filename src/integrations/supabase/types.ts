@@ -1530,12 +1530,25 @@ export type Database = {
           distance_km: number
         }[]
       }
+      secure_validate_business_ownership: {
+        Args: { p_business_id: string; p_user_id?: string }
+        Returns: boolean
+      }
       validate_business_ownership: {
         Args: { business_id: string }
         Returns: boolean
       }
       validate_payment_security: {
         Args: { _amount: number; _business_id: string; _metadata?: Json }
+        Returns: Json
+      }
+      validate_webhook_security: {
+        Args: {
+          p_payload: string
+          p_signature: string
+          p_secret: string
+          p_timestamp?: string
+        }
         Returns: Json
       }
     }

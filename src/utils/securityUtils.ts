@@ -56,9 +56,61 @@ export const detectSuspiciousActivity = (userAgent: string, ipAddress: string): 
   return suspiciousPatterns.some(pattern => pattern.test(userAgent));
 };
 
-export const validateWebhookSignature = (payload: string, signature: string, secret: string): boolean => {
-  // Implement HMAC-SHA512 validation for Paystack webhooks
-  return true; // Placeholder - implement actual validation
+// Enhanced webhook signature validation using Web Crypto API
+export const validateWebhookSignature = async (
+  payload: string,
+  signature: string,
+  secret: string
+): Promise<boolean> => {
+  try {
+    if (!payload || !signature || !secret) {
+      return false;
+    }
+
+    // Remove any prefixes from signature
+    const cleanSignature = signature.replace(/^(sha512=|sha256=)/, '');
+    
+    // Encode the secret and payload
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(secret);
+    const messageData = encoder.encode(payload);
+
+    // Import the secret as a key
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-512' },
+      false,
+      ['sign']
+    );
+
+    // Sign the payload
+    const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
+    
+    // Convert to hex string
+    const hashArray = Array.from(new Uint8Array(signatureBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    // Timing-safe comparison
+    return timingSafeEqual(hashHex, cleanSignature);
+  } catch (error) {
+    console.error('Webhook signature validation error:', error);
+    return false;
+  }
+};
+
+// Timing-safe string comparison to prevent timing attacks
+const timingSafeEqual = (a: string, b: string): boolean => {
+  if (a.length !== b.length) {
+    return false;
+  }
+  
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  
+  return result === 0;
 };
 
 export const sanitizeWebhookPayload = (payload: any): any => {
@@ -121,4 +173,40 @@ export const isValidRedirectUrl = (url: string, allowedDomains: string[]): boole
   } catch {
     return false;
   }
+};
+
+// Enhanced input validation with more comprehensive checks
+export const validateAndSanitizeInput = (
+  input: string,
+  options: {
+    maxLength?: number;
+    allowedChars?: RegExp;
+    required?: boolean;
+  } = {}
+): { isValid: boolean; sanitized: string; errors: string[] } => {
+  const errors: string[] = [];
+  
+  if (options.required && (!input || input.trim().length === 0)) {
+    errors.push('This field is required');
+  }
+  
+  const sanitized = sanitizeInput(input);
+  
+  if (sanitized !== input) {
+    errors.push('Some characters were removed for security reasons');
+  }
+  
+  if (options.maxLength && sanitized.length > options.maxLength) {
+    errors.push(`Input exceeds maximum length of ${options.maxLength} characters`);
+  }
+  
+  if (options.allowedChars && !options.allowedChars.test(sanitized)) {
+    errors.push('Input contains invalid characters');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    sanitized,
+    errors
+  };
 };

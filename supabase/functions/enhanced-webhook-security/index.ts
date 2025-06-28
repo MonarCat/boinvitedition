@@ -7,8 +7,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Rate limiting store
+// Rate limiting store with cleanup
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+// Cleanup old entries every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of rateLimitStore.entries()) {
+    if (now > value.resetTime) {
+      rateLimitStore.delete(key);
+    }
+  }
+}, 10 * 60 * 1000);
 
 const checkRateLimit = (ip: string, maxRequests = 50, windowMs = 60000): boolean => {
   const now = Date.now();
@@ -27,18 +37,56 @@ const checkRateLimit = (ip: string, maxRequests = 50, windowMs = 60000): boolean
   return true;
 };
 
-const validateWebhookSignature = (payload: string, signature: string, secret: string): boolean => {
+const validateWebhookSignature = async (payload: string, signature: string, secret: string): Promise<boolean> => {
   try {
+    if (!payload || !signature || !secret) {
+      return false;
+    }
+
+    // Remove any prefix from signature
+    const cleanSignature = signature.replace(/^(sha512=|sha256=)/, '');
+    
+    // Encode the secret and payload
     const encoder = new TextEncoder();
     const keyData = encoder.encode(secret);
-    const data = encoder.encode(payload);
+    const messageData = encoder.encode(payload);
+
+    // Import the secret as a key
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-512' },
+      false,
+      ['sign']
+    );
+
+    // Sign the payload
+    const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
     
-    // This is a simplified validation - in production, use proper HMAC validation
-    return signature.length > 0 && secret.length > 0;
+    // Convert to hex string
+    const hashArray = Array.from(new Uint8Array(signatureBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    // Timing-safe comparison
+    return timingSafeEqual(hashHex, cleanSignature);
   } catch (error) {
     console.error('Signature validation error:', error);
     return false;
   }
+};
+
+// Timing-safe string comparison
+const timingSafeEqual = (a: string, b: string): boolean => {
+  if (a.length !== b.length) {
+    return false;
+  }
+  
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  
+  return result === 0;
 };
 
 serve(async (req) => {
@@ -47,14 +95,16 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let supabaseClient: any;
+
   try {
-    const supabaseClient = createClient(
+    supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
     // Get client IP for rate limiting
-    const clientIP = req.headers.get('x-forwarded-for') || 'unknown';
+    const clientIP = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
     
     // Check rate limit
     if (!checkRateLimit(clientIP)) {
@@ -63,7 +113,7 @@ serve(async (req) => {
       // Log security event
       await supabaseClient.rpc('log_security_event', {
         p_event_type: 'WEBHOOK_RATE_LIMIT',
-        p_description: `Webhook rate limit exceeded for IP: ${clientIP}`,
+        p_description: `Enhanced webhook rate limit exceeded for IP: ${clientIP}`,
         p_metadata: { ip: clientIP, timestamp: new Date().toISOString() }
       });
 
@@ -81,13 +131,33 @@ serve(async (req) => {
     const webhookSecret = Deno.env.get('WEBHOOK_SECRET');
 
     // Validate webhook signature
-    if (!webhookSecret || !validateWebhookSignature(body, signature, webhookSecret)) {
+    if (!webhookSecret) {
+      console.warn('Webhook secret not configured');
+      
+      await supabaseClient.rpc('log_security_event', {
+        p_event_type: 'WEBHOOK_CONFIG_ERROR',
+        p_description: 'Webhook secret not configured',
+        p_metadata: { ip: clientIP }
+      });
+
+      return new Response(
+        JSON.stringify({ error: 'Configuration error' }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    const isValidSignature = await validateWebhookSignature(body, signature, webhookSecret);
+    
+    if (!isValidSignature) {
       console.warn(`Invalid webhook signature from IP: ${clientIP}`);
       
       // Log security event
       await supabaseClient.rpc('log_security_event', {
         p_event_type: 'INVALID_WEBHOOK_SIGNATURE',
-        p_description: `Invalid webhook signature detected`,
+        p_description: `Invalid enhanced webhook signature detected`,
         p_metadata: { 
           ip: clientIP, 
           signature_present: signature.length > 0,
@@ -110,6 +180,13 @@ serve(async (req) => {
       webhookData = JSON.parse(body);
     } catch (error) {
       console.error('Invalid JSON payload:', error);
+      
+      await supabaseClient.rpc('log_security_event', {
+        p_event_type: 'INVALID_WEBHOOK_JSON',
+        p_description: 'Invalid JSON in enhanced webhook payload',
+        p_metadata: { ip: clientIP }
+      });
+      
       return new Response(
         JSON.stringify({ error: 'Invalid JSON payload' }),
         { 
@@ -120,7 +197,17 @@ serve(async (req) => {
     }
 
     // Log successful webhook processing
-    console.log('Webhook processed successfully:', webhookData.type || 'unknown');
+    await supabaseClient.rpc('log_security_event', {
+      p_event_type: 'WEBHOOK_PROCESSED_SUCCESS',
+      p_description: 'Enhanced webhook processed successfully',
+      p_metadata: { 
+        webhook_type: webhookData.type || 'unknown',
+        ip: clientIP,
+        timestamp: new Date().toISOString()
+      }
+    });
+
+    console.log('Enhanced webhook processed successfully:', webhookData.type || 'unknown');
 
     return new Response(
       JSON.stringify({ success: true, processed: true }),
@@ -131,7 +218,23 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Webhook processing error:', error);
+    console.error('Enhanced webhook processing error:', error);
+    
+    // Log the error if supabase client is available
+    if (supabaseClient) {
+      try {
+        await supabaseClient.rpc('log_security_event', {
+          p_event_type: 'WEBHOOK_PROCESSING_ERROR',
+          p_description: 'Enhanced webhook processing failed',
+          p_metadata: { 
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date().toISOString()
+          }
+        });
+      } catch (logError) {
+        console.error('Failed to log webhook error:', logError);
+      }
+    }
     
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),

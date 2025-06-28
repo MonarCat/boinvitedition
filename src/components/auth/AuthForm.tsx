@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -10,6 +9,7 @@ import { AuthAlerts } from './AuthAlerts';
 import SignInForm from './SignInForm';
 import { SignUpForm } from './SignUpForm';
 import { PasswordResetForm } from './PasswordResetForm';
+import { PasswordResetCard } from './PasswordResetCard';
 
 export const AuthForm = () => {
   const { user, loading: authLoading } = useAuth();
@@ -61,6 +61,17 @@ export const AuthForm = () => {
 
   const isFormDisabled = loading || authLoading;
 
+  // Check if user is in password reset flow
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const type = urlParams.get('type');
+    const accessToken = urlParams.get('access_token');
+    
+    if (type === 'recovery' && accessToken) {
+      setActiveTab('password-reset');
+    }
+  }, [location]);
+
   return (
     <div className="w-full max-w-md mx-auto">
       <Card className="w-full">
@@ -84,7 +95,7 @@ export const AuthForm = () => {
           />
           
           <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); clearError(); }} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="signin" className="flex items-center gap-2">
                 <LogIn className="h-4 w-4" />
                 Sign In
@@ -94,6 +105,7 @@ export const AuthForm = () => {
                 Sign Up
               </TabsTrigger>
               <TabsTrigger value="reset">Reset</TabsTrigger>
+              <TabsTrigger value="password-reset">New Password</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
@@ -122,6 +134,10 @@ export const AuthForm = () => {
                 onError={handleError}
                 onResetSuccess={handleResetSuccess}
               />
+            </TabsContent>
+
+            <TabsContent value="password-reset">
+              <PasswordResetCard />
             </TabsContent>
           </Tabs>
         </CardContent>

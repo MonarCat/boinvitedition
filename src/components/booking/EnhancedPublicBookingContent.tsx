@@ -109,7 +109,8 @@ export const EnhancedPublicBookingContent: React.FC<EnhancedPublicBookingContent
             <PublicBookingCalendar 
               businessId={businessId} 
               service={selectedService}
-              onBookingComplete={handleBackToServices}
+              businessHours={business.business_hours}
+              onBack={handleBackToServices}
             />
           )}
         </div>

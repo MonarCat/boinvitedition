@@ -41,7 +41,7 @@ export const PricingSection = () => {
     },
     {
       name: "Economy Plan",
-      price: "KES 1020",
+      price: "KES 899",
       period: "/month",
       features: [
         "Up to 5 staff members",

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -83,7 +82,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
     {
       id: 'economy',
       name: 'Economy',
-      price: 1020,
+      price: 899,
       currency: 'KES',
       interval: 'month',
       description: 'Perfect for small businesses',

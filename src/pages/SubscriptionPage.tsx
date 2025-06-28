@@ -198,7 +198,7 @@ const SubscriptionPage = () => {
              
               <div className="space-y-3">
                 <Badge className="bg-blue-100 text-blue-800 mb-2">Economy</Badge>
-                <h4 className="font-semibold">KES 1,020/month</h4>
+                <h4 className="font-semibold">KES 899/month</h4>
                 <ul className="space-y-1 text-gray-600">
                   <li>• 5 staff members</li>
                   <li>• 1,000 bookings/month</li>

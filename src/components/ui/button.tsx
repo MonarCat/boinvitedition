@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -6,26 +5,25 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 transform hover:scale-105 active:scale-95",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-royal-blue to-royal-blue-dark text-white shadow-lg hover:shadow-xl hover:from-royal-blue-light hover:to-royal-blue",
-        destructive: "bg-gradient-to-r from-royal-red to-royal-red-dark text-white shadow-lg hover:shadow-xl hover:from-royal-red-light hover:to-royal-red",
-        outline: "border-2 border-royal-blue text-royal-blue bg-white/90 backdrop-blur-sm hover:bg-royal-blue hover:text-white shadow-md hover:shadow-lg",
-        secondary: "bg-gradient-to-r from-cream to-cream-dark text-royal-blue border border-royal-blue/20 shadow-md hover:shadow-lg hover:border-royal-blue/40",
-        ghost: "text-royal-blue hover:bg-royal-blue/10 hover:text-royal-blue-dark",
-        link: "text-royal-blue underline-offset-4 hover:underline hover:text-royal-blue-dark",
-        royal: "bg-gradient-to-r from-royal-blue to-royal-blue-dark text-white shadow-xl hover:shadow-2xl hover:from-royal-blue-light hover:to-royal-blue border-2 border-royal-blue-light/20",
-        cream: "bg-gradient-to-r from-cream-light to-cream text-royal-blue border-2 border-royal-blue/20 shadow-lg hover:shadow-xl hover:border-royal-blue/40",
-        red: "bg-gradient-to-r from-royal-red to-royal-red-dark text-white shadow-lg hover:shadow-xl hover:from-royal-red-light hover:to-royal-red"
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-12 px-6 py-3",
-        sm: "h-10 rounded-lg px-4 text-xs",
-        lg: "h-14 rounded-2xl px-8 text-base font-bold",
-        icon: "h-12 w-12 rounded-xl",
-        xl: "h-16 rounded-2xl px-10 text-lg font-bold"
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
       },
     },
     defaultVariants: {

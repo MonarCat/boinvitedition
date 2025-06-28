@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Mail, UserPlus, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Mail } from 'lucide-react';
 import { PasswordStrength } from './PasswordStrength';
 import { CountrySelector } from './CountrySelector';
 
@@ -105,10 +105,10 @@ export const SignUpForm = ({ loading, authError, onError, onSignUpSuccess, onTab
   const isFormDisabled = loading;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="signup-firstname" className="text-royal-blue font-semibold">First Name</Label>
+          <Label htmlFor="signup-firstname">First Name</Label>
           <Input
             id="signup-firstname"
             type="text"
@@ -119,12 +119,11 @@ export const SignUpForm = ({ loading, authError, onError, onSignUpSuccess, onTab
               if (authError) onError(null);
             }}
             disabled={isFormDisabled}
-            className="auth-input h-12"
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="signup-lastname" className="text-royal-blue font-semibold">Last Name</Label>
+          <Label htmlFor="signup-lastname">Last Name</Label>
           <Input
             id="signup-lastname"
             type="text"
@@ -135,51 +134,45 @@ export const SignUpForm = ({ loading, authError, onError, onSignUpSuccess, onTab
               if (authError) onError(null);
             }}
             disabled={isFormDisabled}
-            className="auth-input h-12"
             required
           />
         </div>
       </div>
-      
       <div className="space-y-2">
-        <Label htmlFor="country" className="text-royal-blue font-semibold">Country</Label>
+        <Label htmlFor="country">Country</Label>
         <CountrySelector 
           value={country}
           onValueChange={setCountry}
         />
       </div>
-      
       <div className="space-y-2">
-        <Label htmlFor="signup-email" className="text-royal-blue font-semibold">Email Address</Label>
+        <Label htmlFor="signup-email">Email</Label>
         <Input
           id="signup-email"
           type="email"
-          placeholder="Enter your email address"
+          placeholder="Enter your email"
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
             if (authError) onError(null);
           }}
           disabled={isFormDisabled}
-          className="auth-input h-12"
           required
         />
       </div>
-      
       <div className="space-y-2">
-        <Label htmlFor="signup-password" className="text-royal-blue font-semibold">Password</Label>
+        <Label htmlFor="signup-password">Password</Label>
         <div className="relative">
           <Input
             id="signup-password"
             type={showPassword ? "text" : "password"}
-            placeholder="Create a strong password"
+            placeholder="Create a password"
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
               if (authError) onError(null);
             }}
             disabled={isFormDisabled}
-            className="auth-input h-12 pr-12"
             required
             minLength={6}
           />
@@ -187,16 +180,15 @@ export const SignUpForm = ({ loading, authError, onError, onSignUpSuccess, onTab
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             disabled={isFormDisabled}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-royal-blue/60 hover:text-royal-blue transition-colors disabled:opacity-50"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
         <PasswordStrength password={password} confirmPassword={confirmPassword} />
       </div>
-      
       <div className="space-y-2">
-        <Label htmlFor="signup-confirm-password" className="text-royal-blue font-semibold">Confirm Password</Label>
+        <Label htmlFor="signup-confirm-password">Confirm Password</Label>
         <div className="relative">
           <Input
             id="signup-confirm-password"
@@ -208,27 +200,26 @@ export const SignUpForm = ({ loading, authError, onError, onSignUpSuccess, onTab
               if (authError) onError(null);
             }}
             disabled={isFormDisabled}
-            className="auth-input h-12 pr-12"
             required
           />
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             disabled={isFormDisabled}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-royal-blue/60 hover:text-royal-blue transition-colors disabled:opacity-50"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
           >
             {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
       </div>
 
-      <div className="p-4 bg-gradient-to-br from-royal-blue/5 to-royal-blue/10 border-l-4 border-royal-blue rounded-xl">
-        <div className="flex items-start gap-3 text-royal-blue text-sm">
-          <Mail className="h-5 w-5 mt-0.5 flex-shrink-0 text-royal-blue" />
+      <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+        <div className="flex items-start gap-2 text-blue-800 text-sm">
+          <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
           <div>
-            <div className="font-bold mb-1 text-royal-blue">Email Confirmation Required</div>
-            <div className="text-royal-blue/80">
-              After creating your account, you'll receive a confirmation email from <strong>support@boinvit.com</strong>. 
+            <div className="font-medium mb-1">Email confirmation required</div>
+            <div>
+              After creating your account, you'll receive a confirmation email. 
               Click the link in the email to activate your account and sign in.
             </div>
           </div>
@@ -237,35 +228,14 @@ export const SignUpForm = ({ loading, authError, onError, onSignUpSuccess, onTab
 
       <Button 
         type="submit" 
-        className="auth-button-secondary w-full h-14 text-base font-bold shadow-xl hover:shadow-2xl" 
+        className="w-full bg-royal-red hover:bg-royal-red/90" 
         disabled={isFormDisabled || password !== confirmPassword || passwordStrength < 3}
       >
-        {isFormDisabled ? (
-          <>
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Creating Your Account...
-          </>
-        ) : (
-          <>
-            <UserPlus className="mr-2 h-5 w-5" />
-            Create Your Account
-          </>
-        )}
+        {isFormDisabled ? 'Creating account...' : 'Create Account'}
       </Button>
-      
-      <div className="text-center pt-2">
-        <p className="text-royal-blue/70 text-sm">
-          Already have an account?{' '}
-          <button
-            type="button"
-            onClick={() => onTabChange('signin')}
-            className="text-royal-blue font-semibold hover:text-royal-blue-dark hover:underline transition-colors duration-200"
-            disabled={isFormDisabled}
-          >
-            Sign in here
-          </button>
-        </p>
-      </div>
+      <p className="text-sm text-gray-600 text-center">
+        Already have an account? Switch to the Sign In tab above.
+      </p>
     </form>
   );
 };

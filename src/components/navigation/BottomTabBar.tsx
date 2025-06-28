@@ -6,8 +6,7 @@ import {
   Calendar, 
   Users, 
   Settings,
-  Briefcase,
-  Search
+  Briefcase
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -35,8 +34,8 @@ export const BottomTabBar = () => {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 px-2 py-1 safe-area-pb lg:hidden">
-      <div className="flex justify-around items-center max-w-md mx-auto">
+    <div className="bottom-nav">
+      <div className="flex justify-around items-center max-w-md mx-auto px-2">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.href;
           const Icon = tab.icon;
@@ -46,10 +45,10 @@ export const BottomTabBar = () => {
               key={tab.name}
               to={tab.href}
               className={cn(
-                "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-200 min-w-0 flex-1",
+                "mobile-nav-item flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-300 min-w-0 flex-1 relative",
                 isActive 
-                  ? "text-blue-600 bg-blue-50" 
-                  : "text-gray-600 hover:text-blue-600 active:bg-gray-100"
+                  ? "text-blue-600 bg-gradient-to-t from-blue-50 to-blue-100 shadow-lg transform -translate-y-1" 
+                  : "text-gray-600 hover:text-blue-600 hover:bg-gray-50 active:bg-gray-100"
               )}
               style={{ 
                 WebkitTapHighlightColor: 'transparent',
@@ -57,16 +56,22 @@ export const BottomTabBar = () => {
               }}
             >
               <div className="relative">
-                <Icon className={cn("w-5 h-5", isActive && "text-blue-600")} />
+                <Icon className={cn(
+                  "w-5 h-5 transition-all duration-200", 
+                  isActive && "text-blue-600 scale-110"
+                )} />
                 {tab.badge && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-md">
                     {tab.badge > 9 ? '9+' : tab.badge}
                   </span>
                 )}
+                {isActive && (
+                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full"></div>
+                )}
               </div>
               <span className={cn(
-                "text-xs mt-1 font-medium truncate",
-                isActive ? "text-blue-600" : "text-gray-600"
+                "text-xs mt-1 font-medium truncate transition-all duration-200",
+                isActive ? "text-blue-600 font-semibold" : "text-gray-600"
               )}>
                 {tab.name}
               </span>

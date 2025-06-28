@@ -5,11 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Clock, DollarSign, Calendar as CalendarIcon, Users, Lock, User } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, ChevronLeft } from 'lucide-react';
 import { format, addMinutes, setHours, setMinutes } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -26,8 +23,6 @@ interface Staff {
   id: string;
   name: string;
   email: string;
-  specialties: string[];
-  is_active: boolean;
 }
 
 interface PublicBookingCalendarProps {
@@ -36,7 +31,6 @@ interface PublicBookingCalendarProps {
   businessHours?: BusinessHours;
   onDateTimeSelect?: (date: Date, time: string) => void;
   onBack?: () => void;
-  onBookingComplete?: () => void;
 }
 
 interface BusinessHours {
@@ -58,19 +52,10 @@ export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
   service,
   businessHours,
   onDateTimeSelect,
-  onBack,
-  onBookingComplete
+  onBack
 }) => {
-  const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
-  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
-  const [customerInfo, setCustomerInfo] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    notes: ''
-  });
 
   // Fetch business info for currency
   const { data: business } = useQuery({
@@ -84,22 +69,6 @@ export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
       
       if (error) throw error;
       return data;
-    },
-  });
-
-  // Fetch staff
-  const { data: staff } = useQuery({
-    queryKey: ['staff', businessId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('staff')
-        .select('*')
-        .eq('business_id', businessId)
-        .eq('is_active', true)
-        .order('name');
-      
-      if (error) throw error;
-      return data as Staff[];
     },
   });
 
@@ -199,275 +168,97 @@ export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
 
   const timeSlots = generateTimeSlots();
 
-  // Improved booking mutation with better error handling
-  const createBookingMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedDate || !selectedTime || !customerInfo.name.trim() || !customerInfo.email.trim()) {
-        throw new Error('Please fill in all required fields');
-      }
-
-      const email = customerInfo.email.toLowerCase().trim();
-      const name = customerInfo.name.trim();
-
-      // Step 1: Handle client creation/update with simpler logic
-      let clientId = null;
-      
-      // Check for existing client
-      const { data: existingClient } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('business_id', businessId)
-        .eq('email', email)
-        .maybeSingle();
-
-      if (existingClient) {
-        clientId = existingClient.id;
-      } else {
-        // Create new client
-        const { data: newClient, error: createError } = await supabase
-          .from('clients')
-          .insert({
-            business_id: businessId,
-            name: name,
-            email: email,
-            phone: customerInfo.phone?.trim() || null,
-          })
-          .select('id')
-          .single();
-
-        if (createError) {
-          console.error('Error creating client:', createError);
-          throw new Error('Failed to create client profile');
-        }
-
-        clientId = newClient.id;
-      }
-
-      // Step 2: Create booking
-      const ticketNumber = `TKT-${Date.now()}`;
-      const currency = business?.currency || service.currency || 'USD';
-
-      const { data: booking, error: bookingError } = await supabase
-        .from('bookings')
-        .insert({
-          business_id: businessId,
-          client_id: clientId,
-          service_id: service.id,
-          staff_id: selectedStaff?.id || null,
-          booking_date: format(selectedDate, 'yyyy-MM-dd'),
-          booking_time: selectedTime,
-          duration_minutes: service.duration_minutes,
-          total_amount: service.price,
-          status: 'confirmed',
-          ticket_number: ticketNumber,
-          notes: customerInfo.notes?.trim() || null,
-        })
-        .select()
-        .single();
-
-      if (bookingError) {
-        console.error('Error creating booking:', bookingError);
-        throw new Error('Failed to create booking');
-      }
-
-      return booking;
-    },
-    onSuccess: (data) => {
-      toast.success(`Booking confirmed! Your ticket number is ${data.ticket_number}`);
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      
-      // Reset form
-      setSelectedStaff(null);
-      setSelectedTime(null);
-      setCustomerInfo({ name: '', email: '', phone: '', notes: '' });
-      
-      // Call the completion handler
-      onBookingComplete?.();
-    },
-    onError: (error: any) => {
-      console.error('Booking failed:', error);
-      toast.error(error.message || 'Failed to create booking. Please try again.');
-    },
-  });
-
-  const handleBooking = () => {
-    createBookingMutation.mutate();
+  const handleContinue = () => {
+    if (!selectedDate || !selectedTime) {
+      toast.error('Please select both date and time');
+      return;
+    }
+    
+    onDateTimeSelect?.(selectedDate, selectedTime);
   };
 
-  const isFormValid = customerInfo.name.trim() && customerInfo.email.trim() && selectedDate && selectedTime;
   const currency = business?.currency || service.currency || 'USD';
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Book {service.name}</CardTitle>
+        {onBack && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-4 w-fit"
+            onClick={onBack}
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Back
+          </Button>
+        )}
+        <CardTitle>Select Date & Time</CardTitle>
         <p className="text-sm text-gray-600">
-          Duration: {service.duration_minutes} minutes • Price: {formatPrice(service.price, currency)}
+          {service.name} • Duration: {service.duration_minutes} minutes • Price: {formatPrice(service.price, currency)}
         </p>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Date and Time Selection */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium mb-3 flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4" />
-                Select Date & Time
-              </h3>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                disabled={(date) => date < new Date()}
-                className="rounded-md border"
-              />
-            </div>
-
-            {selectedDate && (
-              <div className="space-y-2">
-                <h4 className="font-medium">Available Times</h4>
-                <div className="grid grid-cols-3 gap-2">
-                  {timeSlots.map((slot) => (
-                    <Button
-                      key={slot.time}
-                      variant={selectedTime === slot.time ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedTime(slot.time)}
-                      disabled={!slot.available}
-                      className="w-full text-xs"
-                    >
-                      {slot.time}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Staff Selection */}
-            {staff && staff.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="font-medium">Select Staff (Optional)</h4>
-                <div className="space-y-2">
-                  {staff.map((member) => (
-                    <div
-                      key={member.id}
-                      className={`p-2 border rounded cursor-pointer text-sm ${
-                        selectedStaff?.id === member.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => setSelectedStaff(selectedStaff?.id === member.id ? null : member)}
-                    >
-                      {member.name}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Customer Information */}
-          <div className="space-y-4">
-            <h3 className="font-medium flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Your Information
+        <div className="space-y-6">
+          {/* Date Selection */}
+          <div>
+            <h3 className="font-medium mb-3 flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4" />
+              Choose Date
             </h3>
-            
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  value={customerInfo.name}
-                  onChange={(e) => setCustomerInfo(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter your full name"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="email">Email Address *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={customerInfo.email}
-                  onChange={(e) => setCustomerInfo(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="your@email.com"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  value={customerInfo.phone}
-                  onChange={(e) => setCustomerInfo(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="(555) 123-4567"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="notes">Special Requests</Label>
-                <Textarea
-                  id="notes"
-                  value={customerInfo.notes}
-                  onChange={(e) => setCustomerInfo(prev => ({ ...prev, notes: e.target.value }))}
-                  placeholder="Any special requests or notes..."
-                  className="resize-none"
-                  rows={3}
-                />
-              </div>
-            </div>
-
-            {/* Booking Summary */}
-            {isFormValid && (
-              <div className="space-y-3 pt-4 border-t">
-                <h4 className="font-medium">Booking Summary</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Service:</span>
-                    <span className="font-medium">{service.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Date:</span>
-                    <span>{format(selectedDate, 'PPP')}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Time:</span>
-                    <span>{selectedTime}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Duration:</span>
-                    <span>{service.duration_minutes} minutes</span>
-                  </div>
-                  {selectedStaff && (
-                    <div className="flex justify-between">
-                      <span>Staff:</span>
-                      <span>{selectedStaff.name}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between font-bold border-t pt-2">
-                    <span>Total:</span>
-                    <span>{formatPrice(service.price, currency)}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <Button
-              onClick={handleBooking}
-              disabled={!isFormValid || createBookingMutation.isPending}
-              className="w-full"
-            >
-              {createBookingMutation.isPending ? 'Creating Booking...' : 'Book Appointment'}
-            </Button>
-
-            <p className="text-xs text-gray-500 text-center">
-              You'll receive a confirmation via email and be added as a client
-            </p>
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              disabled={(date) => date < new Date()}
+              className="rounded-md border w-full"
+            />
           </div>
+
+          {/* Time Selection */}
+          {selectedDate && (
+            <div className="space-y-3">
+              <h4 className="font-medium flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Available Times for {format(selectedDate, 'PPP')}
+              </h4>
+              <div className="grid grid-cols-3 gap-2">
+                {timeSlots.map((slot) => (
+                  <Button
+                    key={slot.time}
+                    variant={selectedTime === slot.time ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedTime(slot.time)}
+                    disabled={!slot.available}
+                    className="w-full text-xs"
+                  >
+                    {slot.time}
+                    {!slot.available && slot.isBlocked && (
+                      <Badge variant="destructive" className="ml-1 text-xs">Blocked</Badge>
+                    )}
+                    {!slot.available && !slot.isBlocked && (
+                      <Badge variant="secondary" className="ml-1 text-xs">Full</Badge>
+                    )}
+                  </Button>
+                ))}
+              </div>
+              {timeSlots.length === 0 && (
+                <p className="text-gray-500 text-center py-4">No available time slots for this date</p>
+              )}
+            </div>
+          )}
+
+          {/* Continue Button */}
+          {selectedDate && selectedTime && (
+            <div className="pt-4 border-t">
+              <Button
+                onClick={handleContinue}
+                className="w-full"
+              >
+                Continue to Next Step
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

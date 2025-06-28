@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, Lock } from 'lucide-react';
+import { Eye, EyeOff, Lock, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const PasswordResetCard = () => {
@@ -79,109 +79,125 @@ export const PasswordResetCard = () => {
   const isStrong = passwordStrength.length === 0;
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Lock className="h-5 w-5" />
-          Reset Password
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {error && (
-          <Alert className="mb-4 border-red-200 bg-red-50">
-            <AlertDescription className="text-red-800">{error}</AlertDescription>
-          </Alert>
-        )}
+    <div className="space-y-6">
+      <div className="text-center">
+        <div className="mx-auto w-16 h-16 bg-gradient-to-br from-royal-blue to-royal-blue-dark rounded-full flex items-center justify-center mb-4 shadow-lg">
+          <Shield className="h-8 w-8 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-royal-blue mb-2">Reset Your Password</h2>
+        <p className="text-royal-blue/70">Enter your new password below</p>
+      </div>
 
-        <form onSubmit={handlePasswordReset} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="new-password">New Password</Label>
-            <div className="relative">
-              <Input
-                id="new-password"
-                type={showNewPassword ? 'text' : 'password'}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password"
-                disabled={loading}
-                className={`pr-10 ${newPassword && !isStrong ? 'border-orange-300 focus:border-orange-500' : ''}`}
-                required
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                disabled={loading}
-              >
-                {showNewPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-            {newPassword && passwordStrength.length > 0 && (
-              <div className="text-sm text-orange-600">
-                <p className="font-medium">Password must have:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  {passwordStrength.map((requirement, index) => (
-                    <li key={index}>{requirement}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {newPassword && isStrong && (
-              <p className="text-sm text-green-600">✓ Strong password</p>
-            )}
+      {error && (
+        <Alert className="border-royal-red/20 bg-royal-red/10">
+          <AlertDescription className="text-royal-red font-medium">{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <form onSubmit={handlePasswordReset} className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="new-password" className="text-royal-blue font-semibold">New Password</Label>
+          <div className="relative">
+            <Input
+              id="new-password"
+              type={showNewPassword ? 'text' : 'password'}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter new password"
+              disabled={loading}
+              className={`auth-input h-12 pr-12 ${newPassword && !isStrong ? 'border-orange-300 focus:border-orange-500' : ''}`}
+              required
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-royal-blue/60 hover:text-royal-blue"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              disabled={loading}
+            >
+              {showNewPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </Button>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirm New Password</Label>
-            <div className="relative">
-              <Input
-                id="confirm-password"
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
-                disabled={loading}
-                className={`pr-10 ${confirmPassword && newPassword !== confirmPassword ? 'border-red-300 focus:border-red-500' : ''}`}
-                required
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                disabled={loading}
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </Button>
+          {newPassword && passwordStrength.length > 0 && (
+            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+              <p className="font-semibold text-orange-800 text-sm mb-2">Password must have:</p>
+              <ul className="list-disc list-inside space-y-1 text-sm text-orange-700">
+                {passwordStrength.map((requirement, index) => (
+                  <li key={index}>{requirement}</li>
+                ))}
+              </ul>
             </div>
-            {confirmPassword && newPassword !== confirmPassword && (
-              <p className="text-sm text-red-600">Passwords do not match</p>
-            )}
-            {confirmPassword && newPassword === confirmPassword && newPassword && (
-              <p className="text-sm text-green-600">✓ Passwords match</p>
-            )}
-          </div>
+          )}
+          {newPassword && isStrong && (
+            <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
+              <Shield className="h-4 w-4" />
+              Strong password
+            </div>
+          )}
+        </div>
 
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={loading || !isStrong || newPassword !== confirmPassword}
-          >
-            {loading ? 'Updating Password...' : 'Update Password'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        <div className="space-y-2">
+          <Label htmlFor="confirm-password" className="text-royal-blue font-semibold">Confirm New Password</Label>
+          <div className="relative">
+            <Input
+              id="confirm-password"
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm new password"
+              disabled={loading}
+              className={`auth-input h-12 pr-12 ${confirmPassword && newPassword !== confirmPassword ? 'border-red-300 focus:border-red-500' : ''}`}
+              required
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-royal-blue/60 hover:text-royal-blue"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              disabled={loading}
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          {confirmPassword && newPassword !== confirmPassword && (
+            <p className="text-red-600 text-sm font-medium">Passwords do not match</p>
+          )}
+          {confirmPassword && newPassword === confirmPassword && newPassword && (
+            <p className="text-green-600 text-sm font-medium flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Passwords match
+            </p>
+          )}
+        </div>
+
+        <Button 
+          type="submit" 
+          className="w-full h-14 bg-gradient-to-r from-royal-blue to-royal-blue-dark hover:from-royal-blue-light hover:to-royal-blue text-white font-bold text-base shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]" 
+          disabled={loading || !isStrong || newPassword !== confirmPassword}
+        >
+          {loading ? (
+            <>
+              <Lock className="mr-2 h-5 w-5 animate-spin" />
+              Updating Password...
+            </>
+          ) : (
+            <>
+              <Lock className="mr-2 h-5 w-5" />
+              Update Password
+            </>
+          )}
+        </Button>
+      </form>
+    </div>
   );
 };

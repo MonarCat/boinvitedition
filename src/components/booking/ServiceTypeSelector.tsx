@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Scissors, Car, Calendar } from 'lucide-react';
+import { Car, Users, Calendar, Scissors, Sparkles } from 'lucide-react';
 
 interface Service {
   id: string;
@@ -11,7 +11,6 @@ interface Service {
   price: number;
   duration_minutes: number;
   category?: string;
-  is_transport_service?: boolean;
 }
 
 interface ServiceTypeSelectorProps {
@@ -24,23 +23,56 @@ export const ServiceTypeSelector: React.FC<ServiceTypeSelectorProps> = ({
   onServiceSelect
 }) => {
   const getServiceIcon = (service: Service) => {
-    if (service.is_transport_service) {
-      return <Car className="w-5 h-5" />;
+    switch (service.category) {
+      case 'taxi':
+        return <Car className="w-5 h-5" />;
+      case 'shuttle':
+        return <Users className="w-5 h-5" />;
+      case 'beauty-wellness':
+        return <Sparkles className="w-5 h-5" />;
+      case 'salons':
+        return <Scissors className="w-5 h-5" />;
+      case 'spa':
+        return <Sparkles className="w-5 h-5" />;
+      case 'barbershop':
+        return <Scissors className="w-5 h-5" />;
+      default:
+        return <Calendar className="w-5 h-5" />;
     }
-    if (service.category?.toLowerCase().includes('hair') || 
-        service.category?.toLowerCase().includes('beauty') ||
-        service.category?.toLowerCase().includes('salon')) {
-      return <Scissors className="w-5 h-5" />;
-    }
-    return <Calendar className="w-5 h-5" />;
   };
 
   const getServiceType = (service: Service) => {
-    if (service.is_transport_service) return 'Transport';
-    if (service.category?.toLowerCase().includes('hair') || 
-        service.category?.toLowerCase().includes('beauty') ||
-        service.category?.toLowerCase().includes('salon')) return 'Salon';
-    return 'General';
+    switch (service.category) {
+      case 'taxi':
+        return 'Taxi';
+      case 'shuttle':
+        return 'Shuttle';
+      case 'beauty-wellness':
+        return 'Beauty & Wellness';
+      case 'salons':
+        return 'Salon';
+      case 'spa':
+        return 'Spa';
+      case 'barbershop':
+        return 'Barbershop';
+      default:
+        return 'General';
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'taxi':
+      case 'shuttle':
+        return 'bg-blue-100 text-blue-800';
+      case 'beauty-wellness':
+      case 'salons':
+      case 'spa':
+      case 'barbershop':
+        return 'bg-pink-100 text-pink-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
 
   return (
@@ -57,7 +89,7 @@ export const ServiceTypeSelector: React.FC<ServiceTypeSelectorProps> = ({
                 {getServiceIcon(service)}
                 {service.name}
               </CardTitle>
-              <Badge variant="secondary">
+              <Badge className={getCategoryColor(service.category || '')}>
                 {getServiceType(service)}
               </Badge>
             </div>

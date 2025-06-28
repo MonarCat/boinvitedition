@@ -6,7 +6,7 @@ import { EmptyServiceSelection } from './EmptyServiceSelection';
 import { PublicBookingCalendar } from './PublicBookingCalendar';
 import { BusinessPaymentInstructions } from '@/components/business/BusinessPaymentInstructions';
 import { MobileBookingHeader } from './MobileBookingHeader';
-import { MatatuBooking } from '@/components/transport/MatatuBooking';
+import { EnhancedTransportBooking } from '@/components/transport/EnhancedTransportBooking';
 import { SalonBooking } from './SalonBooking';
 import { WhatsAppFAB } from '@/components/ui/WhatsAppFAB';
 
@@ -17,9 +17,8 @@ interface Service {
   price: number;
   duration_minutes: number;
   currency?: string;
-  is_transport_service?: boolean;
-  transport_details?: any;
   category?: string;
+  transport_details?: any;
 }
 
 interface EnhancedPublicBookingContentProps {
@@ -48,13 +47,12 @@ export const EnhancedPublicBookingContent: React.FC<EnhancedPublicBookingContent
     handleBackToServices();
   };
 
+  const isTransportService = (service: Service) => {
+    return service.category === 'taxi' || service.category === 'shuttle';
+  };
+
   const isSalonService = (service: Service) => {
-    return service.category?.toLowerCase().includes('hair') ||
-           service.category?.toLowerCase().includes('beauty') ||
-           service.category?.toLowerCase().includes('salon') ||
-           service.name.toLowerCase().includes('hair') ||
-           service.name.toLowerCase().includes('beauty') ||
-           service.name.toLowerCase().includes('salon');
+    return ['beauty-wellness', 'salons', 'spa', 'barbershop'].includes(service.category || '');
   };
 
   const BookingContent = () => (
@@ -85,17 +83,26 @@ export const EnhancedPublicBookingContent: React.FC<EnhancedPublicBookingContent
             ← Back to Services
           </button>
           
-          {selectedService.is_transport_service ? (
-            <MatatuBooking
+          {isTransportService(selectedService) ? (
+            <EnhancedTransportBooking
               serviceId={selectedService.id}
               businessId={businessId}
-              vehicle={{
-                id: selectedService.id,
-                sacco_name: selectedService.transport_details?.vehicle_info?.sacco_name || 'Transport Service',
-                plate_number: selectedService.transport_details?.vehicle_info?.plate_number || 'N/A',
-                seat_count: selectedService.transport_details?.vehicle_info?.seat_count || 14,
-                driver_phone: selectedService.transport_details?.vehicle_info?.driver_phone || ''
+              serviceName={selectedService.name}
+              servicePrice={selectedService.price}
+              transportDetails={selectedService.transport_details || {
+                route: { from: 'Origin', to: 'Destination' },
+                passengers: { adult: 1, child: 0, infant: 0 },
+                luggage: 1,
+                departure_time: '08:00',
+                expected_arrival: '09:00',
+                vehicle: {
+                  registration_number: 'KCA 123A',
+                  body_type: 'Vehicle',
+                  driver_name: 'Driver',
+                  driver_phone: '+254700000000'
+                }
               }}
+              isShuttle={selectedService.category === 'shuttle'}
               onBookingComplete={handleBookingComplete}
             />
           ) : isSalonService(selectedService) ? (

@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { User, Steering } from 'lucide-react';
+import { User, Car } from 'lucide-react';
 
 interface SeatSelectorProps {
   layout: string;
@@ -151,7 +150,7 @@ export const SeatSelector: React.FC<SeatSelectorProps> = ({
         {/* Driver Section */}
         <div className="bg-gradient-to-r from-gray-100 to-gray-200 p-4 rounded-lg">
           <div className="flex items-center justify-center gap-2 text-gray-600 font-medium mb-2">
-            <Steering className="h-4 w-4" />
+            <Car className="h-4 w-4" />
             <span>Driver</span>
           </div>
           <div className="flex justify-center">

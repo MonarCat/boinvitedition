@@ -52,7 +52,7 @@ export const TaxiBooking: React.FC<TaxiBookingProps> = ({
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof typeof prev],
+          ...(prev[parent as keyof typeof prev] as object),
           [child]: value
         }
       }));
@@ -106,6 +106,7 @@ export const TaxiBooking: React.FC<TaxiBookingProps> = ({
       const bookingData = {
         business_id: businessId,
         service_id: serviceId,
+        client_id: null, // For guest bookings
         customer_name: formData.customerInfo.name,
         customer_email: formData.customerInfo.email || null,
         customer_phone: formData.customerInfo.phone,
@@ -114,6 +115,7 @@ export const TaxiBooking: React.FC<TaxiBookingProps> = ({
         status: 'confirmed',
         payment_status: 'pending',
         total_amount: priceEstimate || servicePrice,
+        duration_minutes: 60, // Default duration for transport services
         booking_details: {
           service_name: serviceName,
           service_type: 'taxi',

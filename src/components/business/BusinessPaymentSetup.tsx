@@ -77,7 +77,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
         .upsert({
           business_id: businessId,
           ...formData,
-          split_percentage: 95.0
+          split_percentage: 97.0 // Updated to 97% (3% platform fee)
         });
 
       if (payoutError) throw payoutError;
@@ -156,7 +156,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
           </Badge>
         </CardTitle>
         <p className="text-sm text-gray-600">
-          Configure where clients' payments should be sent. You'll receive 95% directly, Boinvit keeps 5%.
+          Configure where clients' payments should be sent. You'll receive 97% directly, Boinvit keeps 3%.
         </p>
       </CardHeader>
       
@@ -172,7 +172,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
             <div className="bg-blue-50 p-4 rounded-lg">
               <h4 className="font-medium text-blue-900 mb-2">Recommended: Automatic Split</h4>
               <p className="text-sm text-blue-800">
-                Clients pay once, you receive 95% automatically, Boinvit receives 5%. 
+                Clients pay once, you receive 97% automatically, Boinvit receives 3%. 
                 Requires a Paystack subaccount.
               </p>
             </div>

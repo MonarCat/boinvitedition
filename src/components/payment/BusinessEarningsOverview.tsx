@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { DollarSign, TrendingUp, Clock, AlertCircle } from 'lucide-react';
+import { DollarSign, TrendingUp, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import { useClientBusinessTransactions } from '@/hooks/useClientBusinessTransactions';
 
 interface BusinessEarningsOverviewProps {
@@ -30,6 +30,14 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
     }
   };
 
+  // Calculate available for payout (completed transactions within 24 hours)
+  const last24Hours = new Date();
+  last24Hours.setHours(last24Hours.getHours() - 24);
+  
+  const availableForPayout = transactions
+    .filter(t => t.status === 'completed' && new Date(t.created_at) >= last24Hours)
+    .reduce((sum, t) => sum + Number(t.business_amount || 0), 0);
+
   if (isLoading) {
     return (
       <Card>
@@ -43,7 +51,7 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
   return (
     <div className="space-y-6">
       {/* Revenue Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -53,6 +61,19 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
             <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
             <p className="text-xs text-muted-foreground">
               From {transactions.filter(t => t.status === 'completed').length} completed payments
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-green-200 bg-green-50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-green-800">Available for Payout</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-700">{formatCurrency(availableForPayout)}</div>
+            <p className="text-xs text-green-600">
+              Ready for payout (last 24 hours)
             </p>
           </CardContent>
         </Card>
@@ -80,11 +101,32 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
               {formatCurrency(transactions.reduce((sum, t) => sum + Number(t.platform_fee || 0), 0))}
             </div>
             <p className="text-xs text-muted-foreground">
-              5% of total transaction value
+              3% of total transaction value
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Payout Information */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="text-blue-900 flex items-center gap-2">
+            <Clock className="w-5 h-5" />
+            Payout Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-blue-800 space-y-2">
+          <div className="flex justify-between items-center">
+            <span>Available for immediate payout:</span>
+            <span className="font-bold text-lg">{formatCurrency(availableForPayout)}</span>
+          </div>
+          <div className="text-xs text-blue-600">
+            • Payouts are processed within 24 hours of payment completion
+            • Funds become available for payout 24 hours after transaction
+            • Configure your payout methods in the Payouts tab
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Recent Transactions */}
       <Card>
@@ -149,8 +191,8 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
         <CardContent className="p-4">
           <h5 className="font-medium text-blue-900 mb-2">Revenue Sharing Information</h5>
           <div className="text-sm text-blue-800 space-y-1">
-            <p>• Platform fee: 5% per transaction</p>
-            <p>• You receive: 95% of each payment</p>
+            <p>• Platform fee: 3% per transaction (reduced from 5%!)</p>
+            <p>• You receive: 97% of each payment</p>
             <p>• Payouts processed within 24 hours</p>
             <p>• Real-time transaction tracking</p>
           </div>

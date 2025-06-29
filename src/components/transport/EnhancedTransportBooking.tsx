@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Users, Clock, Car, User } from 'lucide-react';
 import { ShuttleSeatMap } from './ShuttleSeatMap';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface TransportDetails {
   route: { from: string; to: string };
@@ -101,19 +102,92 @@ export const EnhancedTransportBooking: React.FC<EnhancedTransportBookingProps> =
   
   const handleBookingSubmit = async () => {
     try {
-      // Implementation for creating booking
-      console.log('Creating transport booking:', {
-        serviceId,
-        businessId,
-        bookingData,
-        transportDetails
-      });
+      const totalPrice = calculateTotalPrice();
       
-      // Simulate booking creation
-      const bookingId = 'booking_' + Date.now();
-      onBookingComplete(bookingId);
+      // Get current date/time information
+      const departureDateTime = new Date();
+      const departureDate = departureDateTime.toISOString().split('T')[0];
+      const departureTime = transportDetails.departure_time || 
+                           (departureDateTime.getHours() + ':' + 
+                            departureDateTime.getMinutes().toString().padStart(2, '0'));
+      
+      // Prepare booking details
+      const bookingDetails = {
+        service_name: serviceName,
+        service_type: isShuttle ? 'shuttle' : 'transport',
+        from: transportDetails.route.from,
+        to: transportDetails.route.to,
+        passengers: bookingData.passengers,
+        luggage: bookingData.luggage,
+        departure_time: departureTime,
+        expected_arrival: transportDetails.expected_arrival,
+        vehicle: transportDetails.vehicle,
+        selectedSeats: isShuttle ? bookingData.selectedSeats : []
+      };
+
+      // Try to find or create client first
+      let clientId = null;
+      const { data: existingClient } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('business_id', businessId)
+        .eq('phone', bookingData.customerInfo.phone)
+        .maybeSingle();
+
+      if (existingClient) {
+        clientId = existingClient.id;
+      } else {
+        const { data: newClient, error: clientError } = await supabase
+          .from('clients')
+          .insert({
+            business_id: businessId,
+            name: bookingData.customerInfo.name,
+            email: bookingData.customerInfo.email || null,
+            phone: bookingData.customerInfo.phone
+          })
+          .select('id')
+          .single();
+
+        if (clientError) {
+          console.error('Failed to create client record:', clientError);
+          toast.error('Error creating customer record');
+          return;
+        }
+        
+        clientId = newClient.id;
+      }
+
+      // Create booking
+      const { data: booking, error: bookingError } = await supabase
+        .from('bookings')
+        .insert({
+          business_id: businessId,
+          client_id: clientId,
+          service_id: serviceId,
+          booking_date: departureDate,
+          booking_time: departureTime,
+          duration_minutes: 60, // Default duration 
+          total_amount: totalPrice,
+          status: 'confirmed',
+          payment_status: 'pending',
+          customer_name: bookingData.customerInfo.name,
+          customer_email: bookingData.customerInfo.email || null,
+          customer_phone: bookingData.customerInfo.phone,
+          notes: JSON.stringify(bookingDetails)
+        })
+        .select('id')
+        .single();
+
+      if (bookingError) {
+        throw bookingError;
+      }
+      
+      toast.success(`${isShuttle ? 'Shuttle' : 'Transport'} booking confirmed!`);
+      onBookingComplete(booking.id);
+      
     } catch (error) {
       console.error('Booking error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to create booking. Please try again.');
     }
   };
 

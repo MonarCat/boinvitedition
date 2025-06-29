@@ -9,6 +9,7 @@ import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
 import DemoPage from "@/pages/DemoPage";
 import PublicBookingPage from "@/pages/PublicBookingPage";
+import MobileAppDownload from "@/pages/MobileAppDownload";
 import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import CookiePolicy from "@/pages/CookiePolicy";
@@ -84,6 +85,9 @@ const App = () => {
                   
                   {/* Business Discovery Map */}
                   <Route path="/discover" element={<BusinessDiscoveryPage />} />
+                  
+                  {/* Mobile App Download Page */}
+                  <Route path="/app-download" element={<MobileAppDownload />} />
                   
                   {/* QR Code booking routes - Multiple variations for reliability */}
                   <Route path="/book/:businessId" element={<PublicBookingPage />} />

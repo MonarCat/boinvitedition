@@ -68,7 +68,7 @@ export const TaxiBooking: React.FC<TaxiBookingProps> = ({
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...(prev[parent as keyof typeof prev] as Record<string, string | number | Record<string, string | number>>),
+          ...(prev[parent as keyof typeof prev] as Record<string, any>),
           [child]: value
         }
       }));

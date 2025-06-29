@@ -117,6 +117,9 @@ const LandingPage = () => {
               <Link to="/demo" className="text-gray-600 hover:text-royal-red transition-colors">
                 Demo
               </Link>
+              <Link to="/app-download" className="text-gray-600 hover:text-royal-red transition-colors flex items-center">
+                <span className="mr-1">📱</span> Mobile App
+              </Link>
               <Link to="/safety" className="text-gray-600 hover:text-royal-red transition-colors">
                 Safety
               </Link>

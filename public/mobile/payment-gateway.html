@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Boinvit Payment</title>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a237e;
+            --secondary-color: #c62828;
+            --success-color: #4caf50;
+            --error-color: #f44336;
+            --text-dark: #333;
+            --text-light: #666;
+            --background-color: #f5f5f5;
+            --card-color: #fff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 16px;
+            background-color: var(--background-color);
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-color);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 20px;
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .payment-summary {
+            margin-bottom: 24px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .summary-label {
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .summary-value {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-align: center;
+            margin: 24px 0;
+        }
+
+        .button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .button:hover {
+            background-color: #151b60;
+        }
+
+        .button:disabled {
+            background-color: #9e9e9e;
+            cursor: not-allowed;
+        }
+
+        .processing {
+            text-align: center;
+            display: none;
+            margin-top: 24px;
+        }
+
+        .message {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .success {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .error {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: var(--error-color);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .security-note {
+            font-size: 12px;
+            color: var(--text-light);
+            text-align: center;
+            margin-top: 24px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="logo">
+                <img src="/placeholder.svg" alt="Boinvit Logo" width="80" height="30">
+            </div>
+            <h1>Complete your payment</h1>
+            
+            <div class="payment-summary">
+                <div class="summary-row">
+                    <span class="summary-label">Business</span>
+                    <span class="summary-value" id="business-name">-</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Service</span>
+                    <span class="summary-value" id="service-name">-</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Booking ID</span>
+                    <span class="summary-value" id="booking-id">-</span>
+                </div>
+            </div>
+            
+            <div class="amount" id="amount">KSh 0.00</div>
+            
+            <button id="pay-button" class="button">Pay Now</button>
+            
+            <div class="processing" id="processing">
+                <div class="spinner"></div>
+                <p>Processing payment...</p>
+            </div>
+            
+            <div class="message success" id="success-message" style="display: none;">
+                Payment successful! You'll be redirected shortly.
+            </div>
+            
+            <div class="message error" id="error-message" style="display: none;">
+                Payment failed. Please try again.
+            </div>
+            
+            <p class="security-note">
+                <small>🔒 Payments are secure and processed via Paystack</small>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookingId = urlParams.get('booking');
+        const amount = parseInt(urlParams.get('amount'), 10);
+        const email = urlParams.get('email') || 'customer@example.com';
+        const businessName = urlParams.get('businessName') || 'Business';
+        const serviceName = urlParams.get('serviceName') || 'Service';
+        
+        // Populate summary details
+        document.getElementById('business-name').textContent = businessName;
+        document.getElementById('service-name').textContent = serviceName;
+        document.getElementById('booking-id').textContent = bookingId;
+        document.getElementById('amount').textContent = `KSh ${(amount / 100).toFixed(2)}`;
+        
+        // Generate a unique reference
+        const generateReference = () => {
+            const timestamp = Date.now();
+            const randomId = Math.random().toString(36).substr(2, 9);
+            return `MOBILE_${timestamp}_${randomId}`;
+        };
+        
+        // Initialize payment
+        document.getElementById('pay-button').addEventListener('click', function() {
+            const payButton = document.getElementById('pay-button');
+            const processing = document.getElementById('processing');
+            
+            // Disable button and show processing
+            payButton.disabled = true;
+            processing.style.display = 'block';
+            
+            // Generate reference for this transaction
+            const reference = generateReference();
+            
+            // Initialize Paystack payment
+            const handler = PaystackPop.setup({
+                key: 'pk_live_bf23005a6155ba4e9865b77bd07eebf4c2f52512', // Use your actual Paystack public key
+                email: email,
+                amount: amount, // Amount is already in kobo/cents
+                currency: 'KES',
+                ref: reference,
+                metadata: {
+                    booking_id: bookingId,
+                    business_name: businessName,
+                    service_name: serviceName,
+                    payment_type: 'client_to_business'
+                },
+                callback: function(response) {
+                    // Show success message
+                    document.getElementById('success-message').style.display = 'block';
+                    processing.style.display = 'none';
+                    
+                    // Send message to React Native app
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                        status: 'success',
+                        reference: response.reference || reference,
+                        booking: bookingId
+                    }));
+                },
+                onClose: function() {
+                    // Re-enable button and hide processing
+                    payButton.disabled = false;
+                    processing.style.display = 'none';
+                    
+                    // Send message to React Native app
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                        status: 'closed',
+                        booking: bookingId
+                    }));
+                }
+            });
+            
+            handler.openIframe();
+        });
+        
+        // Function to handle payment errors
+        function handlePaymentError(message) {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('processing').style.display = 'none';
+            document.getElementById('pay-button').disabled = false;
+            
+            // Send message to React Native app
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+                status: 'failed',
+                error: message,
+                booking: bookingId
+            }));
+        }
+    </script>
+</body>
+</html>

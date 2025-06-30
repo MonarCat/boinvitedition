@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +14,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { ResponsiveCard } from './ResponsiveCard';
+import { TouchFriendlyServices } from './TouchFriendlyServices';
+import { BookingStep } from './MobileBottomNavigation';
 
 interface Service {
   id: string;
@@ -67,6 +69,10 @@ interface ResponsiveBookingContentProps {
   business: Business;
   services: Service[];
   businessId: string;
+  currentStep?: BookingStep; // NEW: Step from parent component
+  onStepChange?: (step: BookingStep) => void; // NEW: Callback for step changes
+  onDisabledStepsChange?: (disabledSteps: BookingStep[]) => void; // NEW: Callback for updating disabled steps
+  isMobileView?: boolean; // NEW: Flag for mobile view optimizations
 }
 
 const ClientDetailsForm: React.FC<{
@@ -74,7 +80,8 @@ const ClientDetailsForm: React.FC<{
   onUpdate: (details: ClientDetails) => void;
   onBack: () => void;
   onNext: () => void;
-}> = ({ clientDetails, onUpdate, onBack, onNext }) => {
+  isMobile?: boolean;
+}> = ({ clientDetails, onUpdate, onBack, onNext, isMobile }) => {
   const [localClientDetails, setLocalClientDetails] = useState(clientDetails);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -89,64 +96,71 @@ const ClientDetailsForm: React.FC<{
     onNext();
   };
 
-  return (
+  return isMobile ? (
+    <ResponsiveCard className="bg-white shadow-lg">
+      <CardContent className="p-0"></CardContent>
+    </ResponsiveCard>
+  ) : (
     <Card className="bg-white shadow-lg">
-      <CardContent className="p-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="mb-4"
-          onClick={onBack}
-        >
-          <ChevronLeft className="w-4 h-4 mr-1" />
-          Back
-        </Button>
+    <CardContent className="p-6">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mb-4"
+        onClick={onBack}
+        aria-label="Back to service selection"
+      >
+        <ChevronLeft className="w-4 h-4 mr-1" />
+        Back
+      </Button>
 
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">Your Information</h3>
-          <p className="text-sm text-gray-600">Please provide your contact details</p>
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold">Your Information</h3>
+        <p className="text-sm text-gray-600">Please provide your contact details</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="name">Full Name *</Label>
+          <Input
+            id="name"
+            value={localClientDetails.name}
+            onChange={(e) => setLocalClientDetails(prev => ({ ...prev, name: e.target.value }))}
+            required
+            placeholder="Enter your full name"
+            className={isMobile ? "h-12 text-base" : ""}
+          />
+        </div>
+        <div>
+          <Label htmlFor="email">Email Address *</Label>
+          <Input
+            id="email"
+            type="email"
+            value={localClientDetails.email}
+            onChange={(e) => setLocalClientDetails(prev => ({ ...prev, email: e.target.value }))}
+            required
+            placeholder="your@email.com"
+            className={isMobile ? "h-12 text-base" : ""}
+          />
+        </div>
+        <div>
+          <Label htmlFor="phone">Phone Number *</Label>
+          <Input
+            id="phone"
+            type="tel"
+            value={localClientDetails.phone}
+            onChange={(e) => setLocalClientDetails(prev => ({ ...prev, phone: e.target.value }))}
+            required
+            placeholder="0712345678"
+            className={isMobile ? "h-12 text-base" : ""}
+          />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Full Name *</Label>
-            <Input
-              id="name"
-              value={localClientDetails.name}
-              onChange={(e) => setLocalClientDetails(prev => ({ ...prev, name: e.target.value }))}
-              required
-              placeholder="Enter your full name"
-            />
-          </div>
-          <div>
-            <Label htmlFor="email">Email Address *</Label>
-            <Input
-              id="email"
-              type="email"
-              value={localClientDetails.email}
-              onChange={(e) => setLocalClientDetails(prev => ({ ...prev, email: e.target.value }))}
-              required
-              placeholder="your@email.com"
-            />
-          </div>
-          <div>
-            <Label htmlFor="phone">Phone Number *</Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={localClientDetails.phone}
-              onChange={(e) => setLocalClientDetails(prev => ({ ...prev, phone: e.target.value }))}
-              required
-              placeholder="0712345678"
-            />
-          </div>
-
-          <Button type="submit" className="w-full">
-            Continue to Date Selection
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        <Button type="submit" className={cn("w-full", isMobile && "h-12 text-base mt-4")}>
+          Continue to Date Selection
+        </Button>
+      </form>
+    </CardContent>
   );
 };
 
@@ -156,7 +170,8 @@ const StaffSelector: React.FC<{
   onSelectStaff: (staffId: string | null) => void;
   onBack: () => void;
   onNext: () => void;
-}> = ({ businessId, selectedStaffId, onSelectStaff, onBack, onNext }) => {
+  isMobile?: boolean;
+}> = ({ businessId, selectedStaffId, onSelectStaff, onBack, onNext, isMobile }) => {
   const { data: staff, isLoading } = useQuery<Staff[]>({
     queryKey: ['business-staff', businessId],
     queryFn: async () => {
@@ -178,68 +193,88 @@ const StaffSelector: React.FC<{
 
   if (isLoading) return <div>Loading staff...</div>;
 
-  return (
-    <Card>
-      <CardContent className="p-6">
+  return isMobile ? (
+    <ResponsiveCard>
+      <div className="p-6">
         <Button
           variant="ghost"
           size="sm"
           className="mb-4"
           onClick={onBack}
+          aria-label="Back to calendar"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Back to Calendar
         </Button>
-        
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-semibold">Select Staff (Optional)</h3>
-            <p className="text-sm text-gray-600">Choose a preferred staff member or continue without selection</p>
-          </div>
-
-          {staff && staff.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4">
-              {staff.map((member) => (
-                <button
-                  key={member.id}
-                  className={cn(
-                    "p-3 border rounded-lg flex flex-col items-center gap-2 transition-colors",
-                    selectedStaffId === member.id
-                      ? "bg-blue-100 border-blue-500"
-                      : "hover:bg-gray-50"
-                  )}
-                  onClick={() => onSelectStaff(member.id)}
-                >
-                  <img 
-                    src={member.avatar_url || '/placeholder.svg'} 
-                    alt={member.name} 
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <span className="text-sm text-center">{member.name}</span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4">No staff members available</p>
-          )}
-
-          <Button onClick={onNext} className="w-full">
-            Continue to Payment
-          </Button>
+      </div>
+    </ResponsiveCard>
+  ) : (
+    <Card>
+    <CardContent className="p-6">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mb-4"
+        onClick={onBack}
+        aria-label="Back to calendar"
+      >
+        <ChevronLeft className="w-4 h-4 mr-1" />
+        Back to Calendar
+      </Button>
+      
+      <div className="space-y-4">
+        <div>
+          <h3 className="font-semibold">Select Staff (Optional)</h3>
+          <p className="text-sm text-gray-600">Choose a preferred staff member or continue without selection</p>
         </div>
-      </CardContent>
-    </Card>
+
+        {staff && staff.length > 0 ? (
+          <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-2")}>
+            {staff.map((member) => (
+              <button
+                key={member.id}
+                className={cn(
+                  "p-4 border rounded-lg flex items-center gap-4 transition-colors",
+                  selectedStaffId === member.id
+                    ? "bg-blue-100 border-blue-500"
+                    : "hover:bg-gray-50",
+                  isMobile && "min-h-[80px]"
+                )}
+                onClick={() => onSelectStaff(member.id)}
+              >
+                <img 
+                  src={member.avatar_url || '/placeholder.svg'} 
+                  alt={member.name} 
+                  className={cn("rounded-full object-cover", isMobile ? "w-16 h-16" : "w-12 h-12")}
+                />
+                <span className={cn("text-center", isMobile && "text-lg")}>{member.name}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-center py-4">No staff members available</p>
+        )}
+
+        <Button 
+          onClick={onNext} 
+          className={cn("w-full", isMobile && "h-12 text-base mt-4")}
+        >
+          Continue to Payment
+        </Button>
+      </div>
+    </CardContent>
   );
 };
 
 export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> = ({
   business,
   services,
-  businessId
+  businessId,
+  currentStep = 'serviceSelection', // Default to serviceSelection if not provided
+  onStepChange,
+  onDisabledStepsChange,
+  isMobileView = false
 }) => {
-  type BookingStep = 'serviceSelection' | 'clientDetails' | 'calendar' | 'staffSelection' | 'payment' | 'confirmation';
-
-  const [bookingStep, setBookingStep] = useState<BookingStep>('serviceSelection');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDateTime, setSelectedDateTime] = useState<{ date: Date; time: string } | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
@@ -248,6 +283,25 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
     email: '',
     phone: ''
   });
+  
+  // Internal step state that will sync with external currentStep prop
+  const [bookingStep, setBookingStep] = useState<BookingStep>(currentStep);
+
+  // Sync internal step with external step when prop changes
+  useEffect(() => {
+    if (currentStep && currentStep !== bookingStep) {
+      setBookingStep(currentStep);
+    }
+  }, [currentStep]);
+
+  // Internal step update function that also notifies parent component
+  const updateStep = (step: BookingStep) => {
+    setBookingStep(step);
+    if (onStepChange) {
+      onStepChange(step);
+    }
+  };
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const images = [
@@ -255,8 +309,28 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
     ...services.flatMap(s => s.image_url ? [s.image_url] : [])
   ].filter(Boolean) as string[];
 
+  // Update disabled steps whenever booking flow state changes
+  useEffect(() => {
+    if (!onDisabledStepsChange) return;
+
+    const newDisabledSteps: BookingStep[] = [];
+    
+    // Logic to determine which steps should be disabled
+    if (!selectedService) {
+      newDisabledSteps.push('clientDetails', 'calendar', 'staffSelection', 'payment', 'confirmation');
+    } else if (!clientDetails.name || !clientDetails.email || !clientDetails.phone) {
+      newDisabledSteps.push('calendar', 'staffSelection', 'payment', 'confirmation');
+    } else if (!selectedDateTime) {
+      newDisabledSteps.push('staffSelection', 'payment', 'confirmation');
+    } else if (bookingStep !== 'confirmation') {
+      newDisabledSteps.push('confirmation');
+    }
+    
+    onDisabledStepsChange(newDisabledSteps);
+  }, [selectedService, clientDetails, selectedDateTime, selectedStaffId, bookingStep, onDisabledStepsChange]);
+
   const resetBookingFlow = () => {
-    setBookingStep('serviceSelection');
+    updateStep('serviceSelection');
     setSelectedService(null);
     setSelectedDateTime(null);
     setSelectedStaffId(null);
@@ -273,12 +347,11 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
 
   const handleServiceSelect = (service: Service) => {
     setSelectedService(service);
-    setBookingStep('clientDetails');
+    updateStep('clientDetails');
   };
 
   const handleBackToServices = () => {
-    setSelectedService(null);
-    setBookingStep('serviceSelection');
+    updateStep('serviceSelection');
   };
 
   const handleClientDetailsUpdate = (details: ClientDetails) => {
@@ -287,7 +360,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
 
   const handleDateTimeSelect = (date: Date, time: string) => {
     setSelectedDateTime({ date, time });
-    setBookingStep('staffSelection');
+    updateStep('staffSelection');
   };
 
   const handleStaffSelect = (staffId: string | null) => {
@@ -295,31 +368,12 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
   };
 
   const handleProceedToPayment = () => {
-    // Always go to payment step - let the payment component handle the policy
-    setBookingStep('payment');
+    updateStep('payment');
   };
 
   const handlePaymentSuccess = () => {
     toast.success('Payment successful! Your booking has been confirmed.');
-    setBookingStep('confirmation');
-  };
-
-  const handleBookingConfirmation = async () => {
-    // This is for cases where no payment is required
-    if (!selectedService || !selectedDateTime || !clientDetails.name || !clientDetails.email || !clientDetails.phone) {
-      toast.error('Missing required information');
-      return;
-    }
-
-    try {
-      console.log('Creating booking without payment...');
-      // Create booking logic here
-      toast.success('Booking confirmed successfully!');
-      setBookingStep('confirmation');
-    } catch (error) {
-      console.error('Booking error:', error);
-      toast.error('Unable to complete your booking. Please try again.');
-    }
+    updateStep('confirmation');
   };
 
   const formatBusinessHours = (hours: BusinessHours) => {
@@ -339,12 +393,15 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
   const paymentPolicy = business.payment_policy || 'pay_on_booking';
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-2 md:py-6">
       {/* Hero Section */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative h-48 md:h-64 rounded-2xl overflow-hidden mb-8 bg-gradient-to-r from-blue-500 to-indigo-600"
+        className={cn(
+          "relative rounded-2xl overflow-hidden mb-6 md:mb-8 bg-gradient-to-r from-blue-500 to-indigo-600",
+          isMobileView ? "h-40" : "h-48 md:h-64"
+        )}
       >
         {images.length > 0 ? (
           <AnimatePresence initial={false} custom={currentImageIndex}>
@@ -375,6 +432,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
               size="icon" 
               className="absolute left-2 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 rounded-full"
               onClick={handlePrevImage}
+              aria-label="Previous image"
             >
               <ChevronLeft className="w-6 h-6" />
             </Button>
@@ -383,6 +441,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
               size="icon" 
               className="absolute right-2 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 rounded-full"
               onClick={handleNextImage}
+              aria-label="Next image"
             >
               <ChevronRight className="w-6 h-6" />
             </Button>
@@ -395,6 +454,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                     currentImageIndex === index ? "bg-white" : "bg-white/50 hover:bg-white/75"
                   )}
                   onClick={() => setCurrentImageIndex(index)}
+                  aria-label={`View image ${index + 1}`}
                 />
               ))}
             </div>
@@ -405,16 +465,24 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
           <motion.img 
             src={business.logo_url || '/placeholder.svg'}
             alt={`${business.name} logo`} 
-            className="w-20 h-20 rounded-full border-4 border-white shadow-lg"
+            className={cn(
+              "rounded-full border-4 border-white shadow-lg",
+              isMobileView ? "w-16 h-16" : "w-20 h-20" 
+            )}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring' }}
           />
         </div>
 
-        <div className="absolute inset-0 flex items-end p-6">
+        <div className="absolute inset-0 flex items-end p-4 md:p-6">
           <div className="text-white">
-            <h1 className="text-2xl md:text-3xl font-bold">{business.name}</h1>
+            <h1 className={cn(
+              "font-bold", 
+              isMobileView ? "text-xl" : "text-2xl md:text-3xl"
+            )}>
+              {business.name}
+            </h1>
             <div className="flex gap-2 items-center mt-1">
               {business.is_verified && <Badge variant="secondary">Verified</Badge>}
               <Badge variant="default">
@@ -426,11 +494,17 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
       </motion.div>
 
       {/* Business Details */}
-      <Card className="mb-6">
-        <CardContent className="p-6 space-y-4">
+      <ResponsiveCard className="mb-6">
+        <CardContent className={cn(
+          "space-y-4", 
+          isMobileView ? "p-4" : "p-6"
+        )}>
           <p className="text-gray-700">{business.description}</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className={cn(
+            "grid gap-4 text-sm",
+            isMobileView ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
+          )}>
             <div className="flex items-center gap-3">
               <MapPin className="w-5 h-5 text-gray-500" />
               <span className="text-gray-800">{business.address}, {business.city}</span>
@@ -456,44 +530,62 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
               href={`https://wa.me/${business.phone.replace(/\D/g, '')}`} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold transition-colors duration-200"
+              className={cn(
+                "inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold transition-colors duration-200",
+                isMobileView && "text-base py-1"
+              )}
             >
               <MessageCircle className="w-5 h-5" />
               <span>Contact on WhatsApp</span>
             </a>
           </div>
         </CardContent>
-      </Card>
+      </ResponsiveCard>
 
       {/* Main Content */}
-      <div className="grid md:grid-cols-12 gap-6">
+      <div className={cn(
+        "grid gap-6", 
+        isMobileView ? "grid-cols-1" : "md:grid-cols-12"
+      )}>
         {/* Services Selection */}
         <motion.div 
           className={cn(
-            "md:col-span-7 lg:col-span-8",
-            bookingStep !== 'serviceSelection' && "md:hidden"
+            isMobileView 
+              ? bookingStep !== 'serviceSelection' && "hidden" 
+              : "md:col-span-7 lg:col-span-8",
+            !isMobileView && bookingStep !== 'serviceSelection' && "md:hidden"
           )}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <Card>
-            <CardContent className="p-0">
-              <ServicesList
-                services={services}
-                selectedService={selectedService}
-                onServiceSelect={handleServiceSelect}
-                currency={business.currency}
-              />
-            </CardContent>
-          </Card>
+          {isMobileView ? (
+            <TouchFriendlyServices 
+              services={services}
+              onServiceSelect={handleServiceSelect}
+              currency={business.currency}
+            />
+          ) : (
+            <Card>
+              <CardContent className="p-0">
+                <ServicesList
+                  services={services}
+                  selectedService={selectedService}
+                  onServiceSelect={handleServiceSelect}
+                  currency={business.currency}
+                />
+              </CardContent>
+            </Card>
+          )}
         </motion.div>
 
         {/* Booking Section */}
         <motion.div 
           id="booking-section"
           className={cn(
-            "md:col-span-5 lg:col-span-4",
-            bookingStep === 'serviceSelection' && "md:sticky md:top-24"
+            isMobileView 
+              ? "" 
+              : "md:col-span-5 lg:col-span-4",
+            !isMobileView && bookingStep === 'serviceSelection' && "md:sticky md:top-24"
           )}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -510,7 +602,8 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                   clientDetails={clientDetails}
                   onUpdate={handleClientDetailsUpdate}
                   onBack={handleBackToServices}
-                  onNext={() => setBookingStep('calendar')}
+                  onNext={() => updateStep('calendar')}
+                  isMobile={isMobileView}
                 />
               </motion.div>
             ) : bookingStep === 'calendar' && selectedService ? (
@@ -525,7 +618,8 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                   businessHours={business.business_hours}
                   service={selectedService}
                   onDateTimeSelect={handleDateTimeSelect}
-                  onBack={() => setBookingStep('clientDetails')}
+                  onBack={() => updateStep('clientDetails')}
+                  isMobile={isMobileView}
                 />
               </motion.div>
             ) : bookingStep === 'staffSelection' && selectedService && selectedDateTime ? (
@@ -539,8 +633,9 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                   businessId={businessId} 
                   selectedStaffId={selectedStaffId} 
                   onSelectStaff={handleStaffSelect}
-                  onBack={() => setBookingStep('calendar')}
+                  onBack={() => updateStep('calendar')}
                   onNext={handleProceedToPayment}
+                  isMobile={isMobileView}
                 />
               </motion.div>
             ) : bookingStep === 'payment' && selectedService && selectedDateTime ? (
@@ -566,7 +661,8 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                     clientPhone: clientDetails.phone,
                   }}
                   onSuccess={handlePaymentSuccess}
-                  onClose={() => setBookingStep('staffSelection')}
+                  onClose={() => updateStep('staffSelection')}
+                  isMobile={isMobileView}
                 />
               </motion.div>
             ) : bookingStep === 'confirmation' ? (
@@ -575,25 +671,43 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <Card>
-                  <CardContent className="p-6 text-center">
+                <ResponsiveCard>
+                  <CardContent className={cn(
+                    "text-center",
+                    isMobileView ? "p-6" : "p-6"
+                  )}>
                     <div className="mb-4">
-                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CreditCard className="w-8 h-8 text-green-600" />
+                      <div className={cn(
+                        "bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4",
+                        isMobileView ? "w-20 h-20" : "w-16 h-16"
+                      )}>
+                        <CreditCard className={cn(
+                          "text-green-600",
+                          isMobileView ? "w-10 h-10" : "w-8 h-8"
+                        )} />
                       </div>
-                      <h3 className="text-xl font-bold mb-2">Booking Confirmed!</h3>
+                      <h3 className={cn(
+                        "font-bold mb-2",
+                        isMobileView ? "text-2xl" : "text-xl"
+                      )}>Booking Confirmed!</h3>
                       <p className="text-gray-600 mb-4">
                         Your booking for {selectedService?.name} has been confirmed.
                         You will receive a confirmation email shortly.
                       </p>
                     </div>
-                    <Button onClick={resetBookingFlow} className="w-full">
+                    <Button 
+                      onClick={resetBookingFlow} 
+                      className={cn(
+                        "w-full",
+                        isMobileView && "h-12 text-base"
+                      )}
+                    >
                       Book Another Service
                     </Button>
                   </CardContent>
-                </Card>
+                </ResponsiveCard>
               </motion.div>
-            ) : (
+            ) : bookingStep === 'serviceSelection' && isMobileView ? null : (
               <motion.div
                 key="empty"
                 initial={{ opacity: 0 }}
@@ -608,35 +722,37 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
       </div>
 
       {/* Booking Instructions */}
-      <Card className="bg-blue-50 border-blue-200 mt-6">
-        <CardContent className="p-4">
-          <h3 className="font-semibold text-blue-900 mb-3 text-sm">
-            📋 How to Book {paymentPolicy === 'pay_after_service' && '(Pay After Service)'}
-          </h3>
-          <div className="space-y-2 text-blue-800 text-sm">
-            <div className="flex items-start gap-2">
-              <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
-              <span>Choose your preferred service from the list.</span>
+      {(!isMobileView || bookingStep === 'serviceSelection') && (
+        <ResponsiveCard className="bg-blue-50 border-blue-200 mt-6">
+          <CardContent className={cn("p-4", isMobileView && "touch-manipulation")}>
+            <h3 className="font-semibold text-blue-900 mb-3 text-sm">
+              📋 How to Book {paymentPolicy === 'pay_after_service' && '(Pay After Service)'}
+            </h3>
+            <div className="space-y-2 text-blue-800 text-sm">
+              <div className="flex items-start gap-2">
+                <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
+                <span>Choose your preferred service from the list.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
+                <span>Enter your contact details (name, email, phone).</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
+                <span>Select a date and time that works for you.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">4</span>
+                <span>Choose a staff member if you have a preference.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">5</span>
+                <span>Complete your booking with secure payment.</span>
+              </div>
             </div>
-            <div className="flex items-start gap-2">
-              <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-              <span>Enter your contact details (name, email, phone).</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
-              <span>Select a date and time that works for you.</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">4</span>
-              <span>Choose a staff member if you have a preference.</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">5</span>
-              <span>Complete your booking with secure payment.</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </ResponsiveCard>
+      )}
     </div>
   );
 };

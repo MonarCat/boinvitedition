@@ -18,14 +18,19 @@ export const useBusinessSettings = () => {
     queryFn: async () => {
       if (!user) return null;
       
-      const { data, error } = await supabase
-        .from('businesses')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from('businesses')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.error('Error fetching business:', err);
+        throw err;
+      }
     },
     enabled: !!user,
   });
@@ -39,7 +44,7 @@ export const useBusinessSettings = () => {
 
   const updateBusinessMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      if (!business) throw new Error('No business found');
+      if (!user) throw new Error('User not authenticated');
 
       const updates = {
         name: formData.get('name') as string,
@@ -51,21 +56,33 @@ export const useBusinessSettings = () => {
         city: formData.get('city') as string,
         country: formData.get('country') as string,
         logo_url: formData.get('logo_url') as string || null,
+        user_id: user.id, // Ensure user_id is set for RLS
       };
 
-      const { error } = await supabase
-        .from('businesses')
-        .update(updates)
-        .eq('id', business.id);
+      if (business) {
+        // Update existing business
+        const { error } = await supabase
+          .from('businesses')
+          .update(updates)
+          .eq('id', business.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Create new business
+        const { error } = await supabase
+          .from('businesses')
+          .insert([updates]);
+
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       toast.success('Business settings updated successfully');
       queryClient.invalidateQueries({ queryKey: ['user-business'] });
       setErrors({});
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('Business update error:', error);
       handleError(error, { customMessage: 'Failed to update business settings' });
     },
   });

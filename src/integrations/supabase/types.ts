@@ -1340,6 +1340,7 @@ export type Database = {
           auto_split_enabled: boolean | null
           bookings_limit: number | null
           business_id: string | null
+          commission_rate: number | null
           created_at: string
           current_period_end: string
           feature_flags: Json | null
@@ -1360,6 +1361,7 @@ export type Database = {
           auto_split_enabled?: boolean | null
           bookings_limit?: number | null
           business_id?: string | null
+          commission_rate?: number | null
           created_at?: string
           current_period_end: string
           feature_flags?: Json | null
@@ -1380,6 +1382,7 @@ export type Database = {
           auto_split_enabled?: boolean | null
           bookings_limit?: number | null
           business_id?: string | null
+          commission_rate?: number | null
           created_at?: string
           current_period_end?: string
           feature_flags?: Json | null

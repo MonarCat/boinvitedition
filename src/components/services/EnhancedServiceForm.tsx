@@ -42,7 +42,7 @@ export const EnhancedServiceForm: React.FC<EnhancedServiceFormProps> = ({
     salon_staff_required: false,
     // Barbershop specific fields
     barbershop_details: '',
-    barbershop_service_type: '', // Added missing property
+    barbershop_service_type: '',
     barbershop_service_duration: 30,
     // Hospitality specific fields
     hospitality_details: '',
@@ -265,46 +265,45 @@ export const EnhancedServiceForm: React.FC<EnhancedServiceFormProps> = ({
     }
     
     const serviceData = {
-      ...formData,
+      name: formData.name,
+      description: formData.description,
+      category: formData.category,
       business_id: business.id,
       price: parseFloat(formData.price.toString()),
       duration_minutes: parseInt(formData.duration_minutes.toString()),
+      currency: formData.currency,
+      is_active: formData.is_active,
+      service_images: formData.service_images,
       transport_details: categoryDetails,
     };
 
-    if (service) {
-      // Update existing service
-      const { error } = await supabase
-        .from('services')
-        .update(serviceData)
-        .eq('id', service.id);
+    try {
+      if (service) {
+        // Update existing service
+        const { error } = await supabase
+          .from('services')
+          .update(serviceData)
+          .eq('id', service.id);
 
-      if (error) {
-        toast.error(`Failed to update service: ${error.message}`);
-      } else {
+        if (error) throw error;
         toast.success('Service updated successfully!');
-        queryClient.invalidateQueries({ queryKey: ['services'] });
-        onSuccess();
-      }
-    } else {
-      // Create new service
-      const { data, error } = await supabase
-        .from('services')
-        .insert([serviceData])
-        .select();
-
-      if (error) {
-        toast.error(`Failed to create service: ${error.message}`);
       } else {
-        toast.success('Service created successfully!');
-        queryClient.invalidateQueries({ queryKey: ['services'] });
-        onSuccess();
-      }
-    }
-  };
+        // Create new service
+        const { data, error } = await supabase
+          .from('services')
+          .insert([serviceData])
+          .select();
 
-  const handleCancel = () => {
-    onCancel();
+        if (error) throw error;
+        toast.success('Service created successfully!');
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      onSuccess();
+    } catch (error: any) {
+      console.error('Service operation failed:', error);
+      toast.error(error.message || 'Failed to save service');
+    }
   };
 
   return (
@@ -854,7 +853,7 @@ export const EnhancedServiceForm: React.FC<EnhancedServiceFormProps> = ({
 
       {/* Submit Section */}
       <div className="flex justify-end space-x-2">
-        <Button variant="ghost" onClick={handleCancel}>
+        <Button variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit">

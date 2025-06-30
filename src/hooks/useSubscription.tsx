@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +17,7 @@ interface SubscriptionData {
   staff_limit?: number;
   bookings_limit?: number;
   payment_interval?: string;
+  commission_rate?: number;
   created_at: string;
   updated_at: string;
 }
@@ -30,18 +32,23 @@ export const useSubscription = () => {
     queryFn: async () => {
       if (!user) return null;
       
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error fetching subscription:', error);
+      try {
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error fetching subscription:', error);
+          return null;
+        }
+        
+        return data as SubscriptionData | null;
+      } catch (err) {
+        console.error('Subscription fetch error:', err);
         return null;
       }
-      
-      return data as SubscriptionData | null;
     },
     enabled: !!user,
   });
@@ -66,22 +73,70 @@ export const useSubscription = () => {
       amount?: number;
       paystackReference?: string;
     }) => {
+      if (!user) throw new Error('User not authenticated');
+      
       console.log('Creating subscription:', { planType, businessId, paystackReference });
       
-      // Create the subscription directly via SQL insert
+      // Calculate period end based on plan type
+      let periodEnd = new Date();
+      if (planType === 'trial') {
+        periodEnd.setDate(periodEnd.getDate() + 7); // 7 days
+      } else if (planType === 'payg') {
+        periodEnd.setFullYear(periodEnd.getFullYear() + 1); // 1 year
+      } else {
+        periodEnd.setMonth(periodEnd.getMonth() + (paymentInterval === 'yearly' ? 12 : 1));
+      }
+      
+      // Set limits based on plan type
+      let staffLimit = null;
+      let bookingsLimit = null;
+      let commissionRate = null;
+      
+      switch (planType) {
+        case 'trial':
+          staffLimit = 3;
+          bookingsLimit = 100;
+          break;
+        case 'starter':
+          staffLimit = 1;
+          bookingsLimit = 500;
+          break;
+        case 'economy':
+          staffLimit = 5;
+          bookingsLimit = 1000;
+          break;
+        case 'medium':
+          staffLimit = 15;
+          bookingsLimit = 5000;
+          break;
+        case 'premium':
+          staffLimit = null; // unlimited
+          bookingsLimit = null; // unlimited
+          break;
+        case 'payg':
+          staffLimit = null; // unlimited
+          bookingsLimit = null; // unlimited
+          commissionRate = 0.05; // 5%
+          break;
+      }
+
+      // Create the subscription
+      const subscriptionData = {
+        user_id: user.id,
+        business_id: businessId,
+        plan_type: planType,
+        status: 'active',
+        current_period_end: periodEnd.toISOString(),
+        staff_limit: staffLimit,
+        bookings_limit: bookingsLimit,
+        payment_interval: planType === 'trial' ? 'trial' : planType === 'payg' ? 'commission' : paymentInterval,
+        commission_rate: commissionRate,
+        trial_ends_at: planType === 'trial' ? periodEnd.toISOString() : null,
+      };
+
       const { data, error } = await supabase
         .from('subscriptions')
-        .upsert({
-          user_id: user?.id,
-          business_id: businessId,
-          plan_type: planType,
-          status: 'active',
-          current_period_end: new Date(Date.now() + (planType === 'trial' ? 7 * 24 * 60 * 60 * 1000 : planType === 'payg' ? 365 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000)).toISOString(),
-          staff_limit: planType === 'trial' ? 3 : planType === 'payg' ? null : planType === 'starter' ? 1 : planType === 'economy' ? 5 : planType === 'medium' ? 15 : null,
-          bookings_limit: planType === 'trial' ? 100 : planType === 'payg' ? null : planType === 'starter' ? 500 : planType === 'economy' ? 1000 : planType === 'medium' ? 5000 : null,
-          payment_interval: planType === 'trial' ? 'trial' : planType === 'payg' ? 'commission' : paymentInterval,
-          commission_rate: planType === 'payg' ? 0.05 : null
-        })
+        .upsert(subscriptionData)
         .select()
         .single();
 
@@ -91,18 +146,23 @@ export const useSubscription = () => {
       }
 
       // Record payment transaction if paystack reference provided
-      if (paystackReference) {
-        await supabase
-          .from('payment_transactions')
-          .insert({
-            business_id: businessId,
-            subscription_id: data.id,
-            transaction_type: 'subscription',
-            status: 'completed',
-            paystack_reference: paystackReference,
-            amount: amount || 0,
-            currency: 'KES'
-          });
+      if (paystackReference && amount) {
+        try {
+          await supabase
+            .from('payment_transactions')
+            .insert({
+              business_id: businessId,
+              subscription_id: data.id,
+              transaction_type: 'subscription',
+              status: 'completed',
+              paystack_reference: paystackReference,
+              amount: amount,
+              currency: 'KES'
+            });
+        } catch (paymentError) {
+          console.error('Payment transaction error:', paymentError);
+          // Don't fail the subscription creation if payment logging fails
+        }
       }
 
       console.log('Subscription updated successfully:', data);
@@ -139,7 +199,7 @@ export const useSubscription = () => {
 
   // Helper function to determine plan hierarchy
   const getPlanLevel = (planType: string): number => {
-    const levels = { trial: 0, starter: 1, economy: 2, medium: 3, premium: 4 };
+    const levels = { trial: 0, starter: 1, economy: 2, medium: 3, premium: 4, payg: 5 };
     return levels[planType as keyof typeof levels] || 0;
   };
 

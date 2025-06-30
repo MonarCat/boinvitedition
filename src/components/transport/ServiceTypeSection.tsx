@@ -5,11 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const SERVICE_CLASSES = {
-  taxi: ['Standard', 'Premium', 'Executive'],
-  shuttle: ['14-Seater', '17-Seater', '24-Seater'],
-  bus: ['Economy', 'VIP', 'Premium'],
-  flight: ['Economy', 'Business', 'First Class'],
-  train: ['Economy', 'Business', 'First Class']
+  taxi: ['Standard', 'Premium', 'Executive', 'XL', 'Eco-friendly', 'Luxury', 'Minivan'],
+  shuttle: ['14-Seater', '17-Seater', '24-Seater', '33-Seater', 'Airport Shuttle', 'Corporate Shuttle'],
+  bus: ['Economy', 'VIP', 'Premium', 'Sleeper', 'Double-Decker', 'Mini-Bus'],
+  flight: ['Economy', 'Premium Economy', 'Business', 'First Class'],
+  train: ['Economy', 'Business', 'First Class', 'Sleeper', 'Executive']
 };
 
 const DEFAULT_SEATS = {

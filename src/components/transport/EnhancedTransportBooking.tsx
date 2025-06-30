@@ -86,7 +86,39 @@ export const EnhancedTransportBooking: React.FC<EnhancedTransportBookingProps> =
   const calculateTotalPrice = () => {
     const basePrice = servicePrice;
     const totalPassengers = getTotalPassengers();
-    return basePrice * totalPassengers;
+    const serviceClass = transportDetails?.vehicle?.body_type || '';
+    const isTaxi = serviceClass.toLowerCase().includes('taxi') || 
+                  ['standard', 'premium', 'executive', 'xl', 'eco-friendly', 'luxury', 'minivan'].includes(serviceClass.toLowerCase());
+    
+    // For shuttle and bus services, multiply by passengers
+    if (!isTaxi) {
+      return basePrice * totalPassengers;
+    }
+    
+    // For taxi services, we have a base price and add surcharges
+    const luggageCharge = bookingData.luggage > 1 ? (bookingData.luggage - 1) * 100 : 0;
+    
+    // Define max capacity for different service classes
+    const maxCapacity: Record<string, number> = {
+      'standard': 4,
+      'premium': 4,
+      'executive': 4,
+      'xl': 6,
+      'eco-friendly': 4,
+      'luxury': 4,
+      'minivan': 7
+    };
+    
+    const defaultMaxCapacity = 4;
+    const capacity = maxCapacity[serviceClass.toLowerCase()] || defaultMaxCapacity;
+    
+    // Add passenger surcharge based on service class
+    let passengerSurcharge = 0;
+    if (totalPassengers > capacity) {
+      passengerSurcharge = (totalPassengers - capacity) * 200;
+    }
+    
+    return basePrice + passengerSurcharge + luggageCharge;
   };
 
   const handleProceedToSeats = () => {
@@ -98,7 +130,10 @@ export const EnhancedTransportBooking: React.FC<EnhancedTransportBookingProps> =
   };
 
   // Determine if this is a taxi service - replaces the isShuttle prop
-  const isTaxiService = transportDetails?.vehicle?.body_type?.toLowerCase().includes('taxi') || false;
+  const isTaxiService = transportDetails?.vehicle?.body_type?.toLowerCase().includes('taxi') || 
+                       ['standard', 'premium', 'executive', 'xl', 'eco-friendly', 'luxury', 'minivan'].includes(
+                         (transportDetails?.vehicle?.body_type || '').toLowerCase()
+                       );
   
   const handleBookingSubmit = async () => {
     try {

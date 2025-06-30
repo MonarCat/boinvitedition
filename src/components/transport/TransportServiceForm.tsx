@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,7 @@ export const TransportServiceForm = ({ onSubmit, defaultValues }: TransportServi
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     defaultValues: {
       service_type: 'bus',
+      service_class: '',
       departure_location: '',
       arrival_location: '',
       departure_time: '',
@@ -33,6 +33,14 @@ export const TransportServiceForm = ({ onSubmit, defaultValues }: TransportServi
 
   const isExternalBooking = watch('is_external_booking');
   const serviceType = watch('service_type');
+
+  // Updated service classes based on service type
+  const SERVICE_CLASSES = {
+    taxi: ['Standard', 'Premium', 'Executive', 'XL', 'Eco-friendly'],
+    shuttle: ['14-Seater', '17-Seater', '24-Seater', '33-Seater'],
+    bus: ['Economy', 'VIP', 'Premium', 'Sleeper'],
+    train: ['Economy', 'Business', 'First Class']
+  };
 
   const getExternalUrl = (type: string) => {
     switch (type) {
@@ -153,6 +161,25 @@ export const TransportServiceForm = ({ onSubmit, defaultValues }: TransportServi
               {errors.price_per_seat && (
                 <p className="text-sm text-red-500 mt-1">{errors.price_per_seat.message as string}</p>
               )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="service_class">Service Class</Label>
+              <Select
+                value={watch('service_class')}
+                onValueChange={(value) => setValue('service_class', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select service class" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SERVICE_CLASSES[serviceType as keyof typeof SERVICE_CLASSES]?.map((cls) => (
+                    <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

@@ -88,13 +88,44 @@ export const TaxiBooking: React.FC<TaxiBookingProps> = ({
   };
 
   const calculateEstimate = () => {
-    // This would typically depend on distance between locations, time of day, etc.
-    // For now, using a simplified calculation based on passengers and base price
-    const basePrice = servicePrice || transportDetails.exact_price || 500;
+    // Determine base price based on service class
+    let basePrice = servicePrice || transportDetails.exact_price || 500;
+    const serviceClass = transportDetails.vehicle?.body_type || 'Standard';
+    
+    // Adjust base price according to service class if not explicitly provided
+    if (!servicePrice && !transportDetails.exact_price) {
+      if (serviceClass === 'Premium') basePrice = 800;
+      else if (serviceClass === 'Executive') basePrice = 1200;
+      else if (serviceClass === 'XL') basePrice = 1000;
+      else if (serviceClass === 'Eco-friendly') basePrice = 700;
+      else if (serviceClass === 'Luxury') basePrice = 1500;
+      else if (serviceClass === 'Minivan') basePrice = 1200;
+    }
+    
     const totalPassengers = formData.passengers.adult + formData.passengers.child;
     const luggageCharge = formData.luggage > 1 ? (formData.luggage - 1) * 100 : 0;
     
-    const estimate = basePrice + (totalPassengers > 1 ? (totalPassengers - 1) * 200 : 0) + luggageCharge;
+    // Add passenger surcharge based on service type
+    let passengerSurcharge = 0;
+    // Define max capacity for different service classes
+    const maxCapacity: Record<string, number> = {
+      'Standard': 4,
+      'Premium': 4,
+      'Executive': 4,
+      'XL': 6,
+      'Eco-friendly': 4,
+      'Luxury': 4,
+      'Minivan': 7
+    };
+    
+    const defaultMaxCapacity = 4;
+    const capacity = maxCapacity[serviceClass] || defaultMaxCapacity;
+    
+    if (totalPassengers > capacity) {
+      passengerSurcharge = (totalPassengers - capacity) * 200;
+    }
+    
+    const estimate = basePrice + passengerSurcharge + luggageCharge;
     setPriceEstimate(estimate);
     
     return estimate;

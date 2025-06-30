@@ -1,22 +1,26 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Star, Zap, Users, Calendar, ArrowUp, ArrowDown } from 'lucide-react';
-import { MultiProviderPayment } from '../payment/MultiProviderPayment';
+import { CheckCircle, Star, Clock, Users, TrendingUp, Zap, Crown, Smartphone, CreditCard } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Plan {
   id: string;
   name: string;
   price: number;
+  yearlyPrice?: number;
   currency: string;
   interval: string;
   description: string;
   features: string[];
-  popular: boolean;
-  staffLimit: number | null;
-  bookingsLimit: number | null;
+  popular?: boolean;
+  recommended?: boolean;
+  icon: any;
   color: string;
+  staffLimit?: number | null;
+  bookingsLimit?: number | null;
 }
 
 interface EnhancedSubscriptionPlansProps {
@@ -24,18 +28,18 @@ interface EnhancedSubscriptionPlansProps {
   businessId: string;
   customerEmail?: string;
   onSelectPlan: (planId: string, interval: string, amount: number, paystackReference?: string) => void;
-  isLoading?: boolean;
+  isLoading: boolean;
 }
 
-export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps> = ({
+export const EnhancedSubscriptionPlans = ({
   currentPlan,
   businessId,
-  customerEmail = '',
+  customerEmail,
   onSelectPlan,
-  isLoading = false
-}) => {
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [showPayment, setShowPayment] = useState(false);
+  isLoading
+}: EnhancedSubscriptionPlansProps) => {
+  const [selectedInterval, setSelectedInterval] = useState<'monthly' | 'yearly'>('monthly');
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null);
 
   const plans: Plan[] = [
     {
@@ -43,20 +47,20 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
       name: 'Free Trial',
       price: 10,
       currency: 'KES',
-      interval: '7 days',
-      description: '7-day trial to test our platform',
-      features: [
-        '7 days full access',
-        'Up to 3 staff members',
-        'Up to 100 bookings',
-        'QR code booking system',
-        'Basic support',
-        'Payment integration'
-      ],
-      popular: false,
+      interval: 'one-time',
+      description: '7-day trial with full access',
+      icon: Clock,
+      color: 'orange',
       staffLimit: 3,
       bookingsLimit: 100,
-      color: 'border-gray-200'
+      features: [
+        '7 days full platform access',
+        'Up to 3 staff members',
+        'Up to 100 bookings',
+        'QR code generation',
+        'Basic support',
+        'Payment integration'
+      ]
     },
     {
       id: 'payg',
@@ -65,287 +69,279 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
       currency: 'KES',
       interval: 'commission',
       description: 'Only pay when you get paid',
+      icon: TrendingUp,
+      color: 'green',
+      recommended: true,
+      staffLimit: null,
+      bookingsLimit: null,
       features: [
+        'No monthly subscription',
+        'Only 5% commission on payments received',
         'Unlimited staff members',
         'Unlimited bookings',
         'Full platform access',
-        'QR code & online booking',
-        'WhatsApp notifications',
-        'Advanced analytics',
         'Priority support',
-        '5% commission on successful bookings only'
-      ],
-      popular: true,
-      staffLimit: null,
-      bookingsLimit: null,
-      color: 'border-orange-200'
+        'Advanced analytics'
+      ]
     },
     {
       id: 'starter',
       name: 'Starter',
       price: 399,
+      yearlyPrice: 3990,
       currency: 'KES',
-      interval: 'month',
+      interval: selectedInterval,
       description: 'Perfect for solo entrepreneurs',
-      features: [
-        'Up to 1 staff member',
-        'Up to 500 bookings/month',
-        'QR code & online booking',
-        'WhatsApp notifications',
-        'Payment processing',
-        'Basic analytics',
-        'Email support'
-      ],
-      popular: false,
+      icon: Users,
+      color: 'blue',
       staffLimit: 1,
       bookingsLimit: 500,
-      color: 'border-green-200'
+      features: [
+        '1 staff member',
+        'Up to 500 bookings/month',
+        'Basic features',
+        'Email support',
+        'QR code generation',
+        'Payment processing'
+      ]
     },
     {
       id: 'economy',
       name: 'Economy',
       price: 899,
+      yearlyPrice: 8990,
       currency: 'KES',
-      interval: 'month',
-      description: 'Perfect for small businesses',
-      features: [
-        'Up to 5 staff members',
-        'Up to 1,000 bookings/month',
-        'QR code & online booking',
-        'WhatsApp notifications',
-        'Payment processing',
-        'Basic analytics',
-        'Email support'
-      ],
-      popular: false,
+      interval: selectedInterval,
+      description: 'Great for small teams',
+      icon: Zap,
+      color: 'purple',
+      popular: true,
       staffLimit: 5,
       bookingsLimit: 1000,
-      color: 'border-blue-200'
+      features: [
+        '5 staff members',
+        'Up to 1,000 bookings/month',
+        'Advanced features',
+        'Priority support',
+        'Custom branding',
+        'Analytics dashboard'
+      ]
     },
     {
       id: 'medium',
       name: 'Business',
       price: 2900,
+      yearlyPrice: 29000,
       currency: 'KES',
-      interval: 'month',
-      description: 'Most popular for growing businesses',
-      features: [
-        'Up to 15 staff members',
-        'Up to 5,000 bookings/month',
-        'Advanced booking management',
-        'Staff attendance tracking',
-        'Multi-location support',
-        'Advanced analytics',
-        'Priority support',
-        'Custom branding'
-      ],
-      popular: false,
+      interval: selectedInterval,
+      description: 'For growing businesses',
+      icon: Crown,
+      color: 'indigo',
       staffLimit: 15,
       bookingsLimit: 5000,
-      color: 'border-orange-200'
+      features: [
+        '15 staff members',
+        'Up to 5,000 bookings/month',
+        'Premium features',
+        'Priority support',
+        'White-label options',
+        'Advanced reporting'
+      ]
     },
     {
       id: 'premium',
       name: 'Enterprise',
       price: 8900,
+      yearlyPrice: 89000,
       currency: 'KES',
-      interval: 'month',
-      description: 'For large enterprises',
+      interval: selectedInterval,
+      description: 'Enterprise solution',
+      icon: Star,
+      color: 'gold',
+      staffLimit: null,
+      bookingsLimit: null,
       features: [
         'Unlimited staff members',
         'Unlimited bookings',
-        'Advanced staff performance tracking',
-        'White-label solution',
+        'All premium features',
+        '24/7 priority support',
+        'Complete white-labeling',
         'API access',
-        'Custom integrations',
-        'Dedicated account manager',
-        '24/7 phone support'
-      ],
-      popular: false,
-      staffLimit: null,
-      bookingsLimit: null,
-      color: 'border-purple-200'
+        'Dedicated account manager'
+      ]
     }
   ];
 
-  const getPlanLevel = (planId: string): number => {
-    const levels = { trial: 0, payg: 1, starter: 2, economy: 3, medium: 4, premium: 5 };
-    return levels[planId as keyof typeof levels] || 0;
-  };
-
-  const getChangeType = (planId: string): 'upgrade' | 'downgrade' | 'same' | 'new' => {
-    if (!currentPlan) return 'new';
-    const currentLevel = getPlanLevel(currentPlan);
-    const newLevel = getPlanLevel(planId);
+  const handleSelectPlan = async (plan: Plan) => {
+    if (processingPlan) return;
     
-    if (newLevel > currentLevel) return 'upgrade';
-    if (newLevel < currentLevel) return 'downgrade';
-    return 'same';
-  };
-
-  const handleSelectPlan = (plan: Plan) => {
-    if (currentPlan === plan.id) return;
+    setProcessingPlan(plan.id);
     
-    if (plan.id === 'trial') {
-      // Handle trial directly
-      onSelectPlan(plan.id, plan.interval, plan.price);
-    } else {
-      // Show payment for paid plans
-      setSelectedPlan(plan);
-      setShowPayment(true);
-    }
-  };
-
-  const handlePaymentSuccess = (reference: string) => {
-    if (selectedPlan) {
-      onSelectPlan(selectedPlan.id, selectedPlan.interval, selectedPlan.price, reference);
-      setShowPayment(false);
-      setSelectedPlan(null);
-    }
-  };
-
-  const handlePaymentError = (error: string) => {
-    console.error('Payment error:', error);
-    setShowPayment(false);
-    setSelectedPlan(null);
-  };
-
-  const getButtonText = (plan: Plan) => {
-    if (currentPlan === plan.id) return 'Current Plan';
-    
-    const changeType = getChangeType(plan.id);
-    switch (changeType) {
-      case 'upgrade':
-        return 'Upgrade';
-      case 'downgrade':
-        return 'Downgrade';
-      case 'new':
-        return plan.id === 'trial' ? 'Start Free Trial' : 'Subscribe Now';
-      default:
-        return 'Subscribe Now';
-    }
-  };
-
-  const getButtonIcon = (plan: Plan) => {
-    if (currentPlan === plan.id) return CheckCircle;
-    
-    const changeType = getChangeType(plan.id);
-    switch (changeType) {
-      case 'upgrade':
-        return ArrowUp;
-      case 'downgrade':
-        return ArrowDown;
-      default:
-        return Zap;
-    }
-  };
-
-  if (showPayment && selectedPlan) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <h3 className="text-xl font-semibold mb-2">Complete Your Subscription</h3>
-          <p className="text-gray-600">
-            You're subscribing to the {selectedPlan.name} plan for KSh {selectedPlan.price.toLocaleString()}/{selectedPlan.interval}
-          </p>
-        </div>
+    try {
+      if (plan.id === 'trial') {
+        await onSelectPlan(plan.id, 'trial', plan.price);
+        toast.success('Free trial activated!');
+      } else if (plan.id === 'payg') {
+        await onSelectPlan(plan.id, 'commission', 0);
+        toast.success('Pay As You Go plan activated!');
+      } else {
+        const amount = selectedInterval === 'yearly' ? (plan.yearlyPrice || plan.price * 12) : plan.price;
         
-        <div className="max-w-md mx-auto">
-          <MultiProviderPayment
-            plan={selectedPlan}
-            businessId={businessId}
-            customerEmail={customerEmail}
-            onSuccess={handlePaymentSuccess}
-            onError={handlePaymentError}
-          />
-        </div>
-        
-        <div className="text-center">
-          <Button variant="outline" onClick={() => setShowPayment(false)}>
-            Back to Plans
-          </Button>
-        </div>
-      </div>
-    );
-  }
+        // For paid plans, integrate with Paystack
+        if (typeof window !== 'undefined' && (window as any).PaystackPop) {
+          const handler = (window as any).PaystackPop.setup({
+            key: 'pk_test_your_paystack_public_key_here', // Replace with actual key
+            email: customerEmail || 'customer@example.com',
+            amount: amount * 100, // Paystack expects amount in kobo
+            currency: 'KES',
+            ref: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            metadata: {
+              business_id: businessId,
+              plan_type: plan.id,
+              interval: selectedInterval
+            },
+            callback: function(response: any) {
+              onSelectPlan(plan.id, selectedInterval, amount, response.reference);
+            },
+            onClose: function() {
+              console.log('Payment cancelled');
+            }
+          });
+          handler.openIframe();
+        } else {
+          // Fallback for testing
+          await onSelectPlan(plan.id, selectedInterval, amount);
+          toast.success(`${plan.name} plan activated!`);
+        }
+      }
+    } catch (error) {
+      console.error('Plan selection error:', error);
+      toast.error('Failed to activate plan. Please try again.');
+    } finally {
+      setProcessingPlan(null);
+    }
+  };
+
+  const formatPrice = (price: number, currency: string) => {
+    return `${currency === 'KES' ? 'KSh' : currency} ${price.toLocaleString()}`;
+  };
+
+  const getEffectivePrice = (plan: Plan) => {
+    if (plan.id === 'payg') return 'Pay 5% commission';
+    if (plan.id === 'trial') return formatPrice(plan.price, plan.currency);
+    
+    return selectedInterval === 'yearly' && plan.yearlyPrice
+      ? formatPrice(plan.yearlyPrice, plan.currency)
+      : formatPrice(plan.price, plan.currency);
+  };
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+    <div className="max-w-7xl mx-auto space-y-8">
+      {/* Interval Toggle */}
+      <div className="text-center">
+        <div className="inline-flex items-center bg-gray-100 rounded-lg p-1">
+          <button
+            onClick={() => setSelectedInterval('monthly')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              selectedInterval === 'monthly'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setSelectedInterval('yearly')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              selectedInterval === 'yearly'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            Yearly <Badge className="ml-1 bg-green-100 text-green-800">Save 17%</Badge>
+          </button>
+        </div>
+      </div>
+
+      {/* Plans Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((plan) => {
-          const changeType = getChangeType(plan.id);
-          const ButtonIcon = getButtonIcon(plan);
+          const IconComponent = plan.icon;
+          const isCurrentPlan = currentPlan === plan.id;
+          const isProcessing = processingPlan === plan.id;
           
           return (
             <Card 
               key={plan.id} 
-              className={`relative ${plan.color} ${plan.popular ? 'ring-2 ring-orange-500' : ''} ${
-                changeType === 'upgrade' ? 'ring-2 ring-green-500' : ''
-              } ${changeType === 'downgrade' ? 'ring-2 ring-yellow-500' : ''}`}
+              className={`relative transition-all duration-200 hover:shadow-lg ${
+                plan.popular ? 'border-2 border-blue-500' : ''
+              } ${plan.recommended ? 'border-2 border-green-500' : ''} ${
+                isCurrentPlan ? 'ring-2 ring-purple-500' : ''
+              }`}
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-orange-500 text-white px-3 py-1">
-                    <Star className="w-3 h-3 mr-1" />
+                  <Badge className="bg-blue-500 text-white px-3 py-1">
                     Most Popular
                   </Badge>
                 </div>
               )}
-
-              {changeType === 'upgrade' && (
-                <div className="absolute -top-3 right-4">
-                  <Badge className="bg-green-500 text-white px-2 py-1">
-                    <ArrowUp className="w-3 h-3 mr-1" />
-                    Upgrade
+              
+              {plan.recommended && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-green-500 text-white px-3 py-1">
+                    <Star className="w-3 h-3 mr-1" />
+                    Recommended
                   </Badge>
                 </div>
               )}
 
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-lg font-semibold">{plan.name}</CardTitle>
-                <div className="py-4">
-                  <div className="text-3xl font-bold text-gray-900">
-                    KSh {plan.price.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-gray-600">per {plan.interval}</div>
+              <CardHeader className="text-center pb-4">
+                <div className={`w-12 h-12 mx-auto mb-4 rounded-full bg-${plan.color}-100 flex items-center justify-center`}>
+                  <IconComponent className={`w-6 h-6 text-${plan.color}-600`} />
                 </div>
-                <p className="text-sm text-gray-600">{plan.description}</p>
+                
+                <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
+                <p className="text-gray-600 text-sm">{plan.description}</p>
+                
+                <div className="mt-4">
+                  <div className="text-3xl font-bold text-gray-900">
+                    {getEffectivePrice(plan)}
+                  </div>
+                  {plan.id !== 'payg' && plan.id !== 'trial' && (
+                    <div className="text-sm text-gray-500">
+                      per {selectedInterval === 'yearly' ? 'year' : 'month'}
+                    </div>
+                  )}
+                </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
+              <CardContent className="space-y-6">
+                <ul className="space-y-3">
                   {plan.features.map((feature, index) => (
-                    <div key={index} className="flex items-start gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <li key={index} className="flex items-start text-sm">
+                      <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                       <span>{feature}</span>
-                    </div>
+                    </li>
                   ))}
-                </div>
-
-                <div className="pt-4 space-y-2">
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <Users className="w-3 h-3" />
-                    <span>
-                      {plan.staffLimit ? `Up to ${plan.staffLimit} staff` : 'Unlimited staff'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <Calendar className="w-3 h-3" />
-                    <span>
-                      {plan.bookingsLimit ? `${plan.bookingsLimit.toLocaleString()} bookings` : 'Unlimited bookings'}
-                    </span>
-                  </div>
-                </div>
+                </ul>
 
                 <Button
                   onClick={() => handleSelectPlan(plan)}
-                  disabled={currentPlan === plan.id || isLoading}
-                  className={`w-full ${plan.popular ? 'bg-orange-600 hover:bg-orange-700' : ''} ${
-                    changeType === 'upgrade' ? 'bg-green-600 hover:bg-green-700' : ''
+                  disabled={isCurrentPlan || isProcessing || isLoading}
+                  className={`w-full ${
+                    plan.popular 
+                      ? 'bg-blue-600 hover:bg-blue-700' 
+                      : plan.recommended
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-gray-900 hover:bg-gray-800'
                   }`}
                 >
-                  <ButtonIcon className="w-4 h-4 mr-2" />
-                  {getButtonText(plan)}
+                  {isCurrentPlan 
+                    ? 'Current Plan' 
+                    : isProcessing 
+                    ? 'Processing...' 
+                    : `Choose ${plan.name}`}
                 </Button>
               </CardContent>
             </Card>
@@ -353,18 +349,18 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
         })}
       </div>
 
-      {/* Payment Information */}
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-2">Secure Payment Options</h4>
-          <p className="text-sm text-blue-800">
-            When you select a paid plan, you'll see secure payment options including M-Pesa, Airtel Money, 
-            and card payments. All payments are processed securely through Paystack.
-          </p>
-          <div className="mt-2 text-xs text-blue-700">
-            🔒 Your subscription will be activated immediately after successful payment
-          </div>
+      {/* Payment Methods Info */}
+      <div className="text-center bg-gray-50 rounded-lg p-6">
+        <div className="flex justify-center items-center gap-4 mb-4">
+          <Smartphone className="w-6 h-6 text-green-600" />
+          <CreditCard className="w-6 h-6 text-blue-600" />
         </div>
+        <p className="text-sm text-gray-600 mb-2">
+          <strong>Secure Payment Options:</strong> M-Pesa, Airtel Money, Credit/Debit Cards, Bank Transfer
+        </p>
+        <p className="text-xs text-gray-500">
+          All payments are processed securely through Paystack with bank-level encryption
+        </p>
       </div>
     </div>
   );

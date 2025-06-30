@@ -59,6 +59,28 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
       color: 'border-gray-200'
     },
     {
+      id: 'payg',
+      name: 'Pay As You Go',
+      price: 0,
+      currency: 'KES',
+      interval: 'commission',
+      description: 'Only pay when you get paid',
+      features: [
+        'Unlimited staff members',
+        'Unlimited bookings',
+        'Full platform access',
+        'QR code & online booking',
+        'WhatsApp notifications',
+        'Advanced analytics',
+        'Priority support',
+        '5% commission on successful bookings only'
+      ],
+      popular: true,
+      staffLimit: null,
+      bookingsLimit: null,
+      color: 'border-orange-200'
+    },
+    {
       id: 'starter',
       name: 'Starter',
       price: 399,
@@ -117,7 +139,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
         'Priority support',
         'Custom branding'
       ],
-      popular: true,
+      popular: false,
       staffLimit: 15,
       bookingsLimit: 5000,
       color: 'border-orange-200'
@@ -147,7 +169,7 @@ export const EnhancedSubscriptionPlans: React.FC<EnhancedSubscriptionPlansProps>
   ];
 
   const getPlanLevel = (planId: string): number => {
-    const levels = { trial: 0, starter: 1, economy: 2, medium: 3, premium: 4 };
+    const levels = { trial: 0, payg: 1, starter: 2, economy: 3, medium: 4, premium: 5 };
     return levels[planId as keyof typeof levels] || 0;
   };
 

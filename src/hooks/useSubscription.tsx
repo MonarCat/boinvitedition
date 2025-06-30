@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +8,7 @@ interface SubscriptionData {
   id: string;
   user_id: string;
   business_id: string;
-  plan_type: 'trial' | 'starter' | 'economy' | 'medium' | 'premium';
+  plan_type: 'trial' | 'starter' | 'economy' | 'medium' | 'premium' | 'payg';
   status: 'active' | 'expired' | 'cancelled';
   trial_ends_at: string | null;
   current_period_end: string;
@@ -77,10 +76,11 @@ export const useSubscription = () => {
           business_id: businessId,
           plan_type: planType,
           status: 'active',
-          current_period_end: new Date(Date.now() + (planType === 'trial' ? 7 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000)).toISOString(),
-          staff_limit: planType === 'trial' ? 3 : planType === 'starter' ? 1 : planType === 'economy' ? 5 : planType === 'medium' ? 15 : null,
-          bookings_limit: planType === 'trial' ? 100 : planType === 'starter' ? 500 : planType === 'economy' ? 1000 : planType === 'medium' ? 5000 : null,
-          payment_interval: planType === 'trial' ? 'trial' : paymentInterval
+          current_period_end: new Date(Date.now() + (planType === 'trial' ? 7 * 24 * 60 * 60 * 1000 : planType === 'payg' ? 365 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000)).toISOString(),
+          staff_limit: planType === 'trial' ? 3 : planType === 'payg' ? null : planType === 'starter' ? 1 : planType === 'economy' ? 5 : planType === 'medium' ? 15 : null,
+          bookings_limit: planType === 'trial' ? 100 : planType === 'payg' ? null : planType === 'starter' ? 500 : planType === 'economy' ? 1000 : planType === 'medium' ? 5000 : null,
+          payment_interval: planType === 'trial' ? 'trial' : planType === 'payg' ? 'commission' : paymentInterval,
+          commission_rate: planType === 'payg' ? 0.05 : null
         })
         .select()
         .single();
@@ -113,6 +113,8 @@ export const useSubscription = () => {
       
       if (variables.planType === 'trial') {
         toast.success('Free trial started! You have 7 days of full access.');
+      } else if (variables.planType === 'payg') {
+        toast.success('Pay As You Go plan activated! You will only be charged 5% when you get paid.');
       } else {
         const isUpgrade = subscription && getPlanLevel(variables.planType) > getPlanLevel(subscription.plan_type);
         const isDowngrade = subscription && getPlanLevel(variables.planType) < getPlanLevel(subscription.plan_type);

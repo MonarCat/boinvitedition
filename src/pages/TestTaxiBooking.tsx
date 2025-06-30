@@ -125,7 +125,7 @@ const TestTaxiBooking: React.FC = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <ServiceTypeSection setValue={setValue} watch={watch} />
             
-            <RouteSection register={register} />
+            <RouteSection register={register} setValue={setValue} watch={watch} />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -155,7 +155,7 @@ const TestTaxiBooking: React.FC = () => {
               </div>
             </div>
             
-            <PassengerSection register={register} watch={watch} />
+            <PassengerSection register={register} />
             
             <div>
               <Label htmlFor="luggage_count">Luggage Items</Label>

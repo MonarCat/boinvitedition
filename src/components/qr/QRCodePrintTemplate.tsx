@@ -26,34 +26,34 @@ export const QRCodePrintTemplate: React.FC<QRCodePrintTemplateProps> = ({
   
   const bookingUrl = `${window.location.origin}/book/${businessId}`;
 
-  // Template style configurations based on your uploaded designs
+  // Updated template styles with semi-transparent backgrounds for better readability
   const templateStyles = {
     pink: {
-      background: 'linear-gradient(135deg, #ec4899 0%, #be185d 50%, #831843 100%)',
+      background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.3) 0%, rgba(190, 24, 93, 0.4) 50%, rgba(131, 24, 67, 0.3) 100%)',
       qrFrame: '#3b82f6',
       textColor: '#000000',
       accentColor: '#dc2626'
     },
     yellow: {
-      background: 'linear-gradient(135deg, #eab308 0%, #ca8a04 50%, #a16207 100%)',
+      background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.3) 0%, rgba(202, 138, 4, 0.4) 50%, rgba(161, 98, 7, 0.3) 100%)',
       qrFrame: '#eab308',
       textColor: '#000000',
       accentColor: '#f59e0b'
     },
     blue: {
-      background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%)',
+      background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(29, 78, 216, 0.4) 50%, rgba(30, 64, 175, 0.3) 100%)',
       qrFrame: '#ef4444',
       textColor: '#000000',
       accentColor: '#ef4444'
     },
     red: {
-      background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)',
+      background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(220, 38, 38, 0.4) 50%, rgba(185, 28, 28, 0.3) 100%)',
       qrFrame: '#ef4444',
       textColor: '#000000',
       accentColor: '#ef4444'
     },
     neutral: {
-      background: 'linear-gradient(135deg, #6b7280 0%, #4b5563 50%, #374151 100%)',
+      background: 'linear-gradient(135deg, rgba(107, 114, 128, 0.3) 0%, rgba(75, 85, 99, 0.4) 50%, rgba(55, 65, 81, 0.3) 100%)',
       qrFrame: '#000000',
       textColor: '#000000',
       accentColor: '#6b7280'
@@ -140,20 +140,21 @@ export const QRCodePrintTemplate: React.FC<QRCodePrintTemplateProps> = ({
     onPrint?.();
   };
 
-  // Create geometric shapes based on template style
+  // Reduced opacity geometric shapes for better text readability
   const renderGeometricBackground = () => {
     const shapes = [];
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 6; i++) {
       shapes.push(
         <div
           key={i}
-          className="absolute rounded-full opacity-20"
+          className="absolute rounded-full"
           style={{
-            width: `${Math.random() * 120 + 60}px`,
-            height: `${Math.random() * 120 + 60}px`,
+            width: `${Math.random() * 80 + 40}px`,
+            height: `${Math.random() * 80 + 40}px`,
             top: `${Math.random() * 80}%`,
             left: `${Math.random() * 80}%`,
-            background: `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`,
+            background: `rgba(255, 255, 255, ${Math.random() * 0.1 + 0.05})`,
+            opacity: 0.1,
             transform: `rotate(${Math.random() * 360}deg)`
           }}
         />
@@ -164,7 +165,7 @@ export const QRCodePrintTemplate: React.FC<QRCodePrintTemplateProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Template Preview - Exact replica of your uploaded designs */}
+      {/* Template Preview with improved readability */}
       <div 
         ref={templateRef}
         className="relative w-[384px] h-[512px] mx-auto shadow-2xl rounded-2xl overflow-hidden"
@@ -173,32 +174,36 @@ export const QRCodePrintTemplate: React.FC<QRCodePrintTemplateProps> = ({
           fontFamily: 'system-ui, -apple-system, sans-serif'
         }}
       >
-        {/* Geometric Background Elements */}
+        {/* Subtle Geometric Background Elements */}
         <div className="absolute inset-0">
           {renderGeometricBackground()}
         </div>
 
+        {/* Clear overlay for better text readability */}
+        <div className="absolute inset-0 bg-white bg-opacity-10"></div>
+
         {/* Main Content */}
         <div className="relative z-10 p-8 h-full flex flex-col justify-between">
           {/* Business Name Field - Blank with dashed border for handwriting */}
-          <div className="border-2 border-dashed border-black rounded-lg p-4 bg-white bg-opacity-20">
-            <div className="text-center text-gray-500 text-sm font-medium tracking-wider opacity-50">
+          <div className="border-2 border-dashed border-black rounded-lg p-4 bg-white bg-opacity-80">
+            <div className="text-center text-gray-500 text-sm font-medium tracking-wider opacity-70">
               BUSINESS NAME
             </div>
+            <div className="h-8 mt-2"></div>
           </div>
 
-          {/* Main Title */}
-          <div className="text-center flex-1 flex flex-col justify-center">
+          {/* Main Title with better contrast */}
+          <div className="text-center flex-1 flex flex-col justify-center bg-white bg-opacity-20 rounded-2xl p-6">
             <h1 
-              className="text-5xl font-black mb-4"
+              className="text-5xl font-black mb-4 drop-shadow-sm"
               style={{ color: currentStyle.textColor }}
             >
               Scan HERE
             </h1>
 
-            {/* Subtitle */}
+            {/* Subtitle with enhanced readability */}
             <p 
-              className="text-xl font-medium mb-8"
+              className="text-xl font-medium mb-8 drop-shadow-sm"
               style={{ 
                 color: templateStyle === 'pink' || templateStyle === 'red' ? currentStyle.accentColor : '#8B4513'
               }}
@@ -252,11 +257,11 @@ export const QRCodePrintTemplate: React.FC<QRCodePrintTemplateProps> = ({
             </div>
           </div>
 
-          {/* Footer - Boinvit Branding */}
+          {/* Footer - Boinvit Branding with better contrast */}
           <div 
             className="text-center px-4 py-2 rounded-lg"
             style={{ 
-              backgroundColor: templateStyle === 'neutral' ? '#374151' : 'rgba(0,0,0,0.8)',
+              backgroundColor: 'rgba(0,0,0,0.85)',
               color: 'white'
             }}
           >

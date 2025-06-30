@@ -223,17 +223,17 @@ export const TaxiBooking: React.FC<TaxiBookingProps> = ({
       const bookingData = {
         business_id: businessId,
         service_id: serviceId,
-        client_id: clientId,
+        client_id: clientId || null, // Support both logged in and guest bookings
         customer_name: formData.customerInfo.name,
         customer_email: formData.customerInfo.email || null,
         customer_phone: formData.customerInfo.phone,
         booking_date: departureTime.toISOString().split('T')[0],
         booking_time: departureTime.toISOString().split('T')[1].substring(0, 5),
-        duration_minutes: 60, // Default to 1 hour
+        duration_minutes: 60, // Default duration for transport services
         status: 'confirmed',
         payment_status: 'pending',
         total_amount: priceEstimate || servicePrice,
-        notes: JSON.stringify({
+        booking_details: {
           service_name: serviceName,
           service_type: 'taxi',
           from: formData.from,
@@ -243,7 +243,7 @@ export const TaxiBooking: React.FC<TaxiBookingProps> = ({
           special_requests: formData.specialRequests,
           vehicle: vehicle,
           bookingType: 'taxi'
-        })
+        }
       };
       
       const { data, error } = await supabase

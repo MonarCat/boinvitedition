@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export async function verifyPaymentAndUpdateBooking(reference, bookingId) {
@@ -40,7 +41,7 @@ export async function verifyPaymentAndUpdateBooking(reference, bookingId) {
     // 
     // For this example, we'll simulate a successful verification
     
-    // Record the payment as verified
+    // Record the payment as verified - only use existing columns
     const { data: paymentRecord, error: paymentError } = await supabase
       .from('payment_transactions')
       .upsert({
@@ -50,7 +51,8 @@ export async function verifyPaymentAndUpdateBooking(reference, bookingId) {
         payment_method: 'paystack',
         amount: 0, // In a real implementation, get this from the verification response
         currency: 'KES',
-        verified_at: new Date().toISOString()
+        transaction_type: 'client_to_business',
+        updated_at: new Date().toISOString()
       })
       .select()
       .single();

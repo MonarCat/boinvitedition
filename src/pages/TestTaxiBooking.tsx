@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -97,8 +98,8 @@ const TestTaxiBooking: React.FC = () => {
       else if (serviceClass === 'Sleeper') basePrice = 800; // Per seat
     }
 
-    // Additional calculations based on passengers and luggage
-    const totalPassengers = parseInt(adultPassengers) + parseInt(childPassengers) * 0.5;
+    // Additional calculations based on passengers and luggage - convert to numbers
+    const totalPassengers = parseInt(adultPassengers.toString()) + parseInt(childPassengers.toString()) * 0.5;
     const luggageCharge = luggageCount > 1 ? (luggageCount - 1) * 100 : 0;
     
     let estimate = 0;
@@ -124,7 +125,7 @@ const TestTaxiBooking: React.FC = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <ServiceTypeSection setValue={setValue} watch={watch} />
             
-            <RouteSection register={register} errors={{}} />
+            <RouteSection register={register} />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -154,7 +155,7 @@ const TestTaxiBooking: React.FC = () => {
               </div>
             </div>
             
-            <PassengerSection register={register} setValue={setValue} watch={watch} />
+            <PassengerSection register={register} watch={watch} />
             
             <div>
               <Label htmlFor="luggage_count">Luggage Items</Label>

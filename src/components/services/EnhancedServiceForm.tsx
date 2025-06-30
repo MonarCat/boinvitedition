@@ -42,6 +42,7 @@ export const EnhancedServiceForm: React.FC<EnhancedServiceFormProps> = ({
     salon_staff_required: false,
     // Barbershop specific fields
     barbershop_details: '',
+    barbershop_service_type: '', // Added missing property
     barbershop_service_duration: 30,
     // Hospitality specific fields
     hospitality_details: '',

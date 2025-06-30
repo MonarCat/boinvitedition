@@ -4,9 +4,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, QrCode } from "lucide-react";
 import { DashboardMobileAppSection } from "./DashboardMobileAppSection";
 import { BookingList } from "@/components/booking/BookingList";
+import { BusinessQRGenerator } from "@/components/business/BusinessQRGenerator";
 
 type Props = {
   handleCreateInvoice: () => void;
@@ -18,6 +19,7 @@ type Props = {
   navigate: (p: string) => void;
   showEditBusiness: boolean;
   setShowEditBusiness: (v: boolean) => void;
+  business?: any;
 };
 
 export const DashboardTabs: React.FC<Props> = ({
@@ -27,14 +29,16 @@ export const DashboardTabs: React.FC<Props> = ({
   handleManageServices, 
   handleSubscription, 
   currency, 
-  navigate
+  navigate,
+  business
 }) => (
   <div className="space-y-6">
     <DashboardMobileAppSection />
     
     <Tabs defaultValue="bookings" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-4">
+      <TabsList className="grid w-full grid-cols-5">
         <TabsTrigger value="bookings">Bookings</TabsTrigger>
+        <TabsTrigger value="qr-codes">QR Codes</TabsTrigger>
         <TabsTrigger value="invoices">Invoices</TabsTrigger>
         <TabsTrigger value="clients">Clients</TabsTrigger>
         <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -53,6 +57,33 @@ export const DashboardTabs: React.FC<Props> = ({
                 View All Bookings
               </Button>
             </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="qr-codes" className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <QrCode className="w-5 h-5" />
+              QR Code Generator
+            </CardTitle>
+            <CardDescription>Generate QR codes and print templates for your business</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {business ? (
+              <BusinessQRGenerator 
+                businessId={business.id} 
+                businessName={business.name} 
+              />
+            ) : (
+              <div className="text-center py-8">
+                <QrCode className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Business Setup Required</h3>
+                <p className="text-gray-600 mb-4">Complete your business setup to generate QR codes</p>
+                <Button onClick={handleUpdateSettings}>Setup Business</Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </TabsContent>

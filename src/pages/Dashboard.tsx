@@ -1,8 +1,10 @@
+
 import React, { useState } from "react";
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardKPISection } from '@/components/dashboard/DashboardKPISection';
 import { DashboardQuickActions } from '@/components/dashboard/DashboardQuickActions';
+import { DashboardTabs } from '@/components/dashboard/DashboardTabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SecurityDashboard } from '@/components/security/SecurityDashboard';
@@ -18,6 +20,7 @@ import { Download, Shield, Users, TrendingUp } from 'lucide-react';
 const Dashboard = () => {
   const { user } = useAuth();
   const [theme, setTheme] = useState('system');
+  const [showEditBusiness, setShowEditBusiness] = useState(false);
 
   // Get the business for the logged-in user
   const { data: business } = useQuery({
@@ -53,6 +56,7 @@ const Dashboard = () => {
     handleManageServices,
     handleUpdateSettings,
     handleSubscription,
+    navigate,
   } = useDashboardHandlers();
 
   const { isExporting, exportBookings, exportClients, exportStaff } = useSpreadsheetExport(business?.id || '');
@@ -79,6 +83,20 @@ const Dashboard = () => {
           onTimePeriodChange={setTimePeriod}
         />
         
+        {/* Updated DashboardTabs with business data and navigate function */}
+        <DashboardTabs
+          handleCreateInvoice={handleCreateInvoice}
+          handleViewClients={handleViewClients}
+          handleUpdateSettings={handleUpdateSettings}
+          handleManageServices={handleManageServices}
+          handleSubscription={handleSubscription}
+          currency={currency}
+          navigate={navigate}
+          showEditBusiness={showEditBusiness}
+          setShowEditBusiness={setShowEditBusiness}
+          business={business}
+        />
+
         {/* Quick Actions with Export Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <DashboardQuickActions 

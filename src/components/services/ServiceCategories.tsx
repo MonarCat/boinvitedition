@@ -2,15 +2,30 @@
 import React from 'react';
 
 export const SERVICE_CATEGORIES = [
-  // Transport Services
+  // Updated categories to match current system
+  { value: 'general', label: 'General Services', icon: '🔧' },
+  { value: 'transport', label: 'Transport & Travel', icon: '🚕' },
+  { value: 'beauty-wellness', label: 'Beauty & Wellness', icon: '✨' },
+  { value: 'food', label: 'Food & Beverage', icon: '🍽️' },
+  { value: 'health', label: 'Health & Medical', icon: '🏥' },
+  { value: 'education', label: 'Education & Training', icon: '📚' },
+  { value: 'professional', label: 'Professional Services', icon: '💼' },
+  { value: 'home', label: 'Home & Garden', icon: '🏠' },
+  { value: 'entertainment', label: 'Entertainment', icon: '🎭' },
+  { value: 'other', label: 'Other Services', icon: '📋' },
+  
+  // Transport subcategories
   { value: 'taxi', label: 'Taxi', icon: '🚕' },
   { value: 'shuttle', label: 'Shuttle/Matatu', icon: '🚌' },
+  { value: 'bus', label: 'Bus Services', icon: '🚍' },
+  { value: 'delivery', label: 'Delivery Services', icon: '📦' },
   
-  // Beauty & Wellness
-  { value: 'beauty-wellness', label: 'Beauty and Wellness', icon: '✨' },
-  { value: 'salons', label: 'Salons', icon: '💇‍♀️' },
-  { value: 'spa', label: 'Spa', icon: '🧘‍♀️' },
+  // Beauty & Wellness subcategories
+  { value: 'salon', label: 'Hair Salon', icon: '💇‍♀️' },
+  { value: 'spa', label: 'Spa & Massage', icon: '🧘‍♀️' },
   { value: 'barbershop', label: 'Barbershop', icon: '💈' },
+  { value: 'nail', label: 'Nail Services', icon: '💅' },
+  { value: 'skincare', label: 'Skincare', icon: '🧴' },
 ];
 
 export const getCategoryIcon = (category: string) => {
@@ -23,8 +38,12 @@ export const getCategoryLabel = (category: string) => {
   return categoryData?.label || category;
 };
 
-// Service templates for different industries
+// Enhanced service templates for different industries
 export const SERVICE_TEMPLATES = {
+  'general': [
+    { name: 'Consultation', description: 'General consultation service', duration: 60, price: 2000 },
+    { name: 'Basic Service', description: 'Standard service offering', duration: 45, price: 1500 },
+  ],
   'taxi': [
     { 
       name: 'City Ride', 
@@ -87,43 +106,23 @@ export const SERVICE_TEMPLATES = {
       }
     },
     { 
-      name: '17-Seater Shuttle', 
-      description: 'Medium capacity shuttle', 
-      duration: 50, 
-      price: 120,
-      transport_details: {
-        route: { from: 'Nairobi CBD', to: 'Thika' },
-        passengers: { adult: 17, child: 0, infant: 0 },
-        luggage: 17,
-        departure_time: '06:30',
-        expected_arrival: '07:20',
-        vehicle: {
-          registration_number: 'KCD 101D',
-          body_type: '17-Seater Matatu',
-          driver_name: 'Samuel Kiprotich',
-          driver_phone: '+254745678901'
-        },
-        seat_layout: '17-seater'
-      }
-    },
-    { 
-      name: '24-Seater Shuttle', 
+      name: '25-Seater Bus', 
       description: 'Large capacity shuttle', 
       duration: 75, 
       price: 150,
       transport_details: {
         route: { from: 'Nairobi CBD', to: 'Nakuru' },
-        passengers: { adult: 24, child: 0, infant: 0 },
-        luggage: 24,
+        passengers: { adult: 25, child: 0, infant: 0 },
+        luggage: 25,
         departure_time: '05:00',
         expected_arrival: '06:15',
         vehicle: {
           registration_number: 'KCE 202E',
-          body_type: '24-Seater Bus',
+          body_type: '25-Seater Bus',
           driver_name: 'David Mwangi',
           driver_phone: '+254756789012'
         },
-        seat_layout: '24-seater'
+        seat_layout: '25-seater'
       }
     }
   ],
@@ -132,7 +131,7 @@ export const SERVICE_TEMPLATES = {
     { name: 'Body Massage', description: 'Full body relaxing massage', duration: 90, price: 4500 },
     { name: 'Manicure & Pedicure', description: 'Hand and foot care', duration: 75, price: 2500 }
   ],
-  'salons': [
+  'salon': [
     { name: 'Hair Cut & Style', description: 'Professional hair styling', duration: 60, price: 1500 },
     { name: 'Hair Coloring', description: 'Professional hair coloring', duration: 120, price: 3500 },
     { name: 'Hair Treatment', description: 'Deep conditioning treatment', duration: 45, price: 2000 }
@@ -146,5 +145,16 @@ export const SERVICE_TEMPLATES = {
     { name: 'Classic Haircut', description: 'Traditional men\'s haircut', duration: 30, price: 500 },
     { name: 'Beard Trim', description: 'Professional beard grooming', duration: 20, price: 300 },
     { name: 'Hair & Beard Combo', description: 'Complete grooming service', duration: 45, price: 700 }
+  ],
+  'food': [
+    { name: 'Catering Service', description: 'Event catering service', duration: 240, price: 15000 },
+    { name: 'Private Chef', description: 'Personal cooking service', duration: 180, price: 8000 }
+  ],
+  'health': [
+    { name: 'Health Checkup', description: 'Comprehensive health screening', duration: 60, price: 5000 },
+    { name: 'Physiotherapy', description: 'Physical therapy session', duration: 45, price: 3000 }
+  ],
+  'other': [
+    { name: 'Custom Service', description: 'Tailored service offering', duration: 60, price: 2000 }
   ]
 };

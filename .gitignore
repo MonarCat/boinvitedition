@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Exclude problematic mobile app directory for Netlify
+mobile/BoinvitApp/BoinvitApp/.git/

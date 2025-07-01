@@ -72,27 +72,15 @@ export const EnhancedSubscriptionPlans = ({
     setProcessingPlan(plan.id);
     
     try {
-      // Since Pay As You Go is the default revenue model, we don't need to create a subscription
-      const toastId = toast.loading('Activating Pay As You Go plan...');
-      
-      // Using a setTimeout to simulate the activation process
-      setTimeout(() => {
-        toast.dismiss(toastId);
-        toast.success('Pay As You Go plan activated successfully!', {
-          duration: 5000,
-          style: {
-            background: '#DC2626',
-            color: '#fff',
-            fontWeight: 'bold',
-          },
-        });
-      }, 1000);
-      
+      // Call the parent's onSelectPlan function with the plan information
+      onSelectPlan(plan.id, plan.interval, plan.price);
     } catch (error) {
       console.error('Plan activation error:', error);
       toast.error('Failed to activate plan. Please try again.');
     } finally {
-      setProcessingPlan(null);
+      setTimeout(() => {
+        setProcessingPlan(null);
+      }, 1500);
     }
   };
 

@@ -50,6 +50,27 @@ const SubscriptionPage = () => {
     
     console.log('Selecting plan:', { planId, interval, amount, businessId: business.id, paystackReference });
     
+    // Special handling for Pay As You Go plan (no subscription needed)
+    if (planId === 'payg') {
+      const toastId = toast.loading('🔄 Activating Pay As You Go plan...', { id: 'plan-activation' });
+      
+      // Simulate activation without creating a subscription record
+      setTimeout(() => {
+        toast.dismiss(toastId);
+        toast.success('Pay As You Go plan activated successfully!', {
+          duration: 5000,
+          style: {
+            background: '#DC2626',
+            color: '#fff',
+            fontWeight: 'bold',
+          },
+        });
+      }, 1000);
+      
+      return;
+    }
+    
+    // Handle other subscription plans normally
     try {
       toast.loading('🔄 Activating your plan...', { id: 'plan-activation' });
       
@@ -207,78 +228,11 @@ const SubscriptionPage = () => {
         <EnhancedSubscriptionPlans
           currentPlan={subscription?.plan_type}
           businessId={business.id}
-          customerEmail={user?.email}
           onSelectPlan={handleSelectPlan}
           isLoading={isCreatingSubscription}
         />
 
-        {/* Plan Comparison Details */}
-        <Card className="max-w-6xl mx-auto">
-          <CardHeader>
-            <CardTitle>Plan Details & Features</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 text-sm">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-orange-600" />
-                  <h4 className="font-semibold">Free Trial</h4>
-                </div>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• KES 10 initialization fee</li>
-                  <li>• 7 days full access</li>
-                  <li>• All features unlocked</li>
-                  <li>• Perfect for testing</li>
-                  <li>• No monthly charges</li>
-                </ul>
-              </div>
 
-              <div className="space-y-3">
-                <Badge className="bg-green-100 text-green-800 mb-2">Starter</Badge>
-                <h4 className="font-semibold">KES 399/month</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• 1 staff member</li>
-                  <li>• 500 bookings/month</li>
-                  <li>• Basic features</li>
-                  <li>• Email support</li>
-                </ul>
-              </div>
-             
-              <div className="space-y-3">
-                <Badge className="bg-blue-100 text-blue-800 mb-2">Economy</Badge>
-                <h4 className="font-semibold">KES 899/month</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• 5 staff members</li>
-                  <li>• 1,000 bookings/month</li>
-                  <li>• Basic features</li>
-                  <li>• Email support</li>
-                </ul>
-              </div>
-
-              <div className="space-y-3">
-                <Badge className="bg-orange-100 text-orange-800 mb-2">Most Popular</Badge>
-                <h4 className="font-semibold">Business - KES 2,900/month</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• 15 staff members</li>
-                  <li>• 5,000 bookings/month</li>
-                  <li>• Advanced features</li>
-                  <li>• Priority support</li>
-                </ul>
-              </div>
-
-              <div className="space-y-3">
-                <Badge className="bg-purple-100 text-purple-800 mb-2">Enterprise</Badge>
-                <h4 className="font-semibold">KES 8,900/month</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• Unlimited staff</li>
-                  <li>• Unlimited bookings</li>
-                  <li>• White-label solution</li>
-                  <li>• 24/7 support</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </DashboardLayout>
   );

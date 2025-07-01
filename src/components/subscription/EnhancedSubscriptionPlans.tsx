@@ -151,7 +151,7 @@ export const EnhancedSubscriptionPlans = ({
               className="relative border-4 border-red-500 shadow-2xl transform hover:scale-105 bg-gradient-to-br from-red-50 to-white transition-all duration-200 hover:shadow-lg"
             >
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                <Badge className="bg-red-600 text-white px-6 py-2 font-bold shadow-lg text-lg animate-pulse">
+                <Badge className="bg-red-600 text-white px-6 py-2 font-bold shadow-lg text-lg">
                   <Star className="w-4 h-4 mr-1" />
                   NO MONTHLY FEE
                 </Badge>
@@ -169,7 +169,7 @@ export const EnhancedSubscriptionPlans = ({
                   <div className="text-3xl font-bold text-red-600">
                     5% commission only
                   </div>
-                  <div className="text-lg text-red-600 font-bold mt-1 animate-pulse">
+                  <div className="text-lg text-red-600 font-bold mt-1">
                     No monthly subscription
                   </div>
                 </div>
@@ -188,7 +188,7 @@ export const EnhancedSubscriptionPlans = ({
                 <Button
                   onClick={() => handleSelectPlan(plan)}
                   disabled={isCurrentPlan || isProcessing || isLoading}
-                  className="w-full text-lg font-bold py-3 transition-all duration-200 bg-red-600 hover:bg-red-700 text-white shadow-xl transform hover:scale-105 animate-pulse"
+                  className="w-full text-lg font-bold py-3 transition-all duration-200 bg-red-600 hover:bg-red-700 text-white shadow-xl transform hover:scale-105"
                 >
                   {isCurrentPlan 
                     ? 'Current Plan' 

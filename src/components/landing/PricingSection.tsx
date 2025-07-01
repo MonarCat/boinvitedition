@@ -13,90 +13,24 @@ export const PricingSection = () => {
 
   const pricingPlans = [
     {
-      name: "Free Trial",
-      price: "KES 10 One-time fee",
-      period: "/7 days",
-      features: [
-        "Full Medium Plan access",
-        "All premium features",
-        "No credit card required",
-        "Email support",
-        "Complete business management"
-      ],
-      popular: true
-    },
-    {
-      name: "Starter Plan",
-      price: "KES 399",
-      period: "/month",
-      features: [
-        "Up to 1 staff member",
-        "500 bookings/month",
-        "QR code booking system",
-        "WhatsApp notifications",
-        "Basic analytics",
-        "Email support"
-      ],
-      popular: false
-    },
-    {
-      name: "Economy Plan",
-      price: "KES 899",
-      period: "/month",
-      features: [
-        "Up to 5 staff members",
-        "1,000 bookings/month",
-        "QR code booking system",
-        "WhatsApp notifications",
-        "Basic analytics",
-        "Email support"
-      ],
-      popular: false
-    },
-    {
-      name: "Business Plan",
-      price: "KES 2900",
-      period: "/month",
-      features: [
-        "Up to 15 staff members",
-        "3,000 bookings/month",
-        "QR code booking system",
-        "WhatsApp notifications",
-        "Advanced analytics",
-        "Priority email support",
-        "Custom branding"
-      ],
-      popular: false
-    },
-    {
-      name: "Enterprise Plan",
-      price: "KES 8900",
-      period: "/month",
-      features: [
-        "Unlimited staff & bookings",
-        "Multi-location support",
-        "Advanced reporting",
-        "API access",
-        "Priority support",
-        "Custom integrations",
-        "White-label options"
-      ],
-      popular: false
-    },
-    {
       name: "Pay As You Go",
       price: "5% Commission",
       period: "/transaction",
       features: [
-        "No monthly fees",
-        "Pay only when you earn",
-        "Unlimited staff & bookings",
-        "All premium features",
+        "No monthly subscription fees",
+        "Only 5% commission on payments received",
+        "Unlimited staff members",
+        "Unlimited bookings",
+        "Full platform access",
+        "QR code booking system",
+        "WhatsApp notifications",
         "Advanced analytics",
-        "Priority support",
-        "Perfect for seasonal businesses"
+        "Custom branding",
+        "White-label options",
+        "API access",
+        "24/7 priority support"
       ],
-      popular: false
+      popular: true
     }
   ];
 
@@ -118,7 +52,7 @@ export const PricingSection = () => {
                   Simple, Transparent Pricing
                 </h2>
                 <p className="text-lg text-gray-600">
-                  Choose the plan that fits your business needs - start with a free trial
+                  Simple Pay As You Go - Only pay when you receive payments
                 </p>
               </div>
 

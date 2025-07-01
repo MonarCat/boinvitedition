@@ -50,6 +50,7 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
       case 'starter': return 'Starter Plan';
       case 'medium': return 'Business Plan';
       case 'premium': return 'Enterprise Plan';
+      case 'payg': return 'Pay As You Go';
       default: return planType;
     }
   };

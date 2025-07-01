@@ -37,8 +37,8 @@ export const DashboardHeader: React.FC<Props> = ({
             <SelectItem value="dark">Dark</SelectItem>
           </SelectContent>
         </Select>
-        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-          Pro Plan
+        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+          Pay As You Go
         </Badge>
         <Button onClick={onNewBooking}>+ New Booking</Button>
       </div>

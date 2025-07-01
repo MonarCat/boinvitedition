@@ -167,12 +167,12 @@ export const DashboardKPISection = ({
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-royal-red">Upgrade Your Business Management</h3>
+              <h3 className="font-semibold text-royal-red">Pay As You Go Plan</h3>
               <p className="text-sm text-gray-700 mt-1">
-                <strong>Medium Plan: KES 2,900/month</strong> • <strong>Premium Plan: KES 8,900/month</strong>
+                <strong>Only 5% commission on payments received</strong> • <strong>No monthly fees</strong>
               </p>
               <p className="text-xs text-gray-600 mt-1">
-                Complete business management: bookings, invoicing, staff management, analytics, payments & more
+                Unlimited staff, unlimited bookings, full platform access and priority support
               </p>
             </div>
             <Button 
@@ -181,7 +181,7 @@ export const DashboardKPISection = ({
               className="bg-royal-red hover:bg-royal-red/90 text-white"
             >
               <ArrowUp className="w-4 h-4 mr-1" />
-              Upgrade Now
+              Manage Plan
             </Button>
           </div>
         </CardContent>

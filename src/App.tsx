@@ -65,7 +65,7 @@ const App = () => {
     const contrastHandler = (e: MediaQueryListEvent) => setHighContrastMode(e.matches);
     
     motionQuery.addEventListener('change', motionHandler);
-    contrastQuery.addEventListener('change', contrastHandler);
+    contrastQuery.addEventListener('change', motionHandler);
     
     return () => {
       motionQuery.removeEventListener('change', motionHandler);
@@ -105,7 +105,7 @@ const App = () => {
   return (
     <>
       <SecurityHeaders />
-      <ThemeProvider defaultTheme="system" storageKey="boinvit-ui-theme">
+      <ThemeProvider defaultTheme="light" storageKey="boinvit-ui-theme">
         <ResponsiveProvider>
           <MotionConfig reducedMotion={prefersReducedMotion ? "always" : "never"}>
             <QueryClientProvider client={queryClient}>

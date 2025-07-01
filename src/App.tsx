@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -105,7 +106,7 @@ const App = () => {
   return (
     <>
       <SecurityHeaders />
-      <ThemeProvider defaultTheme="system" storageKey="boinvit-ui-theme">
+      <ThemeProvider defaultTheme="light" storageKey="boinvit-ui-theme">
         <ResponsiveProvider>
           <MotionConfig reducedMotion={prefersReducedMotion ? "always" : "never"}>
             <QueryClientProvider client={queryClient}>

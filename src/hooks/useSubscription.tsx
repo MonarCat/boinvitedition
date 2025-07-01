@@ -58,7 +58,7 @@ export const useSubscription = () => {
     subscription.status === 'active' && 
     new Date(subscription.current_period_end) > new Date();
 
-  // Create or upgrade subscription using a direct database call
+  // Create or upgrade subscription
   const createSubscriptionMutation = useMutation({
     mutationFn: async ({ 
       planType, 
@@ -120,35 +120,55 @@ export const useSubscription = () => {
           break;
       }
 
+      // First, verify the business exists and belongs to the user
+      const { data: businessData, error: businessError } = await supabase
+        .from('businesses')
+        .select('id, user_id')
+        .eq('id', businessId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (businessError || !businessData) {
+        console.error('Business verification failed:', businessError);
+        throw new Error('Business not found or access denied');
+      }
+
       // Create the subscription
       const subscriptionData = {
         user_id: user.id,
         business_id: businessId,
         plan_type: planType,
-        status: 'active',
+        status: 'active' as const,
         current_period_end: periodEnd.toISOString(),
         staff_limit: staffLimit,
         bookings_limit: bookingsLimit,
         payment_interval: planType === 'trial' ? 'trial' : planType === 'payg' ? 'commission' : paymentInterval,
         commission_rate: commissionRate,
         trial_ends_at: planType === 'trial' ? periodEnd.toISOString() : null,
+        paystack_reference: paystackReference || null,
       };
 
+      console.log('Upserting subscription data:', subscriptionData);
+
+      // Use the proper constraint for upsert
       const { data, error } = await supabase
         .from('subscriptions')
-        .upsert(subscriptionData)
+        .upsert(subscriptionData, { 
+          onConflict: 'user_id,business_id',
+          ignoreDuplicates: false 
+        })
         .select()
         .single();
 
       if (error) {
-        console.error('Subscription update error:', error);
-        throw error;
+        console.error('Subscription upsert error:', error);
+        throw new Error(`Failed to create subscription: ${error.message}`);
       }
 
       // Record payment transaction if paystack reference provided
-      if (paystackReference && amount) {
+      if (paystackReference && amount && planType !== 'trial') {
         try {
-          await supabase
+          const { error: transactionError } = await supabase
             .from('payment_transactions')
             .insert({
               business_id: businessId,
@@ -159,41 +179,45 @@ export const useSubscription = () => {
               amount: amount,
               currency: 'KES'
             });
+
+          if (transactionError) {
+            console.error('Payment transaction error:', transactionError);
+            // Don't fail the subscription creation if payment logging fails
+          }
         } catch (paymentError) {
           console.error('Payment transaction error:', paymentError);
-          // Don't fail the subscription creation if payment logging fails
         }
       }
 
-      console.log('Subscription updated successfully:', data);
+      console.log('Subscription created successfully:', data);
       return data;
     },
     onSuccess: (data, variables) => {
       console.log('Subscription mutation success:', { data, variables });
       
       if (variables.planType === 'trial') {
-        toast.success('Free trial started! You have 7 days of full access.');
+        toast.success('🎉 Free trial activated! You have 7 days of full access.');
       } else if (variables.planType === 'payg') {
-        toast.success('Pay As You Go plan activated! You will only be charged 5% when you get paid.');
+        toast.success('💰 Pay As You Go plan activated! You will only be charged 5% when you get paid.');
       } else {
-        const isUpgrade = subscription && getPlanLevel(variables.planType) > getPlanLevel(subscription.plan_type);
-        const isDowngrade = subscription && getPlanLevel(variables.planType) < getPlanLevel(subscription.plan_type);
-        
-        if (isUpgrade) {
-          toast.success(`Successfully upgraded to ${variables.planType} plan!`);
-        } else if (isDowngrade) {
-          toast.success(`Successfully changed to ${variables.planType} plan!`);
-        } else {
-          toast.success(`Successfully subscribed to ${variables.planType} plan!`);
-        }
+        const planNames = {
+          starter: 'Starter',
+          economy: 'Economy', 
+          medium: 'Business',
+          premium: 'Enterprise'
+        };
+        const planName = planNames[variables.planType as keyof typeof planNames] || variables.planType;
+        toast.success(`🚀 Successfully activated ${planName} plan!`);
       }
       
       // Invalidate and refetch subscription data
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['user-business'] });
     },
     onError: (error: any) => {
       console.error('Subscription error:', error);
-      toast.error('Failed to update subscription. Please try again.');
+      const errorMessage = error?.message || 'Unknown error occurred';
+      toast.error(`❌ Failed to activate plan: ${errorMessage}`);
     },
   });
 

@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +24,7 @@ interface ClientToBusinessPaymentProps {
   };
   onSuccess?: () => void;
   onClose?: () => void;
+  isMobile?: boolean;
 }
 
 export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = ({
@@ -33,7 +35,8 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
   bookingId,
   bookingDetails,
   onSuccess,
-  onClose
+  onClose,
+  isMobile = false
 }) => {
   useEffect(() => {
     // Preload Paystack script when payment component mounts

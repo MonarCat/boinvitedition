@@ -1347,6 +1347,7 @@ export type Database = {
           id: string
           notification_channels: Json | null
           payment_interval: string | null
+          paystack_reference: string | null
           paystack_subaccount_id: string | null
           plan_type: string
           split_percentage: number | null
@@ -1368,6 +1369,7 @@ export type Database = {
           id?: string
           notification_channels?: Json | null
           payment_interval?: string | null
+          paystack_reference?: string | null
           paystack_subaccount_id?: string | null
           plan_type: string
           split_percentage?: number | null
@@ -1389,6 +1391,7 @@ export type Database = {
           id?: string
           notification_channels?: Json | null
           payment_interval?: string | null
+          paystack_reference?: string | null
           paystack_subaccount_id?: string | null
           plan_type?: string
           split_percentage?: number | null

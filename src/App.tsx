@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -65,7 +66,7 @@ const App = () => {
     const contrastHandler = (e: MediaQueryListEvent) => setHighContrastMode(e.matches);
     
     motionQuery.addEventListener('change', motionHandler);
-    contrastQuery.addEventListener('change', motionHandler);
+    contrastQuery.addEventListener('change', contrastHandler);
     
     return () => {
       motionQuery.removeEventListener('change', motionHandler);

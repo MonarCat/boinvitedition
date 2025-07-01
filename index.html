@@ -151,10 +151,10 @@
                 const newWorker = registration.installing;
                 newWorker?.addEventListener('statechange', () => {
                   if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    // New content is available
-                    if (confirm('New version available! Reload to update?')) {
-                      window.location.reload();
-                    }
+                    // New content is available - our custom component will handle this
+                    // instead of using a blocking confirm dialog
+                    const updateEvent = new CustomEvent('boinvit:updateAvailable');
+                    window.dispatchEvent(updateEvent);
                   }
                 });
               });

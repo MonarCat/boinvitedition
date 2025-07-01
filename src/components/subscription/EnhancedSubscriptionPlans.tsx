@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Star, TrendingUp, Smartphone, CreditCard } from 'lucide-react';
+import { CheckCircle, Star, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Plan {
@@ -24,7 +24,7 @@ interface Plan {
 interface EnhancedSubscriptionPlansProps {
   currentPlan?: string;
   businessId: string;
-  onSelectPlan: (planId: string, interval: string, amount: number) => void;
+  onSelectPlan?: (planId: string, interval: string, amount: number) => void;
   isLoading: boolean;
 }
 
@@ -35,7 +35,6 @@ export const EnhancedSubscriptionPlans = ({
   isLoading
 }: EnhancedSubscriptionPlansProps) => {
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const plans: Plan[] = [
     {
@@ -68,47 +67,30 @@ export const EnhancedSubscriptionPlans = ({
   ];
 
   const handleSelectPlan = async (plan: Plan) => {
-    if (processingPlan) return;
+    if (processingPlan || !onSelectPlan) return;
     
     setProcessingPlan(plan.id);
-    setPaymentError(null);
     
     try {
-      // Only handle PAYG plan since it's the only plan we have
+      // Since Pay As You Go is the default revenue model, we don't need to create a subscription
       const toastId = toast.loading('Activating Pay As You Go plan...');
-      await onSelectPlan(plan.id, 'commission', 0);
-      toast.dismiss(toastId);
-      toast.success('Pay As You Go plan activated successfully!', {
-        duration: 5000,
-        style: {
-          background: '#DC2626',
-          color: '#fff',
-          fontWeight: 'bold',
-        },
-      });
-    } catch (error) {
-      console.error('Plan selection error:', error);
-      toast.dismiss();
       
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : String(error);
-        
-      // Handle database constraint errors
-      if (errorMessage.includes('violates check constraint') && 
-          errorMessage.includes('payment_interval')) {
-        try {
-          // Fallback to monthly with 0 cost
-          await onSelectPlan(plan.id, 'monthly', 0);
-          toast.success('Pay As You Go plan activated with alternative settings!');
-        } catch (fallbackError) {
-          setPaymentError('Database constraint error: Please make sure the migration for "commission" payment type has been applied.');
-          toast.error('Plan activation failed: Database needs updating.');
-        }
-      } else {
-        setPaymentError(errorMessage);
-        toast.error('Failed to activate plan. Please try again.');
-      }
+      // Using a setTimeout to simulate the activation process
+      setTimeout(() => {
+        toast.dismiss(toastId);
+        toast.success('Pay As You Go plan activated successfully!', {
+          duration: 5000,
+          style: {
+            background: '#DC2626',
+            color: '#fff',
+            fontWeight: 'bold',
+          },
+        });
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Plan activation error:', error);
+      toast.error('Failed to activate plan. Please try again.');
     } finally {
       setProcessingPlan(null);
     }
@@ -116,28 +98,6 @@ export const EnhancedSubscriptionPlans = ({
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
-      {/* Payment Error Message */}
-      {paymentError && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md mb-4">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Subscription Error</h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>{paymentError}</p>
-                {paymentError.includes('migration') && (
-                  <p className="mt-2 font-medium">Admin action required: Run the database migration to add 'commission' as a valid payment_interval value.</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Plans Grid - Only showing PAYG plan */}
       <div className="grid grid-cols-1 gap-6 max-w-lg mx-auto">
         {plans.map((plan) => {

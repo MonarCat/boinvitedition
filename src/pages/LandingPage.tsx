@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,9 +22,15 @@ import {
 } from 'lucide-react';
 import { GlobalPartnersSlider } from '@/components/landing/GlobalPartnersSlider';
 import { PricingSection } from '@/components/landing/PricingSection';
+import { ensureAuthButtonsVisible } from '@/utils/buttonVisibility';
 
 const LandingPage = () => {
   const navigate = useNavigate();
+
+  // Ensure auth buttons stay visible and aren't covered by update prompts
+  useEffect(() => {
+    ensureAuthButtonsVisible();
+  }, []);
 
   const features = [
     {
@@ -126,13 +132,13 @@ const LandingPage = () => {
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/auth')}
-                className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white"
+                className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white auth-button relative z-50"
               >
                 Sign In
               </Button>
               <Button 
                 onClick={() => navigate('/auth')}
-                className="bg-royal-red hover:bg-royal-red/90 text-white"
+                className="bg-royal-red hover:bg-royal-red/90 text-white auth-button relative z-50"
               >
                 Get Started
               </Button>
@@ -142,7 +148,7 @@ const LandingPage = () => {
               <Button 
                 variant="outline"
                 onClick={() => navigate('/auth')}
-                className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white"
+                className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white auth-button relative z-50"
               >
                 Sign In
               </Button>

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -61,9 +60,15 @@ export const EnhancedPWAManager = () => {
       setPwaState(prev => ({ ...prev, updateAvailable: true }));
     };
 
+    // Listen for our custom update event
+    const handleUpdateEvent = () => {
+      setPwaState(prev => ({ ...prev, updateAvailable: true }));
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    window.addEventListener('boinvit:updateAvailable', handleUpdateEvent);
 
     // Check for service worker updates
     if ('serviceWorker' in navigator) {
@@ -74,6 +79,7 @@ export const EnhancedPWAManager = () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('boinvit:updateAvailable', handleUpdateEvent);
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.removeEventListener('controllerchange', handleServiceWorkerUpdate);
       }

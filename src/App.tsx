@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -18,11 +17,14 @@ import SafetyTips from "@/pages/SafetyTips";
 import NotFound from "@/pages/NotFound";
 import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
 import { EnhancedPWAManager } from "@/components/pwa/EnhancedPWAManager";
+import { UpdateNotification } from "@/components/pwa/UpdateNotification";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
 import { useEffect, useState } from "react";
 import { MotionConfig } from "framer-motion";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ResponsiveProvider } from "@/hooks/use-mobile";
+import { setupUpdatePromptOverride } from "@/utils/dismissUpdatePrompt";
+import { ensureAuthButtonsVisible } from "@/utils/buttonVisibility";
 
 // Breakpoints for responsive design following Calendly & Odoo patterns
 const BREAKPOINTS = {
@@ -31,6 +33,8 @@ const BREAKPOINTS = {
   TABLET: 1024,
   DESKTOP: 1200
 };
+
+const APP_VERSION = '3.1.0';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,6 +71,10 @@ const App = () => {
     
     motionQuery.addEventListener('change', motionHandler);
     contrastQuery.addEventListener('change', contrastHandler);
+
+    // Setup the update prompt override and ensure auth buttons stay visible
+    setupUpdatePromptOverride();
+    ensureAuthButtonsVisible();
     
     return () => {
       motionQuery.removeEventListener('change', motionHandler);
@@ -77,7 +85,7 @@ const App = () => {
   // Enhanced feature verification console log
   console.log('🚀 Boinvit Mobile-First PWA Loaded:', {
     timestamp: new Date().toISOString(),
-    version: '3.1.0',
+    version: APP_VERSION,
     features: {
       '✅ Mobile-First Design': 'Bottom tabs, gestures, FAB',
       '✅ PWA Enhancements': 'Enhanced install, notifications, offline',
@@ -166,6 +174,7 @@ const App = () => {
                       
                       {/* Enhanced PWA Manager */}
                       <EnhancedPWAManager />
+                      <UpdateNotification version={APP_VERSION} />
                       <WhatsAppFAB />
                     </div>
                   </AuthProvider>

@@ -34,8 +34,8 @@ export const PaymentAmountDisplay: React.FC<PaymentAmountDisplayProps> = ({
             <span className="font-medium">{formatCurrency(amount * 0.97, currency)}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span>Platform fee (3%):</span>
-            <span className="font-medium">{formatCurrency(amount * 0.03, currency)}</span>
+            <span>Platform fee (5%):</span>
+            <span className="font-medium">{formatCurrency(amount * 0.05, currency)}</span>
           </div>
         </div>
       )}

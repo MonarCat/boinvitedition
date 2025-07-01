@@ -66,22 +66,10 @@ export const EnhancedSubscriptionPlans = ({
     }
   ];
 
+  // No active selection needed as Pay As You Go is the default plan for all users
+  // This function is kept for compatibility but no longer used
   const handleSelectPlan = async (plan: Plan) => {
-    if (processingPlan || !onSelectPlan) return;
-    
-    setProcessingPlan(plan.id);
-    
-    try {
-      // Call the parent's onSelectPlan function with the plan information
-      onSelectPlan(plan.id, plan.interval, plan.price);
-    } catch (error) {
-      console.error('Plan activation error:', error);
-      toast.error('Failed to activate plan. Please try again.');
-    } finally {
-      setTimeout(() => {
-        setProcessingPlan(null);
-      }, 1500);
-    }
+    // No action needed - Pay As You Go is the default
   };
 
   return (
@@ -134,15 +122,10 @@ export const EnhancedSubscriptionPlans = ({
                 </ul>
 
                 <Button
-                  onClick={() => handleSelectPlan(plan)}
-                  disabled={isCurrentPlan || isProcessing || isLoading}
-                  className="w-full text-lg font-bold py-3 transition-all duration-200 bg-red-600 hover:bg-red-700 text-white shadow-xl transform hover:scale-105"
+                  className="w-full text-lg font-bold py-3 transition-all duration-200 bg-green-600 hover:bg-green-700 text-white shadow-xl"
+                  disabled={true}
                 >
-                  {isCurrentPlan 
-                    ? 'Current Plan' 
-                    : isProcessing 
-                    ? 'Processing...' 
-                    : '🚀 START PAY AS YOU GO'}
+                  ✓ DEFAULT ACTIVE PLAN
                 </Button>
               </CardContent>
             </Card>

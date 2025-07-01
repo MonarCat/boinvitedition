@@ -167,10 +167,15 @@ const SubscriptionPage = () => {
     <DashboardLayout>
       <div className="space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Pay As You Go</h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Flexible pricing options to match your business needs. Secure payments with instant activation.
+            Our default revenue model - no monthly fees, just a 5% commission on payments you receive.
           </p>
+          <div className="mt-3">
+            <span className="bg-green-100 text-green-800 px-4 py-1 rounded-full text-sm font-medium inline-flex items-center">
+              ✓ Active for all accounts
+            </span>
+          </div>
         </div>
 
         {subscription && (

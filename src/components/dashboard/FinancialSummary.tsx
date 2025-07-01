@@ -31,10 +31,10 @@ export const FinancialSummary = ({ transactions = [], isLoading = false }: Finan
       case 'payg': return 0.05; // 5%
       case 'trial': 
       case 'starter':
-      case 'economy': return 0.03; // 3%
-      case 'medium': return 0.02; // 2%
-      case 'premium': return 0; // 0%
-      default: return 0.03;
+      case 'economy': return 0.05; // 5%
+      case 'medium': return 0.05; // 5%
+      case 'premium': return 0.05; // 5%
+      default: return 0.05;
     }
   };
   

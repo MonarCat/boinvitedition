@@ -101,7 +101,7 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
               {formatCurrency(transactions.reduce((sum, t) => sum + Number(t.platform_fee || 0), 0))}
             </div>
             <p className="text-xs text-muted-foreground">
-              3% of total transaction value
+              5% of total transaction value
             </p>
           </CardContent>
         </Card>
@@ -191,8 +191,8 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
         <CardContent className="p-4">
           <h5 className="font-medium text-blue-900 mb-2">Revenue Sharing Information</h5>
           <div className="text-sm text-blue-800 space-y-1">
-            <p>• Platform fee: 3% per transaction (reduced from 5%!)</p>
-            <p>• You receive: 97% of each payment</p>
+            <p>• Platform fee: 5% commission per transaction</p>
+            <p>• You receive: 95% of each payment</p>
             <p>• Payouts processed within 24 hours</p>
             <p>• Real-time transaction tracking</p>
           </div>

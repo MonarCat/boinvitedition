@@ -219,8 +219,8 @@ export const BusinessPayoutSettings: React.FC<BusinessPayoutSettingsProps> = ({ 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h5 className="font-medium text-blue-900 mb-2">Revenue Sharing</h5>
           <div className="text-sm text-blue-800 space-y-1">
-            <p>• Platform fee: 3% per transaction (reduced from 5%!)</p>
-            <p>• You receive: 97% of each payment</p>
+            <p>• Platform fee: 5% commission per transaction</p>
+            <p>• You receive: 95% of each payment</p>
             <p>• Payouts processed within 24 hours</p>
             <p>• Real-time transaction tracking</p>
           </div>

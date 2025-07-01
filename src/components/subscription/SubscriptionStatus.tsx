@@ -17,27 +17,29 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   onUpgrade,
   businessId
 }) => {
+  // If no subscription exists, default to Pay As You Go
   if (!subscription) {
     return (
-      <Card className="border-orange-200 bg-orange-50">
+      <Card className="border-green-200 bg-green-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-orange-600" />
-            No Active Subscription
+            <Crown className="w-5 h-5 text-green-600" />
+            Pay As You Go
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-gray-600 mb-4">
-            Start your 14-day free trial to access all features.
+            You are on our default Pay As You Go model - no monthly fees, just a 5% commission on payments.
           </p>
-          <Button onClick={onUpgrade} className="w-full">
-            Start Free Trial
-          </Button>
+          <div className="bg-green-100 p-3 rounded-lg">
+            <p className="text-sm text-green-800">✓ Active with full platform access</p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
+  const isPAYG = subscription.plan_type === 'payg';
   const isTrialPlan = subscription.plan_type === 'trial';
   const trialEndsAt = subscription.trial_ends_at ? new Date(subscription.trial_ends_at) : null;
   const daysRemaining = trialEndsAt ? differenceInDays(trialEndsAt, new Date()) : 0;
@@ -61,6 +63,41 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
     return 'bg-green-100 text-green-800';
   };
 
+  // Special display for Pay As You Go (PAYG) plan
+  if (isPAYG) {
+    return (
+      <Card className="border-green-200 bg-green-50">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-green-600" />
+              Pay As You Go
+            </div>
+            <Badge className="bg-green-100 text-green-800">
+              Active
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2 text-sm">
+            <Users className="w-4 h-4" />
+            <span>Unlimited staff members</span>
+          </div>
+          
+          <div className="flex items-center gap-2 text-sm">
+            <BookOpen className="w-4 h-4" />
+            <span>Unlimited bookings</span>
+          </div>
+          
+          <div className="bg-green-100 p-3 rounded-lg">
+            <p className="text-sm text-green-800">5% commission on payments only, no monthly fees</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // For any other plan types (which should be rare/none as PAYG is default)
   return (
     <Card className={`${isExpiring ? 'border-orange-200 bg-orange-50' : isExpired ? 'border-red-200 bg-red-50' : ''}`}>
       <CardHeader>
@@ -99,17 +136,15 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
           </div>
         )}
 
-        {(isTrialPlan || isExpiring || isExpired) && (
-          <div className="pt-4 border-t">
-            <Button 
-              onClick={onUpgrade} 
-              className="w-full"
-              variant={isExpired ? 'default' : 'outline'}
-            >
-              {isExpired ? 'Reactivate Subscription' : 'Upgrade Plan'}
-            </Button>
-          </div>
-        )}
+        {/* For any non-PAYG plan, always show option to switch to Pay As You Go */}
+        <div className="pt-4 border-t">
+          <Button 
+            onClick={onUpgrade} 
+            className="w-full bg-red-600 hover:bg-red-700 text-white"
+          >
+            Switch to Pay As You Go
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

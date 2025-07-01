@@ -27,14 +27,8 @@ export const processBookingPayment = async (booking, paymentInfo, user) => {
     let serviceFee = 0;
     
     // Calculate service fee based on subscription type
-    if (!userSubscription || userSubscription.plan_type === 'payg') {
-      // Apply 5% commission for PAYG users
-      serviceFee = booking.amount * 0.05;
-    } else if (['trial', 'starter', 'economy'].includes(userSubscription.plan_type)) {
-      // Apply standard fees for Basic/Economy users - 3%
-      serviceFee = booking.amount * 0.03;
-    }
-    // Premium users don't pay commission
+    // All users pay the standard 5% commission on payments
+    serviceFee = booking.amount * 0.05;
     
     const totalAmount = booking.amount;
     const netAmount = booking.amount - serviceFee;
@@ -55,7 +49,7 @@ export const processBookingPayment = async (booking, paymentInfo, user) => {
         transaction_type: 'client_to_business',
         metadata: {
           subscription_type: userSubscription?.plan_type || 'payg',
-          commission_rate: userSubscription?.plan_type === 'payg' ? 0.05 : 0.03,
+          commission_rate: 0.05, // Standard 5% commission for all plans
           booking_details: {
             service_name: booking.service_name,
             customer_name: booking.customer_name,

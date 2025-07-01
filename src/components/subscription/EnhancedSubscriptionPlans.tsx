@@ -1,35 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Star, Clock, Users, TrendingUp, Zap, Crown, Smartphone, CreditCard } from 'lucide-react';
+import { CheckCircle, Star, TrendingUp, Smartphone, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Paystack public key from environment variable or config
-const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_your_paystack_public_key_here';
-
-// Define Paystack interface to avoid TypeScript errors
-interface PaystackResponse {
-  reference: string;
-  status: string;
-  message: string;
-  transaction: string;
-}
-
-interface PaystackHandler {
-  openIframe: () => void;
-}
-
-interface PaystackPopInterface {
-  setup: (config: Record<string, unknown>) => PaystackHandler;
-}
-
-// Add Paystack to Window interface
-declare global {
-  interface Window {
-    PaystackPop?: PaystackPopInterface;
-  }
-}
+// No Paystack integration needed for commission-only model
 
 interface Plan {
   id: string;
@@ -51,89 +27,29 @@ interface Plan {
 interface EnhancedSubscriptionPlansProps {
   currentPlan?: string;
   businessId: string;
-  customerEmail?: string;
-  onSelectPlan: (planId: string, interval: string, amount: number, paystackReference?: string) => void;
+  onSelectPlan: (planId: string, interval: string, amount: number) => void;
   isLoading: boolean;
 }
 
 export const EnhancedSubscriptionPlans = ({
   currentPlan,
   businessId,
-  customerEmail,
   onSelectPlan,
   isLoading
 }: EnhancedSubscriptionPlansProps) => {
-  const [selectedInterval, setSelectedInterval] = useState<'monthly' | 'yearly'>('monthly');
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const [isPaystackLoaded, setIsPaystackLoaded] = useState<boolean>(false);
 
-  // Load Paystack script dynamically
-  useEffect(() => {
-    const loadPaystackScript = () => {
-      // Check if script is already loaded
-      if (window.PaystackPop || document.getElementById('paystack-script')) {
-        setIsPaystackLoaded(true);
-        return;
-      }
-      
-      const script = document.createElement('script');
-      script.id = 'paystack-script';
-      script.src = 'https://js.paystack.co/v1/inline.js';
-      script.async = true;
-      
-      script.onload = () => {
-        console.log('Paystack script loaded successfully');
-        setIsPaystackLoaded(true);
-      };
-      
-      script.onerror = () => {
-        console.error('Failed to load Paystack script');
-        toast.error('Payment system failed to load. Please refresh the page.');
-      };
-      
-      document.body.appendChild(script);
-    };
-    
-    loadPaystackScript();
-    
-    // Cleanup function
-    return () => {
-      const script = document.getElementById('paystack-script');
-      if (script) {
-        // script.remove(); // Uncomment if you want to remove script on component unmount
-      }
-    };
-  }, []);
+  // No need for Paystack script for commission-only model
 
   const plans: Plan[] = [
-    {
-      id: 'trial',
-      name: 'Free Trial',
-      price: 10,
-      currency: 'KES',
-      interval: 'one-time',
-      description: '7-day trial with full access',
-      icon: Clock,
-      color: 'orange',
-      staffLimit: 3,
-      bookingsLimit: 100,
-      features: [
-        '7 days full platform access',
-        'Up to 3 staff members',
-        'Up to 100 bookings',
-        'QR code generation',
-        'Basic support',
-        'Payment integration'
-      ]
-    },
     {
       id: 'payg',
       name: 'Pay As You Go',
       price: 0,
       currency: 'KES',
       interval: 'commission',
-      description: 'Only pay when you get paid',
+      description: 'Only pay when you get paid - 5% commission',
       icon: TrendingUp,
       color: 'red',
       recommended: true,
@@ -147,93 +63,11 @@ export const EnhancedSubscriptionPlans = ({
         'Unlimited bookings',
         'Full platform access',
         'Priority support',
-        'Advanced analytics'
-      ]
-    },
-    {
-      id: 'starter',
-      name: 'Starter',
-      price: 399,
-      yearlyPrice: 3990,
-      currency: 'KES',
-      interval: selectedInterval,
-      description: 'Perfect for solo entrepreneurs',
-      icon: Users,
-      color: 'blue',
-      staffLimit: 1,
-      bookingsLimit: 500,
-      features: [
-        '1 staff member',
-        'Up to 500 bookings/month',
-        'Basic features',
-        'Email support',
-        'QR code generation',
-        'Payment processing'
-      ]
-    },
-    {
-      id: 'economy',
-      name: 'Economy',
-      price: 899,
-      yearlyPrice: 8990,
-      currency: 'KES',
-      interval: selectedInterval,
-      description: 'Great for small teams',
-      icon: Zap,
-      color: 'purple',
-      popular: true,
-      staffLimit: 5,
-      bookingsLimit: 1000,
-      features: [
-        '5 staff members',
-        'Up to 1,000 bookings/month',
-        'Advanced features',
-        'Priority support',
+        'Advanced analytics',
         'Custom branding',
-        'Analytics dashboard'
-      ]
-    },
-    {
-      id: 'medium',
-      name: 'Business',
-      price: 2900,
-      yearlyPrice: 29000,
-      currency: 'KES',
-      interval: selectedInterval,
-      description: 'For growing businesses',
-      icon: Crown,
-      color: 'indigo',
-      staffLimit: 15,
-      bookingsLimit: 5000,
-      features: [
-        '15 staff members',
-        'Up to 5,000 bookings/month',
-        'Premium features',
-        'Priority support',
         'White-label options',
-        'Advanced reporting'
-      ]
-    },
-    {
-      id: 'premium',
-      name: 'Enterprise',
-      price: 8900,
-      yearlyPrice: 89000,
-      currency: 'KES',
-      interval: selectedInterval,
-      description: 'Enterprise solution',
-      icon: Star,
-      color: 'gold',
-      staffLimit: null,
-      bookingsLimit: null,
-      features: [
-        'Unlimited staff members',
-        'Unlimited bookings',
-        'All premium features',
-        '24/7 priority support',
-        'Complete white-labeling',
         'API access',
-        'Dedicated account manager'
+        '24/7 priority support'
       ]
     }
   ];
@@ -245,114 +79,46 @@ export const EnhancedSubscriptionPlans = ({
     setPaymentError(null);
     
     try {
-      if (plan.id === 'trial') {
-        await onSelectPlan(plan.id, 'trial', plan.price);
-        toast.success('Free trial activated!');
-      } else if (plan.id === 'payg') {
-        // Ensure we correctly set the payment_interval to 'commission'
-        try {
-          // Double-check we're using the right interval type for PAYG
-          const toastId = toast.loading('Activating Pay As You Go plan...');
-          await onSelectPlan(plan.id, 'commission', 0);
-          toast.dismiss(toastId);
-          toast.success('Pay As You Go plan activated successfully!', {
-            duration: 5000,
-            style: {
-              background: '#10B981',
-              color: '#fff',
-              fontWeight: 'bold',
-            },
-          });
-        } catch (payAsYouGoError) {
-          console.error('PAYG error:', payAsYouGoError);
-          toast.dismiss();
-          
-          // Check if the error is related to our database constraint
-          const errorMessage = payAsYouGoError instanceof Error 
-            ? payAsYouGoError.message 
-            : String(payAsYouGoError);
-            
-          // Fallback for constraint errors
-          if (errorMessage.includes('violates check constraint') && 
-              errorMessage.includes('payment_interval')) {
-            // Try alternative approach - some systems may use different enum values
-            try {
-              await onSelectPlan(plan.id, 'monthly', 0); // Fallback to monthly with 0 cost
-              toast.success('Pay As You Go plan activated with alternative settings!');
-              return;
-            } catch (fallbackError) {
-              setPaymentError('Database constraint error: Please make sure the migration for "commission" payment type has been applied.');
-              toast.error('Plan activation failed: Database needs updating.');
-            }
-          } else {
-            setPaymentError(errorMessage);
-            toast.error('Failed to activate Pay As You Go plan.');
-          }
-          
-          throw payAsYouGoError;
-        }
-      } else {
-        const amount = selectedInterval === 'yearly' ? (plan.yearlyPrice || plan.price * 12) : plan.price;
+      // Since we only have PAYG plan, ensure we correctly set the payment_interval to 'commission'
+      try {
+        const toastId = toast.loading('Activating Pay As You Go plan...');
+        await onSelectPlan(plan.id, 'commission', 0);
+        toast.dismiss(toastId);
+        toast.success('Pay As You Go plan activated successfully!', {
+          duration: 5000,
+          style: {
+            background: '#10B981',
+            color: '#fff',
+            fontWeight: 'bold',
+          },
+        });
+      } catch (payAsYouGoError) {
+        console.error('PAYG error:', payAsYouGoError);
+        toast.dismiss();
         
-        // For paid plans, integrate with Paystack
-        if (typeof window !== 'undefined' && window.PaystackPop && isPaystackLoaded) {
-          // Function to handle Paystack integration
-          try {
-            const paystackHandler = window.PaystackPop.setup({
-              key: PAYSTACK_PUBLIC_KEY,
-              email: customerEmail || 'customer@example.com',
-              amount: amount * 100, // Paystack expects amount in kobo
-              currency: 'KES',
-              ref: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              metadata: {
-                business_id: businessId,
-                plan_type: plan.id,
-                interval: selectedInterval
-              },
-              callback: function(response: PaystackResponse) {
-                try {
-                  onSelectPlan(plan.id, selectedInterval, amount, response.reference);
-                  toast.success(`${plan.name} plan activated!`);
-                } catch (callbackError) {
-                  console.error('Payment callback error:', callbackError);
-                  setPaymentError('Payment was processed but plan activation failed.');
-                  toast.error('Payment processed but plan activation failed.');
-                }
-              },
-              onClose: function() {
-                setProcessingPlan(null);
-                console.log('Payment window closed');
-              }
-            });
-            paystackHandler.openIframe();
-          } catch (paystackError) {
-            console.error('Paystack error:', paystackError);
-            setPaymentError('Payment gateway error. Please try again.');
-            throw paystackError;
-          }
-        } else if (!isPaystackLoaded) {
-          // Paystack script failed to load
-          setPaymentError('Payment system not loaded. Please refresh the page and try again.');
-          toast.error('Payment system not loaded. Please refresh the page.');
-        } else {
-          // Fallback for testing - USE ONLY IN DEVELOPMENT ENVIRONMENT
-          console.warn('Using fallback payment method - FOR TESTING ONLY');
-          const toastId = toast.loading('Processing payment (TEST MODE)...');
+        // Check if the error is related to our database constraint
+        const errorMessage = payAsYouGoError instanceof Error 
+          ? payAsYouGoError.message 
+          : String(payAsYouGoError);
           
-          // Simulate payment process with a delay
-          setTimeout(async () => {
-            try {
-              await onSelectPlan(plan.id, selectedInterval, amount, `test_${Date.now()}`);
-              toast.dismiss(toastId);
-              toast.success(`${plan.name} plan activated! (TEST MODE)`);
-            } catch (error) {
-              toast.dismiss(toastId);
-              console.error('Test payment error:', error);
-              setPaymentError('Test payment failed to activate plan.');
-              toast.error('Test payment failed to activate plan.');
-            }
-          }, 2000);
+        // Fallback for constraint errors
+        if (errorMessage.includes('violates check constraint') && 
+            errorMessage.includes('payment_interval')) {
+          // Try alternative approach - some systems may use different enum values
+          try {
+            await onSelectPlan(plan.id, 'monthly', 0); // Fallback to monthly with 0 cost
+            toast.success('Pay As You Go plan activated with alternative settings!');
+            return;
+          } catch (fallbackError) {
+            setPaymentError('Database constraint error: Please make sure the migration for "commission" payment type has been applied.');
+            toast.error('Plan activation failed: Database needs updating.');
+          }
+        } else {
+          setPaymentError(errorMessage);
+          toast.error('Failed to activate Pay As You Go plan.');
         }
+        
+        throw payAsYouGoError;
       }
     } catch (error) {
       console.error('Plan selection error:', error);
@@ -370,12 +136,7 @@ export const EnhancedSubscriptionPlans = ({
   };
 
   const getEffectivePrice = (plan: Plan) => {
-    if (plan.id === 'payg') return '5% commission only';
-    if (plan.id === 'trial') return formatPrice(plan.price, plan.currency);
-    
-    return selectedInterval === 'yearly' && plan.yearlyPrice
-      ? formatPrice(plan.yearlyPrice, plan.currency)
-      : formatPrice(plan.price, plan.currency);
+    return '5% commission only';
   };
 
   return (
@@ -402,31 +163,7 @@ export const EnhancedSubscriptionPlans = ({
         </div>
       )}
 
-      {/* Interval Toggle */}
-      <div className="text-center">
-        <div className="inline-flex items-center bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => setSelectedInterval('monthly')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              selectedInterval === 'monthly'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-900'
-            }`}
-          >
-            Monthly
-          </button>
-          <button
-            onClick={() => setSelectedInterval('yearly')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              selectedInterval === 'yearly'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-900'
-            }`}
-          >
-            Yearly <Badge className="ml-1 bg-green-100 text-green-800">Save 17%</Badge>
-          </button>
-        </div>
-      </div>
+      {/* No interval toggle needed for commission-only model */}
 
       {/* Plans Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -489,11 +226,7 @@ export const EnhancedSubscriptionPlans = ({
                       No monthly subscription
                     </div>
                   )}
-                  {plan.id !== 'payg' && plan.id !== 'trial' && (
-                    <div className="text-sm text-gray-500">
-                      per {selectedInterval === 'yearly' ? 'year' : 'month'}
-                    </div>
-                  )}
+                  {/* No subscription period needed for commission-only model */}
                 </div>
               </CardHeader>
 

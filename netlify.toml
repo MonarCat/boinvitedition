@@ -1,5 +1,5 @@
 [build]
-  command = "./netlify-prebuild.sh && npm run build"
+  command = "npm run build"
   publish = "dist"
 
 # Skip submodule setup during build

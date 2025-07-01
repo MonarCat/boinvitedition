@@ -1,9 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Star, Clock, Users, TrendingUp, Zap, Crown, Smartphone, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
+
+// Paystack public key from environment variable or config
+const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_your_paystack_public_key_here';
+
+// Define Paystack interface to avoid TypeScript errors
+interface PaystackResponse {
+  reference: string;
+  status: string;
+  message: string;
+  transaction: string;
+}
+
+interface PaystackHandler {
+  openIframe: () => void;
+}
+
+interface PaystackPopInterface {
+  setup: (config: Record<string, unknown>) => PaystackHandler;
+}
+
+// Add Paystack to Window interface
+declare global {
+  interface Window {
+    PaystackPop?: PaystackPopInterface;
+  }
+}
 
 interface Plan {
   id: string;
@@ -16,7 +42,7 @@ interface Plan {
   features: string[];
   popular?: boolean;
   recommended?: boolean;
-  icon: any;
+  icon: React.ElementType;
   color: string;
   staffLimit?: number | null;
   bookingsLimit?: number | null;
@@ -40,6 +66,45 @@ export const EnhancedSubscriptionPlans = ({
   const [selectedInterval, setSelectedInterval] = useState<'monthly' | 'yearly'>('monthly');
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [isPaystackLoaded, setIsPaystackLoaded] = useState<boolean>(false);
+
+  // Load Paystack script dynamically
+  useEffect(() => {
+    const loadPaystackScript = () => {
+      // Check if script is already loaded
+      if (window.PaystackPop || document.getElementById('paystack-script')) {
+        setIsPaystackLoaded(true);
+        return;
+      }
+      
+      const script = document.createElement('script');
+      script.id = 'paystack-script';
+      script.src = 'https://js.paystack.co/v1/inline.js';
+      script.async = true;
+      
+      script.onload = () => {
+        console.log('Paystack script loaded successfully');
+        setIsPaystackLoaded(true);
+      };
+      
+      script.onerror = () => {
+        console.error('Failed to load Paystack script');
+        toast.error('Payment system failed to load. Please refresh the page.');
+      };
+      
+      document.body.appendChild(script);
+    };
+    
+    loadPaystackScript();
+    
+    // Cleanup function
+    return () => {
+      const script = document.getElementById('paystack-script');
+      if (script) {
+        // script.remove(); // Uncomment if you want to remove script on component unmount
+      }
+    };
+  }, []);
 
   const plans: Plan[] = [
     {
@@ -187,9 +252,9 @@ export const EnhancedSubscriptionPlans = ({
         // Ensure we correctly set the payment_interval to 'commission'
         try {
           // Double-check we're using the right interval type for PAYG
-          toast.loading('Activating Pay As You Go plan...');
+          const toastId = toast.loading('Activating Pay As You Go plan...');
           await onSelectPlan(plan.id, 'commission', 0);
-          toast.dismiss();
+          toast.dismiss(toastId);
           toast.success('Pay As You Go plan activated successfully!', {
             duration: 5000,
             style: {
@@ -230,11 +295,11 @@ export const EnhancedSubscriptionPlans = ({
         const amount = selectedInterval === 'yearly' ? (plan.yearlyPrice || plan.price * 12) : plan.price;
         
         // For paid plans, integrate with Paystack
-        if (typeof window !== 'undefined' && window.PaystackPop) {
+        if (typeof window !== 'undefined' && window.PaystackPop && isPaystackLoaded) {
           // Function to handle Paystack integration
           try {
-            const handler = window.PaystackPop.setup({
-              key: 'pk_test_your_paystack_public_key_here', // Replace with actual key
+            const paystackHandler = window.PaystackPop.setup({
+              key: PAYSTACK_PUBLIC_KEY,
               email: customerEmail || 'customer@example.com',
               amount: amount * 100, // Paystack expects amount in kobo
               currency: 'KES',
@@ -244,7 +309,7 @@ export const EnhancedSubscriptionPlans = ({
                 plan_type: plan.id,
                 interval: selectedInterval
               },
-              callback: function(response) {
+              callback: function(response: PaystackResponse) {
                 try {
                   onSelectPlan(plan.id, selectedInterval, amount, response.reference);
                   toast.success(`${plan.name} plan activated!`);
@@ -259,16 +324,34 @@ export const EnhancedSubscriptionPlans = ({
                 console.log('Payment window closed');
               }
             });
-            handler.openIframe();
+            paystackHandler.openIframe();
           } catch (paystackError) {
             console.error('Paystack error:', paystackError);
             setPaymentError('Payment gateway error. Please try again.');
             throw paystackError;
           }
+        } else if (!isPaystackLoaded) {
+          // Paystack script failed to load
+          setPaymentError('Payment system not loaded. Please refresh the page and try again.');
+          toast.error('Payment system not loaded. Please refresh the page.');
         } else {
-          // Fallback for testing
-          await onSelectPlan(plan.id, selectedInterval, amount);
-          toast.success(`${plan.name} plan activated!`);
+          // Fallback for testing - USE ONLY IN DEVELOPMENT ENVIRONMENT
+          console.warn('Using fallback payment method - FOR TESTING ONLY');
+          const toastId = toast.loading('Processing payment (TEST MODE)...');
+          
+          // Simulate payment process with a delay
+          setTimeout(async () => {
+            try {
+              await onSelectPlan(plan.id, selectedInterval, amount, `test_${Date.now()}`);
+              toast.dismiss(toastId);
+              toast.success(`${plan.name} plan activated! (TEST MODE)`);
+            } catch (error) {
+              toast.dismiss(toastId);
+              console.error('Test payment error:', error);
+              setPaymentError('Test payment failed to activate plan.');
+              toast.error('Test payment failed to activate plan.');
+            }
+          }, 2000);
         }
       }
     } catch (error) {

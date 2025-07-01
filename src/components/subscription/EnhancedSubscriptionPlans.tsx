@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -184,99 +185,72 @@ export const EnhancedSubscriptionPlans = ({
         await onSelectPlan(plan.id, 'trial', plan.price);
         toast.success('Free trial activated!');
       } else if (plan.id === 'payg') {
-        // Ensure we correctly set the payment_interval to 'commission'
-        try {
-          // Double-check we're using the right interval type for PAYG
-          toast.loading('Activating Pay As You Go plan...');
-          await onSelectPlan(plan.id, 'commission', 0);
-          toast.dismiss();
-          toast.success('Pay As You Go plan activated successfully!', {
-            duration: 5000,
-            style: {
-              background: '#10B981',
-              color: '#fff',
-              fontWeight: 'bold',
-            },
-          });
-        } catch (payAsYouGoError) {
-          console.error('PAYG error:', payAsYouGoError);
-          toast.dismiss();
-          
-          // Check if the error is related to our database constraint
-          const errorMessage = payAsYouGoError instanceof Error 
-            ? payAsYouGoError.message 
-            : String(payAsYouGoError);
-            
-          // Fallback for constraint errors
-          if (errorMessage.includes('violates check constraint') && 
-              errorMessage.includes('payment_interval')) {
-            // Try alternative approach - some systems may use different enum values
-            try {
-              await onSelectPlan(plan.id, 'monthly', 0); // Fallback to monthly with 0 cost
-              toast.success('Pay As You Go plan activated with alternative settings!');
-              return;
-            } catch (fallbackError) {
-              setPaymentError('Database constraint error: Please make sure the migration for "commission" payment type has been applied.');
-              toast.error('Plan activation failed: Database needs updating.');
-            }
-          } else {
-            setPaymentError(errorMessage);
-            toast.error('Failed to activate Pay As You Go plan.');
-          }
-          
-          throw payAsYouGoError;
-        }
+        toast.loading('Activating Pay As You Go plan...');
+        await onSelectPlan(plan.id, 'commission', 0);
+        toast.dismiss();
+        toast.success('Pay As You Go plan activated successfully!', {
+          duration: 5000,
+          style: {
+            background: '#DC2626',
+            color: '#fff',
+            fontWeight: 'bold',
+          },
+        });
       } else {
         const amount = selectedInterval === 'yearly' ? (plan.yearlyPrice || plan.price * 12) : plan.price;
         
         // For paid plans, integrate with Paystack
         if (typeof window !== 'undefined' && window.PaystackPop) {
-          // Function to handle Paystack integration
-          try {
-            const handler = window.PaystackPop.setup({
-              key: 'pk_test_your_paystack_public_key_here', // Replace with actual key
-              email: customerEmail || 'customer@example.com',
-              amount: amount * 100, // Paystack expects amount in kobo
-              currency: 'KES',
-              ref: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              metadata: {
-                business_id: businessId,
-                plan_type: plan.id,
-                interval: selectedInterval
-              },
-              callback: function(response) {
-                try {
-                  onSelectPlan(plan.id, selectedInterval, amount, response.reference);
-                  toast.success(`${plan.name} plan activated!`);
-                } catch (callbackError) {
-                  console.error('Payment callback error:', callbackError);
-                  setPaymentError('Payment was processed but plan activation failed.');
-                  toast.error('Payment processed but plan activation failed.');
-                }
-              },
-              onClose: function() {
-                setProcessingPlan(null);
-                console.log('Payment window closed');
+          const handler = window.PaystackPop.setup({
+            key: 'pk_test_your_paystack_public_key_here',
+            email: customerEmail || 'customer@example.com',
+            amount: amount * 100,
+            currency: 'KES',
+            ref: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            metadata: {
+              business_id: businessId,
+              plan_type: plan.id,
+              interval: selectedInterval
+            },
+            callback: function(response) {
+              try {
+                onSelectPlan(plan.id, selectedInterval, amount, response.reference);
+                toast.success(`${plan.name} plan activated!`);
+              } catch (callbackError) {
+                console.error('Payment callback error:', callbackError);
+                setPaymentError('Payment was processed but plan activation failed.');
+                toast.error('Payment processed but plan activation failed.');
               }
-            });
-            handler.openIframe();
-          } catch (paystackError) {
-            console.error('Paystack error:', paystackError);
-            setPaymentError('Payment gateway error. Please try again.');
-            throw paystackError;
-          }
+            },
+            onClose: function() {
+              setProcessingPlan(null);
+              console.log('Payment window closed');
+            }
+          });
+          handler.openIframe();
         } else {
-          // Fallback for testing
           await onSelectPlan(plan.id, selectedInterval, amount);
           toast.success(`${plan.name} plan activated!`);
         }
       }
     } catch (error) {
       console.error('Plan selection error:', error);
-      if (!paymentError) {
-        setPaymentError('Failed to activate plan. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      if (errorMessage.includes('violates check constraint') && 
+          errorMessage.includes('payment_interval')) {
+        try {
+          await onSelectPlan(plan.id, 'monthly', 0);
+          toast.success('Pay As You Go plan activated with alternative settings!');
+          return;
+        } catch (fallbackError) {
+          setPaymentError('Database constraint error: Please make sure the migration for "commission" payment type has been applied.');
+          toast.error('Plan activation failed: Database needs updating.');
+        }
+      } else {
+        setPaymentError(errorMessage);
+        toast.error('Failed to activate plan. Please try again.');
       }
-      toast.error(paymentError || 'Failed to activate plan. Please try again.');
     } finally {
       setProcessingPlan(null);
     }
@@ -357,7 +331,7 @@ export const EnhancedSubscriptionPlans = ({
               key={plan.id} 
               className={`relative transition-all duration-200 hover:shadow-lg ${
                 plan.id === 'payg' 
-                  ? 'border-2 border-red-500 shadow-xl transform hover:scale-105' 
+                  ? 'border-4 border-red-500 shadow-2xl transform hover:scale-105 bg-gradient-to-br from-red-50 to-white' 
                   : plan.popular ? 'border-2 border-blue-500' : ''
               } ${plan.id !== 'payg' && plan.recommended ? 'border-2 border-green-500' : ''} ${
                 isCurrentPlan ? 'ring-2 ring-purple-500' : ''
@@ -381,28 +355,38 @@ export const EnhancedSubscriptionPlans = ({
               )}
               
               {plan.id === 'payg' && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-red-600 text-white px-4 py-1 font-bold shadow-md">
-                    <Star className="w-3 h-3 mr-1" />
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                  <Badge className="bg-red-600 text-white px-6 py-2 font-bold shadow-lg text-lg animate-pulse">
+                    <Star className="w-4 h-4 mr-1" />
                     NO MONTHLY FEE
                   </Badge>
                 </div>
               )}
 
               <CardHeader className="text-center pb-4">
-                <div className={`w-12 h-12 mx-auto mb-4 rounded-full bg-${plan.color}-100 flex items-center justify-center`}>
-                  <IconComponent className={`w-6 h-6 text-${plan.color}-600`} />
+                <div className={`w-16 h-16 mx-auto mb-4 rounded-full ${
+                  plan.id === 'payg' ? 'bg-red-100' : `bg-${plan.color}-100`
+                } flex items-center justify-center`}>
+                  <IconComponent className={`w-8 h-8 ${
+                    plan.id === 'payg' ? 'text-red-600' : `text-${plan.color}-600`
+                  }`} />
                 </div>
                 
-                <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
-                <p className="text-gray-600 text-sm">{plan.description}</p>
+                <CardTitle className={`text-xl font-bold ${
+                  plan.id === 'payg' ? 'text-red-700' : ''
+                }`}>{plan.name}</CardTitle>
+                <p className={`text-sm ${
+                  plan.id === 'payg' ? 'text-red-600 font-medium' : 'text-gray-600'
+                }`}>{plan.description}</p>
                 
                 <div className="mt-4">
-                  <div className={`text-3xl font-bold ${plan.id === 'payg' ? 'text-red-600' : 'text-gray-900'}`}>
+                  <div className={`text-3xl font-bold ${
+                    plan.id === 'payg' ? 'text-red-600' : 'text-gray-900'
+                  }`}>
                     {getEffectivePrice(plan)}
                   </div>
                   {plan.id === 'payg' && (
-                    <div className="text-sm text-red-600 font-semibold mt-1">
+                    <div className="text-lg text-red-600 font-bold mt-1 animate-pulse">
                       No monthly subscription
                     </div>
                   )}
@@ -418,8 +402,10 @@ export const EnhancedSubscriptionPlans = ({
                 <ul className="space-y-3">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                      <span>{feature}</span>
+                      <CheckCircle className={`w-4 h-4 mr-2 mt-0.5 flex-shrink-0 ${
+                        plan.id === 'payg' ? 'text-red-500' : 'text-green-500'
+                      }`} />
+                      <span className={plan.id === 'payg' ? 'font-medium' : ''}>{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -427,9 +413,9 @@ export const EnhancedSubscriptionPlans = ({
                 <Button
                   onClick={() => handleSelectPlan(plan)}
                   disabled={isCurrentPlan || isProcessing || isLoading}
-                  className={`w-full ${
+                  className={`w-full text-lg font-bold py-3 transition-all duration-200 ${
                     plan.id === 'payg'
-                      ? 'bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg'
+                      ? 'bg-red-600 hover:bg-red-700 text-white shadow-xl transform hover:scale-105 animate-pulse'
                       : plan.popular 
                       ? 'bg-blue-600 hover:bg-blue-700' 
                       : plan.recommended
@@ -442,7 +428,7 @@ export const EnhancedSubscriptionPlans = ({
                     : isProcessing 
                     ? 'Processing...' 
                     : plan.id === 'payg'
-                    ? 'Pay As You Go' 
+                    ? '🚀 START PAY AS YOU GO' 
                     : `Choose ${plan.name}`}
                 </Button>
               </CardContent>

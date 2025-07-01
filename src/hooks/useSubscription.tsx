@@ -150,6 +150,7 @@ export const useSubscription = () => {
 
       console.log('Upserting subscription data:', subscriptionData);
 
+      // Use the proper constraint for upsert
       const { data, error } = await supabase
         .from('subscriptions')
         .upsert(subscriptionData, { 

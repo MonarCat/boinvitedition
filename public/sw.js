@@ -1,155 +1,130 @@
 
-const CACHE_NAME = 'boinvit-mobile-v3';
-const STATIC_CACHE = 'boinvit-static-v3';
-const DYNAMIC_CACHE = 'boinvit-dynamic-v3';
-
-// Static assets to cache
-const staticAssets = [
+const CACHE_NAME = 'boinvit-v3.0.0';
+const urlsToCache = [
   '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
   '/manifest.json',
-  '/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png',
-  '/app/dashboard',
-  '/app/services',
-  '/app/bookings',
-  '/app/clients',
-  '/app/settings'
+  '/favicon.ico'
 ];
 
-// API endpoints to cache
-const dynamicAssets = [
-  '/api/',
-  'https://prfowczgawhjapsdpncq.supabase.co/'
-];
-
-// Install event - cache static assets
+// Install event - cache resources
 self.addEventListener('install', (event) => {
-  console.log('SW: Installing...');
+  console.log('Service Worker installing');
   event.waitUntil(
-    caches.open(STATIC_CACHE)
+    caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('SW: Caching static assets');
-        return cache.addAll(staticAssets);
+        console.log('Cache opened');
+        // Cache each URL individually to handle failures gracefully
+        return Promise.allSettled(
+          urlsToCache.map(url => 
+            cache.add(url).catch(err => {
+              console.warn(`Failed to cache ${url}:`, err);
+              return null;
+            })
+          )
+        );
       })
       .then(() => {
+        console.log('Service Worker installation complete');
+        // Force activation of new service worker
         return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.error('Service Worker installation failed:', error);
       })
   );
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('SW: Activating...');
+  console.log('Service Worker activating');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE && cacheName !== CACHE_NAME) {
-            console.log('SW: Deleting old cache:', cacheName);
+          if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
+      console.log('Service Worker activation complete');
+      // Take control of all clients immediately
       return self.clients.claim();
     })
   );
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - serve from cache or network
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  
   // Skip non-GET requests
-  if (request.method !== 'GET') return;
-
-  // Handle API requests
-  if (request.url.includes('/api/') || request.url.includes('supabase.co')) {
-    event.respondWith(
-      caches.open(DYNAMIC_CACHE).then(cache => {
-        return fetch(request)
-          .then(response => {
-            // Cache successful responses
-            if (response.status === 200) {
-              cache.put(request, response.clone());
-            }
-            return response;
-          })
-          .catch(() => {
-            // Return cached version if network fails
-            return cache.match(request);
-          });
-      })
-    );
+  if (event.request.method !== 'GET') {
     return;
   }
 
-  // Handle static assets
+  // Skip chrome-extension and other non-http requests
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+
   event.respondWith(
-    caches.match(request)
+    caches.match(event.request)
       .then((response) => {
-        // Return cached version if available
+        // Return cached version or fetch from network
         if (response) {
           return response;
         }
         
-        // Fetch from network and cache
-        return fetch(request)
-          .then(response => {
-            // Only cache successful responses
-            if (response.status === 200) {
-              const responseClone = response.clone();
-              caches.open(DYNAMIC_CACHE)
-                .then(cache => {
-                  cache.put(request, responseClone);
-                });
-            }
+        // Clone the request because it can only be used once
+        const fetchRequest = event.request.clone();
+        
+        return fetch(fetchRequest).then((response) => {
+          // Check if valid response
+          if (!response || response.status !== 200 || response.type !== 'basic') {
             return response;
-          })
-          .catch(() => {
-            // Return offline page for navigation requests
-            if (request.destination === 'document') {
-              return caches.match('/');
-            }
-          });
+          }
+
+          // Clone the response because it can only be used once
+          const responseToCache = response.clone();
+
+          caches.open(CACHE_NAME)
+            .then((cache) => {
+              cache.put(event.request, responseToCache).catch(err => {
+                console.warn('Failed to cache response:', err);
+              });
+            });
+
+          return response;
+        }).catch((error) => {
+          console.warn('Fetch failed:', error);
+          // Return a basic offline response for navigation requests
+          if (event.request.mode === 'navigate') {
+            return new Response('Offline - Please check your connection', {
+              status: 503,
+              statusText: 'Service Unavailable',
+              headers: { 'Content-Type': 'text/plain' }
+            });
+          }
+          throw error;
+        });
       })
   );
 });
 
-// Background sync for offline form submissions
+// Handle background sync
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'background-sync') {
-    console.log('SW: Background sync triggered');
-    event.waitUntil(doBackgroundSync());
-  }
+  console.log('Background sync event:', event.tag);
 });
 
-// Push notification handling
+// Handle push notifications
 self.addEventListener('push', (event) => {
-  console.log('SW: Push message received');
+  console.log('Push notification received:', event);
   
   const options = {
-    body: event.data ? event.data.text() : 'New update available',
-    icon: '/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png',
-    badge: '/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png',
-    vibrate: [100, 50, 100],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
-    },
-    actions: [
-      {
-        action: 'explore',
-        title: 'View Details',
-        icon: '/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png'
-      },
-      {
-        action: 'close',
-        title: 'Close',
-        icon: '/lovable-uploads/307c9897-7d4d-4c72-9525-71af1ea5c02f.png'
-      }
-    ]
+    body: event.data ? event.data.text() : 'New notification from Boinvit',
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    tag: 'boinvit-notification'
   };
 
   event.waitUntil(
@@ -157,70 +132,12 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Notification click handling
+// Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
-  console.log('SW: Notification click received');
-  
+  console.log('Notification clicked');
   event.notification.close();
-
-  if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow('/app/dashboard')
-    );
-  } else if (event.action === 'close') {
-    // Just close the notification
-  } else {
-    // Default action - open the app
-    event.waitUntil(
-      clients.openWindow('/')
-    );
-  }
-});
-
-// Background sync function
-async function doBackgroundSync() {
-  try {
-    // Get pending offline data from IndexedDB
-    const pendingData = await getPendingOfflineData();
-    
-    for (const data of pendingData) {
-      try {
-        await syncDataToServer(data);
-        await removePendingData(data.id);
-      } catch (error) {
-        console.log('SW: Failed to sync data:', error);
-      }
-    }
-  } catch (error) {
-    console.log('SW: Background sync failed:', error);
-  }
-}
-
-// Helper functions for offline data management
-async function getPendingOfflineData() {
-  // Implement IndexedDB access for pending data
-  return [];
-}
-
-async function syncDataToServer(data) {
-  // Implement server sync logic
-  return fetch('/api/sync', {
-    method: 'POST',
-    body: JSON.stringify(data),
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-}
-
-async function removePendingData(id) {
-  // Remove synced data from IndexedDB
-  console.log('SW: Removing synced data:', id);
-}
-
-// Message handling for communication with main thread
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+  
+  event.waitUntil(
+    clients.openWindow('/')
+  );
 });

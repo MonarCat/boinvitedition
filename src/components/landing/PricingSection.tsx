@@ -82,6 +82,21 @@ export const PricingSection = () => {
         "White-label options"
       ],
       popular: false
+    },
+    {
+      name: "Pay As You Go",
+      price: "5% Commission",
+      period: "/transaction",
+      features: [
+        "No monthly fees",
+        "Pay only when you earn",
+        "Unlimited staff & bookings",
+        "All premium features",
+        "Advanced analytics",
+        "Priority support",
+        "Perfect for seasonal businesses"
+      ],
+      popular: false
     }
   ];
 
@@ -107,7 +122,7 @@ export const PricingSection = () => {
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
                 {pricingPlans.map((plan, index) => (
                   <Card key={index} className={`relative hover:shadow-lg transition-shadow ${plan.popular ? 'border-royal-red' : ''}`}>
                     {plan.popular && (
@@ -116,9 +131,9 @@ export const PricingSection = () => {
                       </Badge>
                     )}
                     <CardHeader className="text-center">
-                      <CardTitle className="text-xl">{plan.name}</CardTitle>
+                      <CardTitle className="text-lg">{plan.name}</CardTitle>
                       <div className="mt-4">
-                        <span className="text-2xl font-bold text-royal-red">{plan.price}</span>
+                        <span className="text-xl font-bold text-royal-red">{plan.price}</span>
                         <span className="text-gray-600">{plan.period}</span>
                       </div>
                     </CardHeader>

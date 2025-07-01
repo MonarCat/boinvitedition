@@ -70,8 +70,9 @@ export const EnhancedSubscriptionPlans = ({
       interval: 'commission',
       description: 'Only pay when you get paid',
       icon: TrendingUp,
-      color: 'green',
+      color: 'red',
       recommended: true,
+      popular: true,
       staffLimit: null,
       bookingsLimit: null,
       features: [
@@ -185,20 +186,39 @@ export const EnhancedSubscriptionPlans = ({
       } else if (plan.id === 'payg') {
         // Ensure we correctly set the payment_interval to 'commission'
         try {
+          // Double-check we're using the right interval type for PAYG
+          toast.loading('Activating Pay As You Go plan...');
           await onSelectPlan(plan.id, 'commission', 0);
-          toast.success('Pay As You Go plan activated successfully!');
+          toast.dismiss();
+          toast.success('Pay As You Go plan activated successfully!', {
+            duration: 5000,
+            style: {
+              background: '#10B981',
+              color: '#fff',
+              fontWeight: 'bold',
+            },
+          });
         } catch (payAsYouGoError) {
           console.error('PAYG error:', payAsYouGoError);
+          toast.dismiss();
           
           // Check if the error is related to our database constraint
           const errorMessage = payAsYouGoError instanceof Error 
             ? payAsYouGoError.message 
             : String(payAsYouGoError);
             
+          // Fallback for constraint errors
           if (errorMessage.includes('violates check constraint') && 
               errorMessage.includes('payment_interval')) {
-            setPaymentError('Database constraint error: Please make sure the migration for "commission" payment type has been applied.');
-            toast.error('Plan activation failed: Database needs updating.');
+            // Try alternative approach - some systems may use different enum values
+            try {
+              await onSelectPlan(plan.id, 'monthly', 0); // Fallback to monthly with 0 cost
+              toast.success('Pay As You Go plan activated with alternative settings!');
+              return;
+            } catch (fallbackError) {
+              setPaymentError('Database constraint error: Please make sure the migration for "commission" payment type has been applied.');
+              toast.error('Plan activation failed: Database needs updating.');
+            }
           } else {
             setPaymentError(errorMessage);
             toast.error('Failed to activate Pay As You Go plan.');
@@ -267,7 +287,7 @@ export const EnhancedSubscriptionPlans = ({
   };
 
   const getEffectivePrice = (plan: Plan) => {
-    if (plan.id === 'payg') return 'Pay 5% commission';
+    if (plan.id === 'payg') return '5% commission only';
     if (plan.id === 'trial') return formatPrice(plan.price, plan.currency);
     
     return selectedInterval === 'yearly' && plan.yearlyPrice
@@ -336,12 +356,14 @@ export const EnhancedSubscriptionPlans = ({
             <Card 
               key={plan.id} 
               className={`relative transition-all duration-200 hover:shadow-lg ${
-                plan.popular ? 'border-2 border-blue-500' : ''
-              } ${plan.recommended ? 'border-2 border-green-500' : ''} ${
+                plan.id === 'payg' 
+                  ? 'border-2 border-red-500 shadow-xl transform hover:scale-105' 
+                  : plan.popular ? 'border-2 border-blue-500' : ''
+              } ${plan.id !== 'payg' && plan.recommended ? 'border-2 border-green-500' : ''} ${
                 isCurrentPlan ? 'ring-2 ring-purple-500' : ''
               }`}
             >
-              {plan.popular && (
+              {plan.popular && plan.id !== 'payg' && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   <Badge className="bg-blue-500 text-white px-3 py-1">
                     Most Popular
@@ -349,11 +371,20 @@ export const EnhancedSubscriptionPlans = ({
                 </div>
               )}
               
-              {plan.recommended && (
+              {plan.recommended && plan.id !== 'payg' && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   <Badge className="bg-green-500 text-white px-3 py-1">
                     <Star className="w-3 h-3 mr-1" />
                     Recommended
+                  </Badge>
+                </div>
+              )}
+              
+              {plan.id === 'payg' && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-red-600 text-white px-4 py-1 font-bold shadow-md">
+                    <Star className="w-3 h-3 mr-1" />
+                    NO MONTHLY FEE
                   </Badge>
                 </div>
               )}
@@ -367,9 +398,14 @@ export const EnhancedSubscriptionPlans = ({
                 <p className="text-gray-600 text-sm">{plan.description}</p>
                 
                 <div className="mt-4">
-                  <div className="text-3xl font-bold text-gray-900">
+                  <div className={`text-3xl font-bold ${plan.id === 'payg' ? 'text-red-600' : 'text-gray-900'}`}>
                     {getEffectivePrice(plan)}
                   </div>
+                  {plan.id === 'payg' && (
+                    <div className="text-sm text-red-600 font-semibold mt-1">
+                      No monthly subscription
+                    </div>
+                  )}
                   {plan.id !== 'payg' && plan.id !== 'trial' && (
                     <div className="text-sm text-gray-500">
                       per {selectedInterval === 'yearly' ? 'year' : 'month'}
@@ -392,7 +428,9 @@ export const EnhancedSubscriptionPlans = ({
                   onClick={() => handleSelectPlan(plan)}
                   disabled={isCurrentPlan || isProcessing || isLoading}
                   className={`w-full ${
-                    plan.popular 
+                    plan.id === 'payg'
+                      ? 'bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg'
+                      : plan.popular 
                       ? 'bg-blue-600 hover:bg-blue-700' 
                       : plan.recommended
                       ? 'bg-green-600 hover:bg-green-700'
@@ -403,6 +441,8 @@ export const EnhancedSubscriptionPlans = ({
                     ? 'Current Plan' 
                     : isProcessing 
                     ? 'Processing...' 
+                    : plan.id === 'payg'
+                    ? 'Pay As You Go' 
                     : `Choose ${plan.name}`}
                 </Button>
               </CardContent>

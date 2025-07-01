@@ -23,5 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Exclude nested mobile app directory that's causing Git submodule issues
+# Exclude mobile app directories and Git submodule issues
 mobile/BoinvitApp/BoinvitApp/
+.git/modules/
+.git/submodule/

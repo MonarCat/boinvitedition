@@ -1,13 +1,17 @@
 [build]
-  command = "npm run build"
+  # Run the cleanup script first, then build
+  command = "./clean-submodules.sh && npm run build"
   publish = "dist"
 
 # Skip submodule setup during build
 [build.environment]
-  GIT_SUBMODULE_STRATEGY = "shallow"
+  # Explicitly set Git config to ignore submodules
+  GIT_CONFIG_NOSYSTEM = "1"
+  GIT_TERMINAL_PROMPT = "0"
+  GIT_SUBMODULE_STRATEGY = "none"
   GIT_LFS_SKIP_SMUDGE = "1"
   NETLIFY_USE_YARN = "true"
   
-# Specifically tell Netlify to ignore submodules
+# Tell Netlify not to attempt any submodule operations
 [git]
-  submoduleCommand = "echo 'Skipping submodule checkout'"
+  submoduleCommand = "echo 'Explicitly skipping submodules'"

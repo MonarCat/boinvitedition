@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +39,7 @@ export const EnhancedSubscriptionPlans = ({
 }: EnhancedSubscriptionPlansProps) => {
   const [selectedInterval, setSelectedInterval] = useState<'monthly' | 'yearly'>('monthly');
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const plans: Plan[] = [
     {
@@ -176,38 +176,75 @@ export const EnhancedSubscriptionPlans = ({
     if (processingPlan) return;
     
     setProcessingPlan(plan.id);
+    setPaymentError(null);
     
     try {
       if (plan.id === 'trial') {
         await onSelectPlan(plan.id, 'trial', plan.price);
         toast.success('Free trial activated!');
       } else if (plan.id === 'payg') {
-        await onSelectPlan(plan.id, 'commission', 0);
-        toast.success('Pay As You Go plan activated!');
+        // Ensure we correctly set the payment_interval to 'commission'
+        try {
+          await onSelectPlan(plan.id, 'commission', 0);
+          toast.success('Pay As You Go plan activated successfully!');
+        } catch (payAsYouGoError) {
+          console.error('PAYG error:', payAsYouGoError);
+          
+          // Check if the error is related to our database constraint
+          const errorMessage = payAsYouGoError instanceof Error 
+            ? payAsYouGoError.message 
+            : String(payAsYouGoError);
+            
+          if (errorMessage.includes('violates check constraint') && 
+              errorMessage.includes('payment_interval')) {
+            setPaymentError('Database constraint error: Please make sure the migration for "commission" payment type has been applied.');
+            toast.error('Plan activation failed: Database needs updating.');
+          } else {
+            setPaymentError(errorMessage);
+            toast.error('Failed to activate Pay As You Go plan.');
+          }
+          
+          throw payAsYouGoError;
+        }
       } else {
         const amount = selectedInterval === 'yearly' ? (plan.yearlyPrice || plan.price * 12) : plan.price;
         
         // For paid plans, integrate with Paystack
-        if (typeof window !== 'undefined' && (window as any).PaystackPop) {
-          const handler = (window as any).PaystackPop.setup({
-            key: 'pk_test_your_paystack_public_key_here', // Replace with actual key
-            email: customerEmail || 'customer@example.com',
-            amount: amount * 100, // Paystack expects amount in kobo
-            currency: 'KES',
-            ref: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            metadata: {
-              business_id: businessId,
-              plan_type: plan.id,
-              interval: selectedInterval
-            },
-            callback: function(response: any) {
-              onSelectPlan(plan.id, selectedInterval, amount, response.reference);
-            },
-            onClose: function() {
-              console.log('Payment cancelled');
-            }
-          });
-          handler.openIframe();
+        if (typeof window !== 'undefined' && window.PaystackPop) {
+          // Function to handle Paystack integration
+          try {
+            const handler = window.PaystackPop.setup({
+              key: 'pk_test_your_paystack_public_key_here', // Replace with actual key
+              email: customerEmail || 'customer@example.com',
+              amount: amount * 100, // Paystack expects amount in kobo
+              currency: 'KES',
+              ref: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              metadata: {
+                business_id: businessId,
+                plan_type: plan.id,
+                interval: selectedInterval
+              },
+              callback: function(response) {
+                try {
+                  onSelectPlan(plan.id, selectedInterval, amount, response.reference);
+                  toast.success(`${plan.name} plan activated!`);
+                } catch (callbackError) {
+                  console.error('Payment callback error:', callbackError);
+                  setPaymentError('Payment was processed but plan activation failed.');
+                  toast.error('Payment processed but plan activation failed.');
+                }
+              },
+              onClose: function() {
+                setProcessingPlan(null);
+                console.log('Payment window closed');
+              }
+            });
+            handler.openIframe();
+          } catch (paystackError) {
+            console.error('Paystack error:', paystackError);
+            setPaymentError('Payment gateway error. Please try again.');
+            throw paystackError;
+          }
         } else {
           // Fallback for testing
           await onSelectPlan(plan.id, selectedInterval, amount);
@@ -216,7 +253,10 @@ export const EnhancedSubscriptionPlans = ({
       }
     } catch (error) {
       console.error('Plan selection error:', error);
-      toast.error('Failed to activate plan. Please try again.');
+      if (!paymentError) {
+        setPaymentError('Failed to activate plan. Please try again.');
+      }
+      toast.error(paymentError || 'Failed to activate plan. Please try again.');
     } finally {
       setProcessingPlan(null);
     }
@@ -237,6 +277,28 @@ export const EnhancedSubscriptionPlans = ({
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
+      {/* Payment Error Message */}
+      {paymentError && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md mb-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Subscription Error</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{paymentError}</p>
+                {paymentError.includes('migration') && (
+                  <p className="mt-2 font-medium">Admin action required: Run the database migration to add 'commission' as a valid payment_interval value.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Interval Toggle */}
       <div className="text-center">
         <div className="inline-flex items-center bg-gray-100 rounded-lg p-1">

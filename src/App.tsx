@@ -17,8 +17,19 @@ import SafetyTips from "@/pages/SafetyTips";
 import NotFound from "@/pages/NotFound";
 import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
 import { EnhancedPWAManager } from "@/components/pwa/EnhancedPWAManager";
-import { useSystemDarkMode } from "@/lib/useSystemDarkMode";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
+import { useEffect, useState } from "react";
+import { MotionConfig } from "framer-motion";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ResponsiveProvider } from "@/hooks/use-mobile";
+
+// Breakpoints for responsive design following Calendly & Odoo patterns
+const BREAKPOINTS = {
+  SMALL_MOBILE: 480,
+  MOBILE: 768,
+  TABLET: 1024,
+  DESKTOP: 1200
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,95 +47,133 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  useSystemDarkMode();
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [highContrastMode, setHighContrastMode] = useState(false);
+  
+  // Check for accessibility preferences
+  useEffect(() => {
+    // Check for reduced motion
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(motionQuery.matches);
+    
+    // Check for high contrast
+    const contrastQuery = window.matchMedia('(prefers-contrast: more)');
+    setHighContrastMode(contrastQuery.matches);
+    
+    // Add listeners for changes
+    const motionHandler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    const contrastHandler = (e: MediaQueryListEvent) => setHighContrastMode(e.matches);
+    
+    motionQuery.addEventListener('change', motionHandler);
+    contrastQuery.addEventListener('change', contrastHandler);
+    
+    return () => {
+      motionQuery.removeEventListener('change', motionHandler);
+      contrastQuery.removeEventListener('change', contrastHandler);
+    };
+  }, []);
   
   // Enhanced feature verification console log
   console.log('🚀 Boinvit Mobile-First PWA Loaded:', {
     timestamp: new Date().toISOString(),
-    version: '3.0.0',
+    version: '3.1.0',
     features: {
       '✅ Mobile-First Design': 'Bottom tabs, gestures, FAB',
       '✅ PWA Enhancements': 'Enhanced install, notifications, offline',
       '✅ Native App Experience': 'Pull-to-refresh, swipe navigation',
       '✅ Offline Capabilities': 'Data caching and sync',
       '✅ Performance Optimized': 'Lazy loading and code splitting',
-      '✅ Touch Optimized': 'Tap targets and gesture support'
+      '✅ Touch Optimized': 'Tap targets and gesture support',
+      '✅ Responsive Grid System': 'Adaptive grid with breakpoints',
+      '✅ Enhanced Accessibility': 'WCAG 2.1 compliance improvements',
+      '✅ Reduced Motion Support': 'Respects user preferences'
     },
-    mobile: {
-      'Bottom Navigation': 'Touch-friendly tab bar',
-      'Floating Action Button': 'Quick actions for common tasks',
-      'Pull to Refresh': 'Native-like refresh interaction',
-      'Swipe Gestures': 'Navigate between tabs with swipes',
-      'Offline Support': 'Works without internet connection'
+    accessibility: {
+      'Reduced Motion': prefersReducedMotion ? 'Enabled' : 'Disabled',
+      'High Contrast': highContrastMode ? 'Enabled' : 'Disabled',
+      'Keyboard Navigation': 'Improved focus indicators',
+      'Screen Reader Support': 'ARIA attributes enhanced'
+    },
+    breakpoints: {
+      'Small Mobile': `< ${BREAKPOINTS.SMALL_MOBILE}px`,
+      'Mobile': `${BREAKPOINTS.SMALL_MOBILE}px - ${BREAKPOINTS.MOBILE}px`,
+      'Tablet': `${BREAKPOINTS.MOBILE}px - ${BREAKPOINTS.DESKTOP}px`,
+      'Desktop': `> ${BREAKPOINTS.DESKTOP}px`
     }
   });
   
   return (
     <>
       <SecurityHeaders />
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster 
-            position="top-center"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                fontSize: '14px',
-              },
-              className: 'text-sm',
-            }}
-          />
-          <BrowserRouter>
-            <AuthProvider>
-              <div className="relative min-h-screen">
-                <Routes>
-                  {/* Landing page as default */}
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/demo" element={<DemoPage />} />
-                  
-                  {/* Business Discovery Map */}
-                  <Route path="/discover" element={<BusinessDiscoveryPage />} />
-                  
-                  {/* Mobile App Download Page */}
-                  <Route path="/app-download" element={<MobileAppDownload />} />
-                  
-                  {/* QR Code booking routes - Multiple variations for reliability */}
-                  <Route path="/book/:businessId" element={<PublicBookingPage />} />
-                  <Route path="/booking/:businessId" element={<PublicBookingPage />} />
-                  <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
-                  
-                  {/* Authenticated app routes */}
-                  <Route path="/app/*" element={<AuthenticatedApp />} />
-                  
-                  {/* Legal pages */}
-                  <Route path="/terms" element={<TermsOfService />} />
-                  <Route path="/privacy" element={<PrivacyPolicy />} />
-                  <Route path="/cookies" element={<CookiePolicy />} />
-                  <Route path="/safety" element={<SafetyTips />} />
-                  
-                  {/* Legacy route redirects */}
-                  <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
-                  <Route path="/services" element={<Navigate to="/app/services" replace />} />
-                  <Route path="/booking-management" element={<Navigate to="/app/bookings" replace />} />
-                  <Route path="/clients" element={<Navigate to="/app/clients" replace />} />
-                  <Route path="/staff" element={<Navigate to="/app/staff" replace />} />
-                  <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
-                  <Route path="/invoices" element={<Navigate to="/app/invoices" replace />} />
-                  <Route path="/subscription" element={<Navigate to="/app/subscription" replace />} />
-                  
-                  {/* Catch all - 404 page */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                
-                {/* Enhanced PWA Manager */}
-                <EnhancedPWAManager />
-                <WhatsAppFAB />
-              </div>
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <ThemeProvider defaultTheme="system" storageKey="boinvit-ui-theme">
+        <ResponsiveProvider>
+          <MotionConfig reducedMotion={prefersReducedMotion ? "always" : "never"}>
+            <QueryClientProvider client={queryClient}>
+              <TooltipProvider>
+                <Toaster 
+                  position="top-center"
+                  toastOptions={{
+                    duration: 4000,
+                    style: {
+                      fontSize: '14px',
+                    },
+                    className: `text-sm ${highContrastMode ? 'high-contrast' : ''}`,
+                  }}
+                />
+                <BrowserRouter>
+                  <AuthProvider>
+                    <div className={`relative min-h-screen ${highContrastMode ? 'high-contrast-mode' : ''}`}>
+                      <Routes>
+                        {/* Landing page as default */}
+                        <Route path="/" element={<LandingPage />} />
+                        <Route path="/auth" element={<AuthPage />} />
+                        <Route path="/demo" element={<DemoPage />} />
+                        
+                        {/* Business Discovery Map */}
+                        <Route path="/discover" element={<BusinessDiscoveryPage />} />
+                        
+                        {/* Mobile App Download Page */}
+                        <Route path="/app-download" element={<MobileAppDownload />} />
+                        
+                        {/* QR Code booking routes - Multiple variations for reliability */}
+                        <Route path="/book/:businessId" element={<PublicBookingPage />} />
+                        <Route path="/booking/:businessId" element={<PublicBookingPage />} />
+                        <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
+                        
+                        {/* Authenticated app routes */}
+                        <Route path="/app/*" element={<AuthenticatedApp />} />
+                        
+                        {/* Legal pages */}
+                        <Route path="/terms" element={<TermsOfService />} />
+                        <Route path="/privacy" element={<PrivacyPolicy />} />
+                        <Route path="/cookies" element={<CookiePolicy />} />
+                        <Route path="/safety" element={<SafetyTips />} />
+                        
+                        {/* Legacy route redirects */}
+                        <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+                        <Route path="/services" element={<Navigate to="/app/services" replace />} />
+                        <Route path="/booking-management" element={<Navigate to="/app/bookings" replace />} />
+                        <Route path="/clients" element={<Navigate to="/app/clients" replace />} />
+                        <Route path="/staff" element={<Navigate to="/app/staff" replace />} />
+                        <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
+                        <Route path="/invoices" element={<Navigate to="/app/invoices" replace />} />
+                        <Route path="/subscription" element={<Navigate to="/app/subscription" replace />} />
+                        
+                        {/* Catch all - 404 page */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                      
+                      {/* Enhanced PWA Manager */}
+                      <EnhancedPWAManager />
+                      <WhatsAppFAB />
+                    </div>
+                  </AuthProvider>
+                </BrowserRouter>
+              </TooltipProvider>
+            </QueryClientProvider>
+          </MotionConfig>
+        </ResponsiveProvider>
+      </ThemeProvider>
     </>
   );
 };

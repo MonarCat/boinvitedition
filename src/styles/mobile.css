@@ -574,6 +574,234 @@
   }
 }
 
+/* Accessibility Improvements based on Odoo/Calendly patterns - Added June 2025 */
+
+/* High contrast mode support */
+.high-contrast-mode {
+  --background: #ffffff;
+  --foreground: #000000;
+  --border: #000000;
+  --input: #ffffff;
+  --ring: #000000;
+  
+  color: var(--foreground);
+  background-color: var(--background);
+  border-color: var(--border);
+  outline-color: var(--border);
+}
+
+.high-contrast-mode button,
+.high-contrast-mode a,
+.high-contrast-mode .card {
+  border: 2px solid var(--border);
+}
+
+.high-contrast-mode input,
+.high-contrast-mode textarea,
+.high-contrast-mode select {
+  border: 2px solid var(--border);
+  background-color: var(--input);
+  color: var(--foreground);
+}
+
+/* Focus indicators for keyboard navigation */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #1976d2;
+  outline-offset: 2px;
+}
+
+.high-contrast-mode button:focus-visible,
+.high-contrast-mode a:focus-visible,
+.high-contrast-mode input:focus-visible,
+.high-contrast-mode select:focus-visible,
+.high-contrast-mode textarea:focus-visible {
+  outline: 3px solid #000000;
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Modern responsive grid based on Calendly/Odoo - uses CSS Grid */
+.responsive-grid {
+  display: grid;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* Small Mobile (<480px) - 1 column */
+@media (max-width: 479px) {
+  .responsive-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .hide-on-small-mobile {
+    display: none;
+  }
+}
+
+/* Mobile (480px-767px) - 1 column but with larger spacing */
+@media (min-width: 480px) and (max-width: 767px) {
+  .responsive-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  
+  .hide-on-mobile {
+    display: none;
+  }
+}
+
+/* Tablet (768px-1023px) - 2 columns */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .hide-on-tablet {
+    display: none;
+  }
+}
+
+/* Desktop Small (1024px-1199px) - 3 columns */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .responsive-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Desktop Large (≥1200px) - 4 columns */
+@media (min-width: 1200px) {
+  .responsive-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Container with responsive padding like Odoo/Calendly */
+.responsive-container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .responsive-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-container {
+    padding-left: 4rem;
+    padding-right: 4rem;
+    max-width: 1200px;
+  }
+}
+
+/* Progress indicators for multi-step flows like Calendly */
+.step-indicator {
+  display: flex;
+  width: 100%;
+  margin: 1rem 0 2rem;
+  position: relative;
+}
+
+.step-indicator::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #e1e5e9;
+  z-index: 1;
+}
+
+.step {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #e1e5e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.step.active .step-circle {
+  border-color: #1976d2;
+  background: #1976d2;
+  color: white;
+}
+
+.step.completed .step-circle {
+  border-color: #34d399;
+  background: #34d399;
+  color: white;
+}
+
+.step-label {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .step-label {
+    display: block;
+  }
+}
+
+/* Sticky header with backdrop blur like Odoo */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode support for the sticky header */
+.dark .sticky-header {
+  background: rgba(17, 24, 39, 0.85);
+}
+
 /* Responsive breakpoints for different mobile sizes */
 @media (max-width: 320px) {
   /* iPhone 5/SE and similar small devices */

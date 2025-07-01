@@ -1,0 +1,2 @@
+# Redirect mobile app requests to main app
+/mobile/* /index.html 200

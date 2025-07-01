@@ -1,14 +1,8 @@
 [build]
-  command = "./netlify-prebuild.sh && npm run build"
+  command = "npm run build"
   publish = "dist"
 
-# Skip submodule setup during build
 [build.environment]
+  # We can keep these if they are generally useful for your build
   GIT_LFS_SKIP_SMUDGE = "1"
   NETLIFY_USE_YARN = "true"
-  # Tell Git not to try to interact with remote repositories
-  GIT_TERMINAL_PROMPT = "0"
-  
-# Explicitly tell Netlify to ignore submodules
-[build.processing]
-  skip_processing = true

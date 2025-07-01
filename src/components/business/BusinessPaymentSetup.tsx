@@ -170,10 +170,9 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
 
           <TabsContent value="paystack" className="space-y-4">
             <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">Recommended: Automatic Split</h4>
+              <h4 className="font-medium text-blue-900 mb-2">Important Note</h4>
               <p className="text-sm text-blue-800">
-                Clients pay once, you receive 95% automatically, Boinvit receives 5%. 
-                Requires a Paystack subaccount.
+                Ensure you provide the correct account numbers. Due to multiple bank transfers, we promise to always allow payouts after every 24 hours.
               </p>
             </div>
             
@@ -186,7 +185,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
                 onChange={(e) => setFormData({...formData, paystack_subaccount_code: e.target.value})}
               />
               <p className="text-xs text-gray-600">
-                Create a subaccount in your Paystack dashboard and enter the code here
+                You will be provided with a subaccount code to fill here after filling your M-Pesa/Bank Account Number
               </p>
             </div>
 
@@ -204,7 +203,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
             <div className="bg-green-50 p-4 rounded-lg">
               <h4 className="font-medium text-green-900 mb-2">M-Pesa Direct</h4>
               <p className="text-sm text-green-800">
-                Clients can pay directly to your M-Pesa number. Platform fee collected separately.
+                This allows Payouts to your Mobile Money account. Ensure the details are correct
               </p>
             </div>
             
@@ -223,7 +222,7 @@ export const BusinessPaymentSetup: React.FC<BusinessPaymentSetupProps> = ({
             <div className="bg-orange-50 p-4 rounded-lg">
               <h4 className="font-medium text-orange-900 mb-2">Bank Transfer</h4>
               <p className="text-sm text-orange-800">
-                Clients can transfer directly to your bank account. Platform fee collected separately.
+                Your Bank Account will be used for payouts. Ensure the details are correct.
               </p>
             </div>
             

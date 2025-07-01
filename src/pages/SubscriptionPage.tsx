@@ -203,7 +203,7 @@ const SubscriptionPage = () => {
                   <Smartphone className="w-5 h-5 text-green-600 mt-1" />
                   <div>
                     <h4 className="font-medium text-green-800">M-Pesa & Mobile Money</h4>
-                    <p className="text-sm text-green-700">Pay directly from your mobile wallet</p>
+                    <p className="text-sm text-green-700">Get Paid directly to your mobile wallet</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -217,7 +217,7 @@ const SubscriptionPage = () => {
                   <Wallet className="w-5 h-5 text-purple-600 mt-1" />
                   <div>
                     <h4 className="font-medium text-green-800">Instant Activation</h4>
-                    <p className="text-sm text-green-700">Your plan activates immediately after payment</p>
+                    <p className="text-sm text-green-700">Your plan activates immediately after sign up</p>
                   </div>
                 </div>
               </div>

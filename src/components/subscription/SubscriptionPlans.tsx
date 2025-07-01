@@ -8,6 +8,17 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 
+// Add Plan type definition
+type Plan = {
+  name: string;
+  price: number;
+  interval: string;
+  description: string;
+  features: string[];
+  popular: boolean;
+  trialDays?: number;
+};
+
 export const SubscriptionPlans = () => {
   const { user } = useAuth();
   const { subscription, isLoading, createSubscription } = useSubscription();
@@ -33,9 +44,10 @@ export const SubscriptionPlans = () => {
     try {
       // This would need to be implemented based on your subscription logic
       toast.success('Subscription started successfully!');
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       console.error('Subscription error:', error);
-      toast.error(error.message || 'Failed to start subscription');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start subscription';
+      toast.error(errorMessage);
     }
   };
 
@@ -43,60 +55,15 @@ export const SubscriptionPlans = () => {
     try {
       // This would need to be implemented based on your subscription logic
       toast.success('Subscription cancelled successfully.');
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       console.error('Cancel subscription error:', error);
-      toast.error(error.message || 'Failed to cancel subscription.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to cancel subscription.';
+      toast.error(errorMessage);
     }
   };
 
-  const plans = [
-    {
-      name: 'Free Trial',
-      price: 0,
-      interval: 'trial',
-      description: '7-day free trial',
-      features: [
-        '7 days free access',
-        'Up to 3 staff members',
-        'Up to 500 bookings',
-        'Basic support',
-        'QR code generation',
-        'Payment integration'
-      ],
-      popular: false,
-      trialDays: 7
-    },
-    {
-      name: 'Basic',
-      price: 29,
-      interval: 'month',
-      description: 'For small businesses',
-      features: [
-        'Unlimited staff members',
-        'Up to 2,000 bookings',
-        'Advanced support',
-        'Custom branding',
-        'Reporting & analytics',
-        'Email marketing tools'
-      ],
-      popular: false
-    },
-    {
-      name: 'Premium',
-      price: 99,
-      interval: 'month',
-      description: 'For growing businesses',
-      features: [
-        'Unlimited staff members',
-        'Unlimited bookings',
-        'Priority support',
-        'White-labeling',
-        'API access',
-        'Dedicated account manager'
-      ],
-      popular: true
-    }
-  ];
+  // Updated plans array with minimal structure
+  const plans: Plan[] = [];
 
   if (isLoading) {
     return <div className="text-center">Loading subscription plans...</div>;
@@ -108,7 +75,7 @@ export const SubscriptionPlans = () => {
 
   return (
     <div className="container mx-auto py-12">
-      <h1 className="text-3xl font-bold text-center mb-8">Choose Your Plan</h1>
+      <h1 className="text-3xl font-bold text-center mb-8">PAYG Model</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((plan, index) => (
           <Card key={index} className={plan.popular ? "border-2 border-primary" : ""}>

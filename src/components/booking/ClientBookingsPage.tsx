@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -65,10 +64,18 @@ export const ClientBookingsPage = () => {
   };
 
   const formatPrice = (price: number, currency: string) => {
-    if (currency === 'KES') {
-      return `KES ${price.toLocaleString()}`;
+    switch (currency) {
+      case 'KES':
+        return `KES ${price.toLocaleString()}`;
+      case 'USD':
+        return `$${price.toLocaleString()}`;
+      case 'EUR':
+        return `€${price.toLocaleString()}`;
+      case 'GBP':
+        return `£${price.toLocaleString()}`;
+      default:
+        return `${currency} ${price.toLocaleString()}`;
     }
-    return `${price.toLocaleString()}`;
   };
 
   if (isLoading) {

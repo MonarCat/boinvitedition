@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -48,10 +47,6 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
 
   const getPlanDisplayName = (planType: string) => {
     switch (planType) {
-      case 'trial': return 'Free Trial';
-      case 'starter': return 'Starter Plan';
-      case 'medium': return 'Business Plan';
-      case 'premium': return 'Enterprise Plan';
       case 'payg': return 'Pay As You Go';
       default: return planType;
     }
@@ -112,16 +107,6 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {isTrialPlan && trialEndsAt && (
-          <div className="flex items-center gap-2 text-sm">
-            <Calendar className="w-4 h-4" />
-            <span>
-              {isExpired ? 'Trial expired on' : 'Trial ends on'} {format(trialEndsAt, 'PPP')}
-              {!isExpired && ` (${daysRemaining} days remaining)`}
-            </span>
-          </div>
-        )}
-
         {subscription.staff_limit && (
           <div className="flex items-center gap-2 text-sm">
             <Users className="w-4 h-4" />
@@ -141,8 +126,9 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
           <Button 
             onClick={onUpgrade} 
             className="w-full bg-red-600 hover:bg-red-700 text-white"
+            disabled
           >
-            Switch to Pay As You Go
+            Default Plan
           </Button>
         </div>
       </CardContent>

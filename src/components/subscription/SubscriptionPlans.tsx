@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,16 +7,6 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
-
-interface Plan {
-  name: string;
-  price: number;
-  interval: string;
-  description: string;
-  features: string[];
-  popular: boolean;
-  trialDays?: number;
-}
 
 export const SubscriptionPlans = () => {
   const { user } = useAuth();

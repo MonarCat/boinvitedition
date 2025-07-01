@@ -645,6 +645,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
           {isMobileView ? (
             <TouchFriendlyServices 
               services={services}
+              selectedService={selectedService}
               onServiceSelect={handleServiceSelect}
               currency={business.currency}
             />
@@ -703,7 +704,6 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                   service={selectedService}
                   onDateTimeSelect={handleDateTimeSelect}
                   onBack={() => updateStep('clientDetails')}
-                  isMobile={isMobileView}
                 />
               </motion.div>
             ) : bookingStep === 'staffSelection' && selectedService && selectedDateTime ? (
@@ -746,7 +746,6 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                   }}
                   onSuccess={handlePaymentSuccess}
                   onClose={() => updateStep('staffSelection')}
-                  isMobile={isMobileView}
                 />
               </motion.div>
             ) : bookingStep === 'confirmation' ? (

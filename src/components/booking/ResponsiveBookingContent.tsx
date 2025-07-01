@@ -69,10 +69,10 @@ interface ResponsiveBookingContentProps {
   business: Business;
   services: Service[];
   businessId: string;
-  currentStep?: BookingStep; // NEW: Step from parent component
-  onStepChange?: (step: BookingStep) => void; // NEW: Callback for step changes
-  onDisabledStepsChange?: (disabledSteps: BookingStep[]) => void; // NEW: Callback for updating disabled steps
-  isMobileView?: boolean; // NEW: Flag for mobile view optimizations
+  currentStep?: BookingStep;
+  onStepChange?: (step: BookingStep) => void;
+  onDisabledStepsChange?: (disabledSteps: BookingStep[]) => void;
+  isMobileView?: boolean;
 }
 
 const ClientDetailsForm: React.FC<{
@@ -98,69 +98,125 @@ const ClientDetailsForm: React.FC<{
 
   return isMobile ? (
     <ResponsiveCard className="bg-white shadow-lg">
-      <CardContent className="p-0"></CardContent>
+      <CardContent className="p-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-4"
+          onClick={onBack}
+          aria-label="Back to service selection"
+        >
+          <ChevronLeft className="w-4 h-4 mr-1" />
+          Back
+        </Button>
+
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">Your Information</h3>
+          <p className="text-sm text-gray-600">Please provide your contact details</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="name">Full Name *</Label>
+            <Input
+              id="name"
+              value={localClientDetails.name}
+              onChange={(e) => setLocalClientDetails(prev => ({ ...prev, name: e.target.value }))}
+              required
+              placeholder="Enter your full name"
+              className="h-12 text-base"
+            />
+          </div>
+          <div>
+            <Label htmlFor="email">Email Address *</Label>
+            <Input
+              id="email"
+              type="email"
+              value={localClientDetails.email}
+              onChange={(e) => setLocalClientDetails(prev => ({ ...prev, email: e.target.value }))}
+              required
+              placeholder="your@email.com"
+              className="h-12 text-base"
+            />
+          </div>
+          <div>
+            <Label htmlFor="phone">Phone Number *</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={localClientDetails.phone}
+              onChange={(e) => setLocalClientDetails(prev => ({ ...prev, phone: e.target.value }))}
+              required
+              placeholder="0712345678"
+              className="h-12 text-base"
+            />
+          </div>
+
+          <Button type="submit" className="w-full h-12 text-base mt-4">
+            Continue to Date Selection
+          </Button>
+        </form>
+      </CardContent>
     </ResponsiveCard>
   ) : (
     <Card className="bg-white shadow-lg">
-    <CardContent className="p-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="mb-4"
-        onClick={onBack}
-        aria-label="Back to service selection"
-      >
-        <ChevronLeft className="w-4 h-4 mr-1" />
-        Back
-      </Button>
-
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold">Your Information</h3>
-        <p className="text-sm text-gray-600">Please provide your contact details</p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Label htmlFor="name">Full Name *</Label>
-          <Input
-            id="name"
-            value={localClientDetails.name}
-            onChange={(e) => setLocalClientDetails(prev => ({ ...prev, name: e.target.value }))}
-            required
-            placeholder="Enter your full name"
-            className={isMobile ? "h-12 text-base" : ""}
-          />
-        </div>
-        <div>
-          <Label htmlFor="email">Email Address *</Label>
-          <Input
-            id="email"
-            type="email"
-            value={localClientDetails.email}
-            onChange={(e) => setLocalClientDetails(prev => ({ ...prev, email: e.target.value }))}
-            required
-            placeholder="your@email.com"
-            className={isMobile ? "h-12 text-base" : ""}
-          />
-        </div>
-        <div>
-          <Label htmlFor="phone">Phone Number *</Label>
-          <Input
-            id="phone"
-            type="tel"
-            value={localClientDetails.phone}
-            onChange={(e) => setLocalClientDetails(prev => ({ ...prev, phone: e.target.value }))}
-            required
-            placeholder="0712345678"
-            className={isMobile ? "h-12 text-base" : ""}
-          />
-        </div>
-
-        <Button type="submit" className={cn("w-full", isMobile && "h-12 text-base mt-4")}>
-          Continue to Date Selection
+      <CardContent className="p-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-4"
+          onClick={onBack}
+          aria-label="Back to service selection"
+        >
+          <ChevronLeft className="w-4 h-4 mr-1" />
+          Back
         </Button>
-      </form>
-    </CardContent>
+
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">Your Information</h3>
+          <p className="text-sm text-gray-600">Please provide your contact details</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="name">Full Name *</Label>
+            <Input
+              id="name"
+              value={localClientDetails.name}
+              onChange={(e) => setLocalClientDetails(prev => ({ ...prev, name: e.target.value }))}
+              required
+              placeholder="Enter your full name"
+            />
+          </div>
+          <div>
+            <Label htmlFor="email">Email Address *</Label>
+            <Input
+              id="email"
+              type="email"
+              value={localClientDetails.email}
+              onChange={(e) => setLocalClientDetails(prev => ({ ...prev, email: e.target.value }))}
+              required
+              placeholder="your@email.com"
+            />
+          </div>
+          <div>
+            <Label htmlFor="phone">Phone Number *</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={localClientDetails.phone}
+              onChange={(e) => setLocalClientDetails(prev => ({ ...prev, phone: e.target.value }))}
+              required
+              placeholder="0712345678"
+            />
+          </div>
+
+          <Button type="submit" className="w-full">
+            Continue to Date Selection
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -186,7 +242,7 @@ const StaffSelector: React.FC<{
       return data.map((s) => ({ 
         id: s.id, 
         name: s.name || 'Unnamed Staff',
-        avatar_url: undefined // No avatar for now since we don't have user relation
+        avatar_url: undefined
       }));
     },
   });
@@ -195,7 +251,7 @@ const StaffSelector: React.FC<{
 
   return isMobile ? (
     <ResponsiveCard>
-      <div className="p-6">
+      <CardContent className="p-6">
         <Button
           variant="ghost"
           size="sm"
@@ -206,63 +262,97 @@ const StaffSelector: React.FC<{
           <ChevronLeft className="w-4 h-4 mr-1" />
           Back to Calendar
         </Button>
-      </div>
+        
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-semibold">Select Staff (Optional)</h3>
+            <p className="text-sm text-gray-600">Choose a preferred staff member or continue without selection</p>
+          </div>
+
+          {staff && staff.length > 0 ? (
+            <div className="grid gap-4 grid-cols-1">
+              {staff.map((member) => (
+                <button
+                  key={member.id}
+                  className={cn(
+                    "p-4 border rounded-lg flex items-center gap-4 transition-colors min-h-[80px]",
+                    selectedStaffId === member.id
+                      ? "bg-blue-100 border-blue-500"
+                      : "hover:bg-gray-50"
+                  )}
+                  onClick={() => onSelectStaff(member.id)}
+                >
+                  <img 
+                    src={member.avatar_url || '/placeholder.svg'} 
+                    alt={member.name} 
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                  <span className="text-center text-lg">{member.name}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-4">No staff members available</p>
+          )}
+
+          <Button onClick={onNext} className="w-full h-12 text-base mt-4">
+            Continue to Payment
+          </Button>
+        </div>
+      </CardContent>
     </ResponsiveCard>
   ) : (
     <Card>
-    <CardContent className="p-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="mb-4"
-        onClick={onBack}
-        aria-label="Back to calendar"
-      >
-        <ChevronLeft className="w-4 h-4 mr-1" />
-        Back to Calendar
-      </Button>
-      
-      <div className="space-y-4">
-        <div>
-          <h3 className="font-semibold">Select Staff (Optional)</h3>
-          <p className="text-sm text-gray-600">Choose a preferred staff member or continue without selection</p>
-        </div>
-
-        {staff && staff.length > 0 ? (
-          <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-2")}>
-            {staff.map((member) => (
-              <button
-                key={member.id}
-                className={cn(
-                  "p-4 border rounded-lg flex items-center gap-4 transition-colors",
-                  selectedStaffId === member.id
-                    ? "bg-blue-100 border-blue-500"
-                    : "hover:bg-gray-50",
-                  isMobile && "min-h-[80px]"
-                )}
-                onClick={() => onSelectStaff(member.id)}
-              >
-                <img 
-                  src={member.avatar_url || '/placeholder.svg'} 
-                  alt={member.name} 
-                  className={cn("rounded-full object-cover", isMobile ? "w-16 h-16" : "w-12 h-12")}
-                />
-                <span className={cn("text-center", isMobile && "text-lg")}>{member.name}</span>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 text-center py-4">No staff members available</p>
-        )}
-
-        <Button 
-          onClick={onNext} 
-          className={cn("w-full", isMobile && "h-12 text-base mt-4")}
+      <CardContent className="p-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-4"
+          onClick={onBack}
+          aria-label="Back to calendar"
         >
-          Continue to Payment
+          <ChevronLeft className="w-4 h-4 mr-1" />
+          Back to Calendar
         </Button>
-      </div>
-    </CardContent>
+        
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-semibold">Select Staff (Optional)</h3>
+            <p className="text-sm text-gray-600">Choose a preferred staff member or continue without selection</p>
+          </div>
+
+          {staff && staff.length > 0 ? (
+            <div className="grid gap-4 grid-cols-2">
+              {staff.map((member) => (
+                <button
+                  key={member.id}
+                  className={cn(
+                    "p-4 border rounded-lg flex items-center gap-4 transition-colors",
+                    selectedStaffId === member.id
+                      ? "bg-blue-100 border-blue-500"
+                      : "hover:bg-gray-50"
+                  )}
+                  onClick={() => onSelectStaff(member.id)}
+                >
+                  <img 
+                    src={member.avatar_url || '/placeholder.svg'} 
+                    alt={member.name} 
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <span className="text-center">{member.name}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-4">No staff members available</p>
+          )}
+
+          <Button onClick={onNext} className="w-full">
+            Continue to Payment
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -270,7 +360,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
   business,
   services,
   businessId,
-  currentStep = 'serviceSelection', // Default to serviceSelection if not provided
+  currentStep = 'serviceSelection',
   onStepChange,
   onDisabledStepsChange,
   isMobileView = false
@@ -284,17 +374,14 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
     phone: ''
   });
   
-  // Internal step state that will sync with external currentStep prop
   const [bookingStep, setBookingStep] = useState<BookingStep>(currentStep);
 
-  // Sync internal step with external step when prop changes
   useEffect(() => {
     if (currentStep && currentStep !== bookingStep) {
       setBookingStep(currentStep);
     }
   }, [currentStep]);
 
-  // Internal step update function that also notifies parent component
   const updateStep = (step: BookingStep) => {
     setBookingStep(step);
     if (onStepChange) {
@@ -309,13 +396,11 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
     ...services.flatMap(s => s.image_url ? [s.image_url] : [])
   ].filter(Boolean) as string[];
 
-  // Update disabled steps whenever booking flow state changes
   useEffect(() => {
     if (!onDisabledStepsChange) return;
 
     const newDisabledSteps: BookingStep[] = [];
     
-    // Logic to determine which steps should be disabled
     if (!selectedService) {
       newDisabledSteps.push('clientDetails', 'calendar', 'staffSelection', 'payment', 'confirmation');
     } else if (!clientDetails.name || !clientDetails.email || !clientDetails.phone) {
@@ -389,7 +474,6 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
     return 'Hours available on request';
   };
 
-  // Determine the payment policy, defaulting to pay_on_booking if not specified
   const paymentPolicy = business.payment_policy || 'pay_on_booking';
 
   return (

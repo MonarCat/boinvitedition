@@ -28,15 +28,11 @@ export const FinancialSummary = ({ transactions = [], isLoading = false }: Finan
   const getCommissionRate = () => {
     if (!subscription) return 0.05; // Default to PAYG rate
     
-    switch(subscription.plan_type) {
-      case 'payg': return 0.05; // 5%
-      case 'trial': 
-      case 'starter':
-      case 'economy': return 0.05; // 5%
-      case 'medium': return 0.05; // 5%
-      case 'premium': return 0.05; // 5%
-      default: return 0.05;
-    }
+    if (subscription.plan_type === 'payg') return 0.05;
+    if (subscription.plan_type === 'starter') return 0.05;
+    if (subscription.plan_type === 'medium') return 0.05;
+    if (subscription.plan_type === 'premium') return 0.05;
+    return 0.05; // default
   };
   
   const commissionRate = getCommissionRate();

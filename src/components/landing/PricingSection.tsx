@@ -71,7 +71,7 @@ export const PricingSection = () => {
                     
                     <CardHeader className="text-center pb-0">
                       <CardTitle className="text-2xl font-bold text-red-700">{plan.name}</CardTitle>
-                      <p className="text-md text-red-600 font-medium">{plan.description || "Only pay when you get paid"}</p>
+                      <p className="text-md text-red-600 font-medium">Only pay when you get paid</p>
                       
                       <div className="mt-4 mb-2">
                         <div className="text-4xl font-bold text-red-600">

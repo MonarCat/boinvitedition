@@ -163,9 +163,33 @@ export const usePaystackPayment = () => {
           console.log('Payment callback received:', response);
           setIsProcessing(false);
           
-          // Log successful transaction
-          logTransaction(response.reference, 'completed', amount, currency, metadata, clientDetails).then(() => {
+          // Log successful transaction and update booking if applicable
+          logTransaction(response.reference, 'completed', amount, currency, metadata, clientDetails).then(async () => {
             console.log('Payment transaction logged successfully');
+            
+            // If this is a booking payment, update the booking status
+            if (metadata.payment_type === 'client_to_business' && metadata.booking_id) {
+              try {
+                const { error: bookingError } = await supabase
+                  .from('bookings')
+                  .update({
+                    status: 'confirmed',
+                    payment_status: 'completed',
+                    payment_reference: response.reference,
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('id', metadata.booking_id);
+
+                if (bookingError) {
+                  console.error('Failed to update booking status:', bookingError);
+                } else {
+                  console.log('Booking status updated successfully for:', metadata.booking_id);
+                }
+              } catch (error) {
+                console.error('Error updating booking:', error);
+              }
+            }
+            
             toast.success('Payment successful!');
             onSuccess(response.reference);
           }).catch((error) => {

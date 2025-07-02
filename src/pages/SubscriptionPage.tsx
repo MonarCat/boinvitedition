@@ -75,10 +75,8 @@ const SubscriptionPage = () => {
       toast.loading('🔄 Activating your plan...', { id: 'plan-activation' });
       
       await createSubscription({
-        planType: planId,
+        planType: 'payg', // Only PAYG is available now
         businessId: business.id,
-        paymentInterval: interval,
-        amount,
         paystackReference
       });
       

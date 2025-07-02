@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSpreadsheetExport } from '@/hooks/useSpreadsheetExport';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useDashboardHandlers } from '@/hooks/useDashboardHandlers';
+import { useDashboardRealtime } from '@/hooks/useDashboardRealtime';
 import { Download, Shield, Users, TrendingUp } from 'lucide-react';
 
 const Dashboard = () => {
@@ -58,6 +59,9 @@ const Dashboard = () => {
     handleSubscription,
     navigate,
   } = useDashboardHandlers();
+
+  // Set up real-time dashboard updates
+  useDashboardRealtime(business?.id);
 
   const { isExporting, exportBookings, exportClients, exportStaff } = useSpreadsheetExport(business?.id || '');
 

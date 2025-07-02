@@ -105,7 +105,11 @@ export const useSubscription = () => {
       const newSubscriptionData = {
         user_id: user.id,
         business_id: businessId,
-        ...subscriptionData,
+        plan_type: subscriptionData?.plan_type || 'payg',
+        status: 'active' as const,
+        staff_limit: subscriptionData?.staff_limit || null,
+        bookings_limit: subscriptionData?.bookings_limit || null,
+        commission_rate: subscriptionData?.commission_rate || 0.05,
         paystack_reference: paystackReference || undefined,
         current_period_end: new Date(new Date().setFullYear(new Date().getFullYear() + 100)).toISOString(), // 100 years from now
       };

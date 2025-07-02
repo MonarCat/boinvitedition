@@ -81,41 +81,62 @@ export const useDashboardData = (businessId?: string) => {
 
       const { startDate, endDate } = getDateRange(timePeriod);
 
-      // Get bookings for the period
+      // Get bookings for the period (including paid bookings)
       const { data: periodBookings } = await supabase
         .from('bookings')
         .select('*')
         .eq('business_id', actualBusinessId)
         .gte('booking_date', startDate)
         .lte('booking_date', endDate)
-        .in('status', ['confirmed', 'completed']);
+        .in('status', ['confirmed', 'completed'])
+        .neq('payment_status', 'pending');
 
-      // Get revenue from completed payments only
-      const { data: periodPayments } = await supabase
-        .from('bookings')
-        .select('total_amount')
+      // Get revenue from completed payments - use payment_transactions for accuracy
+      const { data: paymentTransactions } = await supabase
+        .from('payment_transactions')
+        .select('amount, created_at')
         .eq('business_id', actualBusinessId)
-        .gte('booking_date', startDate)
-        .lte('booking_date', endDate)
-        .eq('payment_status', 'completed')
-        .in('status', ['confirmed', 'completed']);
+        .eq('status', 'completed')
+        .eq('transaction_type', 'client_to_business')
+        .gte('created_at', startDate + 'T00:00:00Z')
+        .lte('created_at', endDate + 'T23:59:59Z');
 
-      // Get total clients (all time)
+      // Also get revenue from client_business_transactions for backup
+      const { data: clientTransactions } = await supabase
+        .from('client_business_transactions')
+        .select('business_amount, created_at')
+        .eq('business_id', actualBusinessId)
+        .eq('status', 'completed')
+        .gte('created_at', startDate + 'T00:00:00Z')
+        .lte('created_at', endDate + 'T23:59:59Z');
+
+      // Get total clients (unique by email to avoid duplicates)
       const { data: clients } = await supabase
         .from('clients')
-        .select('id')
+        .select('id, email')
         .eq('business_id', actualBusinessId);
 
-      const totalRevenue = periodPayments?.reduce((sum, booking) => sum + Number(booking.total_amount || 0), 0) || 0;
+      // Calculate revenue from both sources
+      const transactionRevenue = paymentTransactions?.reduce((sum, tx) => sum + Number(tx.amount || 0), 0) || 0;
+      const clientTransactionRevenue = clientTransactions?.reduce((sum, tx) => sum + Number(tx.business_amount || 0), 0) || 0;
+      
+      // Use the higher value or sum them if they represent different things
+      const totalRevenue = Math.max(transactionRevenue, clientTransactionRevenue);
+
+      // Get unique client count (deduplicate by email)
+      const uniqueEmails = new Set(clients?.map(c => c.email) || []);
+      const totalClients = uniqueEmails.size;
 
       return {
         activeBookings: periodBookings?.length || 0,
         totalRevenue,
         totalBookings: periodBookings?.length || 0,
-        totalClients: clients?.length || 0,
+        totalClients,
       };
     },
     enabled: !!actualBusinessId,
+    staleTime: 30000, // 30 seconds - refresh more frequently for real-time updates
+    refetchInterval: 60000, // Auto-refresh every minute
   });
 
   // Get currency from business data

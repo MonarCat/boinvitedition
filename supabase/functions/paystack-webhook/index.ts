@@ -212,11 +212,64 @@ serve(async (req) => {
         const charge = event.data;
         const businessId = charge.metadata?.business_id;
         const planType = charge.metadata?.plan_type;
+        const paymentType = charge.metadata?.payment_type;
+        const bookingId = charge.metadata?.booking_id;
         const reference = charge.reference;
 
-        // Validate required metadata
+        // Handle client-to-business payments
+        if (paymentType === 'client_to_business' && businessId && bookingId) {
+          console.log('Processing client-to-business payment:', { businessId, bookingId, reference });
+
+          // Update booking status to confirmed and payment status to completed
+          const { error: bookingError } = await supabase
+            .from('bookings')
+            .update({
+              status: 'confirmed',
+              payment_status: 'completed',
+              payment_reference: reference,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', bookingId);
+
+          if (bookingError) {
+            console.error('Failed to update booking:', bookingError);
+          } else {
+            console.log('Booking updated successfully:', bookingId);
+          }
+
+          // Update client-business transaction status
+          const { error: transactionError } = await supabase
+            .from('client_business_transactions')
+            .update({
+              status: 'completed',
+              paystack_reference: reference
+            })
+            .eq('booking_id', bookingId);
+
+          if (transactionError) {
+            console.error('Failed to update transaction:', transactionError);
+          }
+
+          // Log successful client payment
+          await supabase.rpc('log_security_event', {
+            p_event_type: 'CLIENT_PAYMENT_SUCCESS',
+            p_description: 'Client payment processed successfully',
+            p_metadata: { 
+              event_type: event.event,
+              business_id: businessId,
+              booking_id: bookingId,
+              amount: charge.amount,
+              reference: reference
+            }
+          });
+
+          console.log('Client-to-business payment processed successfully');
+          break;
+        }
+
+        // Handle subscription payments
         if (!businessId || !planType) {
-          console.error('Missing required metadata in payment');
+          console.error('Missing required metadata for subscription payment');
           return new Response('Invalid payment metadata', { status: 400 });
         }
 

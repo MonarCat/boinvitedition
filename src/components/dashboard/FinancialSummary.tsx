@@ -12,6 +12,7 @@ import {
   HelpCircle 
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
+import { formatCurrency } from '@/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface FinancialSummaryProps {
@@ -48,31 +49,12 @@ export const FinancialSummary = ({ transactions = [], isLoading = false }: Finan
   const totalCommission = totalRevenue * commissionRate;
   const netEarnings = totalRevenue - totalCommission;
   
-  // Format currency values
-  const formatCurrency = (amount: number) => {
-    return `KSh ${amount.toLocaleString()}`;
-  };
-  
   // Get badge for subscription type
   const getSubscriptionBadge = () => {
     if (!subscription) return null;
     
-    switch(subscription.plan_type) {
-      case 'payg':
-        return <Badge className="bg-orange-500">Pay As You Go</Badge>;
-      case 'trial':
-        return <Badge className="bg-blue-500">Trial</Badge>;
-      case 'starter':
-        return <Badge className="bg-green-500">Starter</Badge>;
-      case 'economy':
-        return <Badge className="bg-cyan-500">Economy</Badge>;
-      case 'medium':
-        return <Badge className="bg-purple-500">Business</Badge>;
-      case 'premium':
-        return <Badge className="bg-indigo-500">Premium</Badge>;
-      default:
-        return null;
-    }
+    // Only PAYG is available now
+  return <Badge className="bg-orange-500">Pay As You Go</Badge>;
   };
 
   if (isLoading) {

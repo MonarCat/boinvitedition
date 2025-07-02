@@ -23,6 +23,8 @@ export const useClientBusinessTransactions = (businessId?: string) => {
       return data || [];
     },
     enabled: !!businessId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000 // 10 minutes
   });
 
   const { data: payoutSettings } = useQuery({
@@ -40,6 +42,8 @@ export const useClientBusinessTransactions = (businessId?: string) => {
       return data;
     },
     enabled: !!businessId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000 // 10 minutes
   });
 
   const getTotalRevenue = () => {

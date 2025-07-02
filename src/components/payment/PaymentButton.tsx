@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Loader2 } from 'lucide-react';
+import { formatCurrency } from '@/utils';
 
 interface PaymentButtonProps {
   onPayment: () => void;
@@ -18,15 +19,6 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
   currency,
   buttonText
 }) => {
-  const formatCurrency = (amount: number, currency: string) => {
-    const symbols: { [key: string]: string } = {
-      'KES': 'KSh ',
-      'USD': '$',
-      'EUR': '€',
-      'GBP': '£'
-    };
-    return `${symbols[currency] || currency} ${amount.toLocaleString()}`;
-  };
 
   return (
     <Button 

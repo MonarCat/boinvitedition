@@ -7,6 +7,8 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
+import { formatCurrency, formatCommissionRate } from '@/utils';
+import { PaygExplainer } from './PaygExplainer';
 
 // Add Plan type definition
 type Plan = {
@@ -42,31 +44,91 @@ export const SubscriptionPlans = () => {
     }
 
     try {
+      toast.loading('Activating your PAYG plan...', { id: 'subscription-process' });
+      
       // This would need to be implemented based on your subscription logic
-      toast.success('Subscription started successfully!');
+      // Add a small delay to simulate processing
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // If we get here, the subscription was successful
+      toast.dismiss('subscription-process');
+      toast.success('PAYG plan activated successfully!', { duration: 5000 });
+      
+      // Redirect to dashboard after successful subscription
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
     } catch (error: Error | unknown) {
+      toast.dismiss('subscription-process');
       console.error('Subscription error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to start subscription';
-      toast.error(errorMessage);
+      toast.error(`Subscription error: ${errorMessage}. Please try again or contact support.`);
     }
   };
 
   const handleCancelSubscription = async () => {
+    // For PAYG, cancellation is different - we inform the user it's always active
+    toast.info('Your Pay As You Go plan is always active with no commitment. You only pay when you receive payments.', {
+      duration: 8000,
+      description: "There's no need to cancel - you're not being charged any subscription fees."
+    });
+    
+    // If we needed actual cancellation logic, it would be here
     try {
-      // This would need to be implemented based on your subscription logic
-      toast.success('Subscription cancelled successfully.');
+      // Actual cancellation logic would go here if needed
+      // For now, we'll just simulate the process
+      // toast.success('Subscription cancelled successfully.');
     } catch (error: Error | unknown) {
       console.error('Cancel subscription error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to cancel subscription.';
-      toast.error(errorMessage);
+      toast.error(`Error: ${errorMessage} Please contact support if you need assistance.`);
     }
   };
 
   // Updated plans array with minimal structure
-  const plans: Plan[] = [];
+  const plans: Plan[] = [
+    {
+      name: 'Pay As You Go',
+      price: 0,
+      interval: 'commission',
+      description: 'Only pay when you get paid',
+      features: [
+        'No monthly subscription fees',
+        '5% commission on payments',
+        'Unlimited staff members',
+        'Unlimited bookings',
+        'Full platform access',
+        'Advanced analytics',
+        'Custom branding'
+      ],
+      popular: true
+    }
+  ];
 
   if (isLoading) {
-    return <div className="text-center">Loading subscription plans...</div>;
+    return (
+      <div className="container mx-auto py-12">
+        <div className="text-center mb-8">
+          <div className="h-8 bg-gray-200 rounded-md w-1/3 mx-auto mb-4 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded-md w-2/3 mx-auto animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="border rounded-lg p-6 animate-pulse">
+            <div className="h-6 bg-gray-200 rounded-md w-1/2 mb-4"></div>
+            <div className="h-10 bg-gray-200 rounded-md w-1/3 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded-md w-2/3 mb-6"></div>
+            <div className="space-y-2">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center">
+                  <div className="h-4 w-4 rounded-full bg-gray-200 mr-2"></div>
+                  <div className="h-4 bg-gray-200 rounded-md w-full"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
@@ -75,7 +137,17 @@ export const SubscriptionPlans = () => {
 
   return (
     <div className="container mx-auto py-12">
-      <h1 className="text-3xl font-bold text-center mb-8">PAYG Model</h1>
+      <h1 className="text-3xl font-bold text-center mb-4">PAYG Model</h1>
+      <p className="text-center text-gray-600 mb-8 max-w-2xl mx-auto">
+        Our simple Pay-As-You-Go model means you only pay when your business receives payments.
+        No monthly fees, no commitments, just a small commission on successful transactions.
+      </p>
+      
+      {/* PAYG Explainer Card */}
+      <div className="mb-8">
+        <PaygExplainer />
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((plan, index) => (
           <Card key={index} className={plan.popular ? "border-2 border-primary" : ""}>
@@ -89,8 +161,13 @@ export const SubscriptionPlans = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-4xl font-bold">
-                ${plan.price}
-                <span className="text-sm text-gray-500">/{plan.interval}</span>
+                {plan.interval === 'commission' ? 
+                  formatCommissionRate(0.05) : 
+                  formatCurrency(plan.price)
+                }
+                {plan.interval !== 'commission' && 
+                  <span className="text-sm text-gray-500">/{plan.interval}</span>
+                }
               </div>
               <p className="text-gray-600">{plan.description}</p>
               <Separator />

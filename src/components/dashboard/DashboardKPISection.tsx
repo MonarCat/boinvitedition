@@ -14,6 +14,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { formatCurrency } from '@/utils';
 import { TimePeriodSelector, TimePeriod } from './TimePeriodSelector';
 
 interface DashboardKPISectionProps {
@@ -25,7 +26,7 @@ interface DashboardKPISectionProps {
     totalClients: number;
   };
   currency: string;
-  formatPrice: (amount: number) => string;
+  formatPrice?: (amount: number) => string; // Made optional since we'll use formatCurrency
   onRefresh: () => void;
   onEditBusiness: () => void;
   timePeriod: TimePeriod;
@@ -64,7 +65,7 @@ export const DashboardKPISection = ({
     },
     {
       title: `${getPeriodLabel(timePeriod)} Revenue`,
-      value: formatPrice(stats.totalRevenue),
+      value: formatCurrency(stats.totalRevenue, currency),
       icon: DollarSign,
       color: "text-green-600",
       bgColor: "bg-green-50"

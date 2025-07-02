@@ -97,7 +97,7 @@ export const PricingSection = () => {
                         className="w-full bg-red-600 hover:bg-red-700 text-white py-6 text-xl font-bold shadow-lg transform transition-all duration-200 hover:shadow-xl hover:scale-105"
                         onClick={() => navigate('/auth')}
                       >
-                        🚀 START PAY AS YOU GO
+                        🚀 ALREADY ACTIVATED ON PAYG
                       </Button>
                     </CardContent>
                   </Card>

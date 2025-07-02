@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { DollarSign, TrendingUp, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import { useClientBusinessTransactions } from '@/hooks/useClientBusinessTransactions';
+import { formatCurrency } from '@/utils';
 
 interface BusinessEarningsOverviewProps {
   businessId: string;
@@ -12,10 +13,6 @@ interface BusinessEarningsOverviewProps {
 
 export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> = ({ businessId }) => {
   const { transactions, totalRevenue, pendingAmount, isLoading } = useClientBusinessTransactions(businessId);
-
-  const formatCurrency = (amount: number) => {
-    return `KSh ${amount.toLocaleString()}`;
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -40,11 +37,33 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="animate-pulse">Loading earnings data...</div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <div className="h-4 bg-gray-200 animate-pulse rounded w-1/2"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 bg-gray-200 animate-pulse rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 animate-pulse rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="animate-pulse flex flex-col space-y-4">
+              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+              <div className="space-y-2">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-10 bg-gray-200 rounded"></div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -121,7 +140,6 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
             <span className="font-bold text-lg">{formatCurrency(availableForPayout)}</span>
           </div>
           <div className="text-xs text-blue-600">
-            • Payouts are processed within 24 hours of payment completion
             • Funds become available for payout 24 hours after transaction
             • Configure your payout methods in the Payouts tab
           </div>
@@ -193,7 +211,7 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
           <div className="text-sm text-blue-800 space-y-1">
             <p>• Platform fee: 5% commission per transaction</p>
             <p>• You receive: 95% of each payment</p>
-            <p>• Payouts processed within 24 hours</p>
+            <p>• Payouts processed 24 hours after transaction completion</p>
             <p>• Real-time transaction tracking</p>
           </div>
         </CardContent>

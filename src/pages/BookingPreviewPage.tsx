@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { formatCurrency } from '@/utils';
 import { 
   MapPin, 
   Phone, 
@@ -90,7 +91,7 @@ const BookingPreviewPage = () => {
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [bookingStep, setBookingStep] = useState<'services' | 'details' | 'payment' | 'confirmation'>('services');
 
-  const formatPrice = (price: number) => `KES ${price.toLocaleString()}`;
+  const formatPrice = (price: number) => formatCurrency(price);
 
   const BusinessHeader = () => (
     <motion.div 

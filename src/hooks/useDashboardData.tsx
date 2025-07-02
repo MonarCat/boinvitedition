@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { formatCurrency } from '@/utils';
 
 export type TimePeriod = 'today' | 'week' | 'month' | 'year';
 
@@ -120,12 +121,9 @@ export const useDashboardData = (businessId?: string) => {
   // Get currency from business data
   const currency = business?.currency || 'KES';
 
-  // Format price function
+  // Format price function using the centralized utility
   const formatPrice = (amount: number) => {
-    if (currency === 'KES') {
-      return `KES ${amount.toLocaleString()}`;
-    }
-    return `${amount.toLocaleString()}`;
+    return formatCurrency(amount, currency);
   };
 
   // Handle KPI refresh

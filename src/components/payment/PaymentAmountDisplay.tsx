@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { formatCurrency } from '@/utils';
 
 interface PaymentAmountDisplayProps {
   amount: number;
@@ -12,15 +13,6 @@ export const PaymentAmountDisplay: React.FC<PaymentAmountDisplayProps> = ({
   currency,
   paymentType
 }) => {
-  const formatCurrency = (amount: number, currency: string) => {
-    const symbols: { [key: string]: string } = {
-      'KES': 'KSh ',
-      'USD': '$',
-      'EUR': '€',
-      'GBP': '£'
-    };
-    return `${symbols[currency] || currency} ${amount.toLocaleString()}`;
-  };
 
   return (
     <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 text-center border border-green-100">
@@ -31,10 +23,10 @@ export const PaymentAmountDisplay: React.FC<PaymentAmountDisplayProps> = ({
         <div className="text-xs text-gray-600 space-y-1">
           <div className="flex justify-between items-center">
             <span>Business receives:</span>
-            <span className="font-medium">{formatCurrency(amount * 0.97, currency)}</span>
+            <span className="font-medium">{formatCurrency(amount * 0.95, currency)}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span>Platform fee (5%):</span>
+            <span>Boinvit fee (5%):</span>
             <span className="font-medium">{formatCurrency(amount * 0.05, currency)}</span>
           </div>
         </div>

@@ -79,9 +79,11 @@ export const useBusinessSettings = () => {
     onSuccess: () => {
       toast.success('Business settings updated successfully');
       queryClient.invalidateQueries({ queryKey: ['user-business'] });
+      // Force a complete refetch to ensure the latest data is displayed
+      queryClient.refetchQueries({ queryKey: ['user-business'], type: 'active' });
       setErrors({});
     },
-    onError: (error: any) => {
+    onError: (error: Error | unknown) => {
       console.error('Business update error:', error);
       handleError(error, { customMessage: 'Failed to update business settings' });
     },

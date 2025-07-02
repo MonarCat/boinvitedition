@@ -79,6 +79,8 @@ export const useGeneralSettings = () => {
     onSuccess: () => {
       toast.success('General settings updated successfully');
       queryClient.invalidateQueries({ queryKey: ['business-settings'] });
+      // Force a complete refetch to ensure the latest data is displayed
+      queryClient.refetchQueries({ queryKey: ['business-settings'], type: 'active' });
       setErrors({});
     },
     onError: (error) => {

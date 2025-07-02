@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { CreditCard, DollarSign, CheckCircle, Info, Smartphone, Phone, MessageCircle, Mail, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatCurrency } from '@/utils';
 
 interface Service {
   id: string;
@@ -48,10 +49,7 @@ export const ClientPaymentSection: React.FC<ClientPaymentSectionProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
 
   const formatPrice = (price: number, currency: string) => {
-    if (currency === 'KES' || currency === 'KSH') {
-      return `KSh ${price.toLocaleString()}`;
-    }
-    return `${currency} ${price.toLocaleString()}`;
+    return formatCurrency(price, currency);
   };
 
   const handleSTKPush = async () => {
@@ -88,9 +86,26 @@ export const ClientPaymentSection: React.FC<ClientPaymentSectionProps> = ({
       } else {
         toast.error(result.error || 'Payment failed');
       }
-    } catch (error) {
+    } catch (error: Error | unknown) {
       console.error('STK Push error:', error);
-      toast.error('Payment failed. Please try again.');
+      
+      // Enhanced error handling with more specific messages
+      let errorMessage = 'Payment processing failed.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('network')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage = 'The payment request timed out. Please try again.';
+        } else {
+          errorMessage = `Error: ${error.message}`;
+        }
+      }
+      
+      toast.error(errorMessage, {
+        description: 'If this problem persists, please contact support.',
+        duration: 8000,
+      });
     }
     setIsProcessing(false);
   };

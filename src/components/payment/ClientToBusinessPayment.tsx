@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { CreditCard, Smartphone, CheckCircle, AlertTriangle } from 'lucide-react';
 import { DirectPaystackPayment } from './DirectPaystackPayment';
 import { loadPaystackScript } from './PaystackScriptLoader';
+import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 
 interface ClientToBusinessPaymentProps {
   businessId: string;
@@ -84,20 +85,21 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
       </Card>
 
 
-      {/* Direct Payment Component */}
-      <DirectPaystackPayment
-        amount={amount}
-        currency={currency}
-        email={bookingDetails?.clientEmail}
-        metadata={{
-          payment_type: 'client_to_business',
-          business_id: businessId,
-          booking_id: bookingId,
-          business_name: businessName,
-          service_id: bookingDetails?.serviceId,
-          service_name: bookingDetails?.serviceName,
-          staff_id: bookingDetails?.staffId || undefined,
-          appointment_date: bookingDetails?.date,
+      {/* Direct Payment Component - Wrapped with ErrorBoundary */}
+      <ErrorBoundary isPaymentFlow={true} onError={(error) => console.error("Payment error:", error)}>
+        <DirectPaystackPayment
+          amount={amount}
+          currency={currency}
+          email={bookingDetails?.clientEmail}
+          metadata={{
+            payment_type: 'client_to_business',
+            business_id: businessId,
+            booking_id: bookingId,
+            business_name: businessName,
+            service_id: bookingDetails?.serviceId,
+            service_name: bookingDetails?.serviceName,
+            staff_id: bookingDetails?.staffId || undefined,
+            appointment_date: bookingDetails?.date,
           appointment_time: bookingDetails?.time,
           customer_name: bookingDetails?.clientName,
           customer_phone: bookingDetails?.clientPhone
@@ -109,6 +111,7 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
         showClientDetails={!bookingDetails?.clientEmail}
         buttonText="Pay"
       />
+      </ErrorBoundary>
 
       {/* Important Notice */}
       <Card className="bg-blue-50 border-blue-200">

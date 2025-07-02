@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,13 +5,22 @@ import { Separator } from '@/components/ui/separator';
 import { DollarSign, TrendingUp, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import { useClientBusinessTransactions } from '@/hooks/useClientBusinessTransactions';
 import { formatCurrency } from '@/utils';
+import { DataRefreshPanel } from '@/components/dashboard/DataRefreshPanel';
 
 interface BusinessEarningsOverviewProps {
   businessId: string;
 }
 
 export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> = ({ businessId }) => {
-  const { transactions, totalRevenue, pendingAmount, isLoading } = useClientBusinessTransactions(businessId);
+  const { 
+    transactions, 
+    totalRevenue, 
+    pendingAmount, 
+    platformFees,
+    grossRevenue,
+    isLoading, 
+    refetch 
+  } = useClientBusinessTransactions(businessId);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -25,6 +33,12 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
       default:
         return <Badge className="bg-gray-500">{status}</Badge>;
     }
+  };
+  
+  // Force refresh function for transactions
+  const refreshTransactions = () => {
+    console.log('Manual refresh of transactions requested');
+    refetch();
   };
 
   // Calculate available for payout (completed transactions within 24 hours)
@@ -69,6 +83,9 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
 
   return (
     <div className="space-y-6">
+      {/* Data Refresh Panel */}
+      <DataRefreshPanel businessId={businessId} />
+      
       {/* Revenue Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -117,7 +134,7 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(transactions.reduce((sum, t) => sum + Number(t.platform_fee || 0), 0))}
+              {formatCurrency(platformFees)}
             </div>
             <p className="text-xs text-muted-foreground">
               5% of total transaction value

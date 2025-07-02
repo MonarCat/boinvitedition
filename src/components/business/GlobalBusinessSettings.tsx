@@ -10,61 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Globe, DollarSign, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Using only Kenyan Shilling as the application currency
 export const CURRENCIES = [
-  { code: 'USD', symbol: '$', name: 'US Dollar', country: 'United States' },
-  { code: 'EUR', symbol: '€', name: 'Euro', country: 'European Union' },
-  { code: 'GBP', symbol: '£', name: 'British Pound', country: 'United Kingdom' },
-  { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling', country: 'Kenya' },
-  { code: 'NGN', symbol: '₦', name: 'Nigerian Naira', country: 'Nigeria' },
-  { code: 'ZAR', symbol: 'R', name: 'South African Rand', country: 'South Africa' },
-  { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar', country: 'Canada' },
-  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', country: 'Australia' },
-  { code: 'JPY', symbol: '¥', name: 'Japanese Yen', country: 'Japan' },
-  { code: 'CNY', symbol: '¥', name: 'Chinese Yuan', country: 'China' },
-  { code: 'INR', symbol: '₹', name: 'Indian Rupee', country: 'India' },
-  { code: 'BRL', symbol: 'R$', name: 'Brazilian Real', country: 'Brazil' },
-  { code: 'MXN', symbol: '$', name: 'Mexican Peso', country: 'Mexico' },
-  { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc', country: 'Switzerland' },
-  { code: 'SEK', symbol: 'kr', name: 'Swedish Krona', country: 'Sweden' },
-  { code: 'NOK', symbol: 'kr', name: 'Norwegian Krone', country: 'Norway' },
-  { code: 'DKK', symbol: 'kr', name: 'Danish Krone', country: 'Denmark' },
-  { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', country: 'Singapore' },
-  { code: 'HKD', symbol: 'HK$', name: 'Hong Kong Dollar', country: 'Hong Kong' },
-  { code: 'NZD', symbol: 'NZ$', name: 'New Zealand Dollar', country: 'New Zealand' },
-  { code: 'TZS', symbol: 'TSh', name: 'Tanzanian Shilling', country: 'Tanzania' },
-  { code: 'UGX', symbol: 'USh', name: 'Ugandan Shilling', country: 'Uganda' },
-  { code: 'GHS', symbol: '₵', name: 'Ghanaian Cedi', country: 'Ghana' },
-  { code: 'EGP', symbol: '£', name: 'Egyptian Pound', country: 'Egypt' },
-  { code: 'MAD', symbol: 'DH', name: 'Moroccan Dirham', country: 'Morocco' }
+  { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling', country: 'Kenya' }
 ];
 
+// Using only Nairobi as the default timezone
 const GLOBAL_TIMEZONES = [
-  { value: 'UTC', label: 'UTC - Coordinated Universal Time' },
-  { value: 'America/New_York', label: 'EST/EDT - Eastern Time (US & Canada)' },
-  { value: 'America/Chicago', label: 'CST/CDT - Central Time (US & Canada)' },
-  { value: 'America/Denver', label: 'MST/MDT - Mountain Time (US & Canada)' },
-  { value: 'America/Los_Angeles', label: 'PST/PDT - Pacific Time (US & Canada)' },
-  { value: 'Europe/London', label: 'GMT/BST - London, Dublin' },
-  { value: 'Europe/Paris', label: 'CET/CEST - Central European Time' },
-  { value: 'Europe/Berlin', label: 'CET/CEST - Berlin, Amsterdam' },
-  { value: 'Europe/Rome', label: 'CET/CEST - Rome, Madrid' },
-  { value: 'Africa/Nairobi', label: 'EAT - East Africa Time (Kenya, Tanzania)' },
-  { value: 'Africa/Lagos', label: 'WAT - West Africa Time (Nigeria, Ghana)' },
-  { value: 'Africa/Johannesburg', label: 'SAST - South Africa Standard Time' },
-  { value: 'Africa/Cairo', label: 'EET - Eastern European Time (Egypt)' },
-  { value: 'Asia/Tokyo', label: 'JST - Japan Standard Time' },
-  { value: 'Asia/Shanghai', label: 'CST - China Standard Time' },
-  { value: 'Asia/Hong_Kong', label: 'HKT - Hong Kong Time' },
-  { value: 'Asia/Singapore', label: 'SGT - Singapore Time' },
-  { value: 'Asia/Kolkata', label: 'IST - India Standard Time' },
-  { value: 'Asia/Dubai', label: 'GST - Gulf Standard Time' },
-  { value: 'Australia/Sydney', label: 'AEST/AEDT - Australian Eastern Time' },
-  { value: 'Australia/Melbourne', label: 'AEST/AEDT - Melbourne' },
-  { value: 'Pacific/Auckland', label: 'NZST/NZDT - New Zealand Time' },
-  { value: 'America/Toronto', label: 'EST/EDT - Toronto' },
-  { value: 'America/Vancouver', label: 'PST/PDT - Vancouver' },
-  { value: 'America/Sao_Paulo', label: 'BRT - Brazil Time' },
-  { value: 'America/Mexico_City', label: 'CST/CDT - Mexico City' }
+  { value: 'Africa/Nairobi', label: 'EAT - East Africa Time (Kenya)' }
 ];
 
 export const GlobalBusinessSettings = () => {
@@ -104,33 +57,33 @@ export const GlobalBusinessSettings = () => {
   });
 
   const [formData, setFormData] = useState({
-    currency: business?.currency || 'USD',
-    timezone: settings?.timezone || 'UTC',
-    country: business?.country || '',
+    currency: 'KES', // Always use KES as the default currency
+    timezone: 'Africa/Nairobi', // Always use Nairobi as the default timezone
+    country: business?.country || 'Kenya', // Default to Kenya
   });
 
   const updateSettingsMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+    mutationFn: async () => {
       if (!business) throw new Error('No business found');
 
-      // Update business currency and country
+      // Update business to use KES currency and Kenya country
       const { error: businessError } = await supabase
         .from('businesses')
         .update({
-          currency: data.currency,
-          country: data.country
+          currency: 'KES', // Always use KES
+          country: 'Kenya' // Always use Kenya
         })
         .eq('id', business.id);
 
       if (businessError) throw businessError;
 
-      // Update business settings timezone
+      // Update business settings to use Nairobi timezone
       const { error: settingsError } = await supabase
         .from('business_settings')
         .upsert({
           business_id: business.id,
-          timezone: data.timezone,
-          currency: data.currency
+          timezone: 'Africa/Nairobi', // Always use Nairobi timezone
+          currency: 'KES' // Always use KES
         }, {
           onConflict: 'business_id'
         });
@@ -150,7 +103,7 @@ export const GlobalBusinessSettings = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateSettingsMutation.mutate(formData);
+    updateSettingsMutation.mutate();
   };
 
   const selectedCurrency = CURRENCIES.find(c => c.code === formData.currency);
@@ -160,7 +113,7 @@ export const GlobalBusinessSettings = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Globe className="h-5 w-5" />
-          Global Business Settings
+          Kenya Business Settings
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -168,64 +121,34 @@ export const GlobalBusinessSettings = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="currency">Business Currency</Label>
-              <Select
-                value={formData.currency}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select currency" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {CURRENCIES.map((currency) => (
-                    <SelectItem key={currency.code} value={currency.code}>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono">{currency.symbol}</span>
-                        <span>{currency.name}</span>
-                        <span className="text-gray-500 text-sm">({currency.country})</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedCurrency && (
-                <p className="text-sm text-gray-600 mt-1">
-                  Symbol: {selectedCurrency.symbol} • {selectedCurrency.country}
-                </p>
-              )}
+              <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">KSh - Kenyan Shilling (Kenya)</span>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                Symbol: KSh • Kenya
+              </p>
             </div>
 
             <div>
               <Label htmlFor="timezone">Business Timezone</Label>
-              <Select
-                value={formData.timezone}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, timezone: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select timezone" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {GLOBAL_TIMEZONES.map((tz) => (
-                    <SelectItem key={tz.value} value={tz.value}>
-                      {tz.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">EAT - East Africa Time (Kenya)</span>
+              </div>
             </div>
           </div>
 
           <div>
             <Label htmlFor="country">Country/Region</Label>
-            <Input
-              id="country"
-              value={formData.country}
-              onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-              placeholder="e.g., United States, Kenya, United Kingdom"
-            />
+            <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium">Kenya</span>
+            </div>
           </div>
 
           <Button type="submit" disabled={updateSettingsMutation.isPending}>
-            {updateSettingsMutation.isPending ? 'Updating...' : 'Update Global Settings'}
+            {updateSettingsMutation.isPending ? 'Updating...' : 'Apply Kenya Business Settings'}
           </Button>
         </form>
       </CardContent>

@@ -1,10 +1,10 @@
-
 import React, { useState } from "react";
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardKPISection } from '@/components/dashboard/DashboardKPISection';
 import { DashboardQuickActions } from '@/components/dashboard/DashboardQuickActions';
 import { DashboardTabs } from '@/components/dashboard/DashboardTabs';
+import { DataRefreshPanel } from '@/components/dashboard/DataRefreshPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SecurityDashboard } from '@/components/security/SecurityDashboard';
@@ -72,6 +72,10 @@ const Dashboard = () => {
           setTheme={setTheme}
           onNewBooking={handleNewBooking}
         />
+        
+        {/* Add Data Refresh Panel for better syncing */}
+        {business?.id && <DataRefreshPanel businessId={business.id} />}
+        
         <DashboardKPISection 
           business={business}
           stats={stats}
@@ -182,6 +186,8 @@ const Dashboard = () => {
             <SecurityDashboard />
           </CardContent>
         </Card>
+
+        {/* Data refresh was already added above */}
       </div>
     </DashboardLayout>
   );

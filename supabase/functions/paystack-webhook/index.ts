@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
@@ -212,103 +211,276 @@ serve(async (req) => {
         const charge = event.data;
         const businessId = charge.metadata?.business_id;
         const planType = charge.metadata?.plan_type;
+        const paymentType = charge.metadata?.payment_type;
+        const bookingId = charge.metadata?.booking_id;
         const reference = charge.reference;
 
-        // Validate required metadata
-        if (!businessId || !planType) {
-          console.error('Missing required metadata in payment');
-          return new Response('Invalid payment metadata', { status: 400 });
-        }
+        // Handle client-to-business payments
+        if (paymentType === 'client_to_business' && businessId && bookingId) {
+          console.log('Processing client-to-business payment:', { businessId, bookingId, reference });
+          
+          // 1. First, get booking details to access client info and service details
+          const { data: bookingData, error: fetchBookingError } = await supabase
+            .from('bookings')
+            .select(`
+              id, 
+              client_id, 
+              service_id, 
+              date, 
+              time, 
+              status, 
+              payment_status,
+              total_amount,
+              business_id
+            `)
+            .eq('id', bookingId)
+            .single();
+            
+          if (fetchBookingError || !bookingData) {
+            console.error('Failed to fetch booking data:', fetchBookingError);
+            return new Response('Booking not found', { status: 404 });
+          }
 
-        // Validate business exists and user has access
-        const { data: business, error: businessError } = await supabase
-          .from('businesses')
-          .select('id, user_id')
-          .eq('id', businessId)
-          .single();
+          // 2. Update booking status to confirmed and payment status to completed
+          const { error: bookingError } = await supabase
+            .from('bookings')
+            .update({
+              status: 'confirmed',
+              payment_status: 'completed',
+              payment_reference: reference,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', bookingId);
 
-        if (businessError || !business) {
-          console.error('Business not found:', businessError);
-          return new Response('Business not found', { status: 404 });
-        }
+          if (bookingError) {
+            console.error('Failed to update booking:', bookingError);
+          } else {
+            console.log('Booking updated successfully:', bookingId);
+          }
 
-        // Get plan limits with validation
-        const planLimits = {
-          starter: { staff_limit: 5, bookings_limit: 1000 },
-          medium: { staff_limit: 15, bookings_limit: 3000 },
-          premium: { staff_limit: null, bookings_limit: null }
-        };
+          // 3. Update client-business transaction status
+          const { error: transactionError } = await supabase
+            .from('client_business_transactions')
+            .update({
+              status: 'completed',
+              paystack_reference: reference,
+              updated_at: new Date().toISOString()
+            })
+            .eq('booking_id', bookingId);
 
-        const limits = planLimits[planType as keyof typeof planLimits];
-        if (!limits) {
-          console.error('Invalid plan type:', planType);
-          return new Response('Invalid plan type', { status: 400 });
-        }
+          if (transactionError) {
+            console.error('Failed to update transaction:', transactionError);
+          }
+          
+          // 4. Record the payment in payment_transactions table to ensure revenue tracking
+          const paymentAmount = charge.amount / 100; // Convert kobo to naira
+          const { error: paymentRecordError } = await supabase
+            .from('payment_transactions')
+            .insert({
+              business_id: businessId,
+              amount: paymentAmount,
+              currency: charge.currency?.toUpperCase() || 'NGN',
+              status: 'completed',
+              payment_method: 'paystack',
+              paystack_reference: reference,
+              transaction_type: 'client_to_business',
+              metadata: { 
+                booking_id: bookingId,
+                client_id: bookingData.client_id,
+                webhook_event: event.event
+              }
+            });
+            
+          if (paymentRecordError) {
+            console.error('Failed to record payment transaction:', paymentRecordError);
+          }
+          
+          // 5. Update business revenue metrics for dashboard
+          const { error: revenueUpdateError } = await supabase.rpc('update_business_revenue_metrics', { 
+            p_business_id: businessId,
+            p_amount: paymentAmount
+          });
+          
+          if (revenueUpdateError) {
+            console.error('Failed to update business revenue metrics:', revenueUpdateError);
+          }
+          
+          // 6. Update client status to ensure they appear in client list
+          if (bookingData.client_id) {
+            // First check if client exists
+            const { data: clientData, error: clientFetchError } = await supabase
+              .from('clients')
+              .select('*')
+              .eq('id', bookingData.client_id)
+              .eq('business_id', businessId)
+              .single();
+              
+            if (clientFetchError) {
+              console.error('Error fetching client data:', clientFetchError);
+            }
+            
+            // If client exists, update. If not, create new client record
+            if (clientData) {
+              const { error: clientUpdateError } = await supabase
+                .from('clients')
+                .update({ 
+                  status: 'active',
+                  last_booking_date: bookingData.date,
+                  total_spent: (Number(clientData.total_spent || 0) + paymentAmount),
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', bookingData.client_id)
+                .eq('business_id', businessId);
+                
+              if (clientUpdateError) {
+                console.error('Failed to update client status:', clientUpdateError);
+              } else {
+                console.log('Client data updated successfully');
+              }
+            } else {
+              console.log('Client record not found, trying to fetch from booking data...');
+              
+              // Get booking client data
+              const { data: bookingClientData, error: bookingClientError } = await supabase
+                .from('bookings')
+                .select('client_name, client_email, client_phone')
+                .eq('id', bookingId)
+                .single();
+                
+              if (!bookingClientError && bookingClientData) {
+                // Create new client record
+                const { error: createClientError } = await supabase
+                  .from('clients')
+                  .insert({
+                    id: bookingData.client_id,
+                    business_id: businessId,
+                    name: bookingClientData.client_name,
+                    email: bookingClientData.client_email,
+                    phone: bookingClientData.client_phone,
+                    status: 'active',
+                    total_spent: paymentAmount,
+                    last_booking_date: bookingData.date,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                  });
+                  
+                if (createClientError) {
+                  console.error('Failed to create client record:', createClientError);
+                } else {
+                  console.log('New client record created successfully');
+                }
+              }
+            }
+          }
 
-        // Create subscription end date (1 month from now)
-        const subscriptionEndDate = new Date();
-        subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + 1);
-
-        // Update subscription with proper error handling
-        const { error: subscriptionError } = await supabase
-          .from('subscriptions')
-          .upsert({
-            user_id: business.user_id,
-            business_id: businessId,
-            plan_type: planType,
-            status: 'active',
-            current_period_end: subscriptionEndDate.toISOString(),
-            staff_limit: limits.staff_limit,
-            bookings_limit: limits.bookings_limit,
-            updated_at: new Date().toISOString()
-          }, { 
-            onConflict: 'business_id' 
+          // Log successful client payment
+          await supabase.rpc('log_security_event', {
+            p_event_type: 'CLIENT_PAYMENT_SUCCESS',
+            p_description: 'Client payment processed successfully',
+            p_metadata: { 
+              event_type: event.event,
+              business_id: businessId,
+              booking_id: bookingId,
+              amount: charge.amount,
+              reference: reference
+            }
           });
 
-        if (subscriptionError) {
-          console.error('Failed to update subscription:', subscriptionError);
-          return new Response('Database error', { status: 500 });
+          console.log('Client-to-business payment processed successfully');
+          break;
         }
 
-        // Log successful payment
-        await supabase
-          .from('payment_transactions')
-          .insert({
-            business_id: businessId,
-            amount: charge.amount / 100, // Convert from kobo to naira
-            currency: charge.currency?.toUpperCase() || 'NGN',
-            status: 'completed',
-            payment_method: 'paystack',
-            paystack_reference: reference,
-            transaction_type: 'subscription',
-            metadata: { plan_type: planType, webhook_event: event.event }
-          })
-          .select()
-          .single();
+        // Handle subscription payments
+        if (paymentType === 'subscription' && businessId) {
+          console.log('Processing subscription payment:', { businessId, reference });
+          
+          // Validate business exists and user has access
+          const { data: business, error: businessError } = await supabase
+            .from('businesses')
+            .select('id, user_id')
+            .eq('id', businessId)
+            .single();
 
-        // Log successful webhook processing
-        await supabase.rpc('log_security_event', {
-          p_event_type: 'WEBHOOK_PROCESSED_SUCCESS',
-          p_description: 'Paystack webhook processed successfully',
-          p_metadata: { 
-            event_type: event.event,
-            business_id: businessId,
-            plan_type: planType,
-            amount: charge.amount
+          if (businessError || !business) {
+            console.error('Business not found:', businessError);
+            return new Response('Business not found', { status: 404 });
           }
-        });
 
-        console.log('Subscription updated successfully for business:', businessId);
-        break;
+          // Get plan limits with validation
+          const planLimits = {
+            starter: { staff_limit: 5, bookings_limit: 1000 },
+            medium: { staff_limit: 15, bookings_limit: 3000 },
+            premium: { staff_limit: null, bookings_limit: null }
+          };
 
-      default:
-        console.log(`Unhandled event type: ${event.event}`);
-        await supabase.rpc('log_security_event', {
-          p_event_type: 'UNHANDLED_WEBHOOK_EVENT',
-          p_description: `Unhandled webhook event type: ${event.event}`,
-          p_metadata: { event_type: event.event, ip: clientIP }
-        });
-    }
+          const limits = planLimits[planType as keyof typeof planLimits];
+          if (!limits) {
+            console.error('Invalid plan type:', planType);
+            return new Response('Invalid plan type', { status: 400 });
+          }
+
+          // Create subscription end date (1 month from now)
+          const subscriptionEndDate = new Date();
+          subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + 1);
+
+          // Update subscription with proper error handling
+          const { error: subscriptionError } = await supabase
+            .from('subscriptions')
+            .upsert({
+              user_id: business.user_id,
+              business_id: businessId,
+              plan_type: planType,
+              status: 'active',
+              current_period_end: subscriptionEndDate.toISOString(),
+              staff_limit: limits.staff_limit,
+              bookings_limit: limits.bookings_limit,
+              updated_at: new Date().toISOString()
+            }, { 
+              onConflict: 'business_id' 
+            });
+
+          if (subscriptionError) {
+            console.error('Failed to update subscription:', subscriptionError);
+            return new Response('Database error', { status: 500 });
+          }
+
+          // Log successful payment
+          await supabase
+            .from('payment_transactions')
+            .insert({
+              business_id: businessId,
+              amount: charge.amount / 100, // Convert from kobo to naira
+              currency: charge.currency?.toUpperCase() || 'NGN',
+              status: 'completed',
+              payment_method: 'paystack',
+              paystack_reference: reference,
+              transaction_type: 'subscription',
+              metadata: { plan_type: planType, webhook_event: event.event }
+            })
+            .select()
+            .single();
+
+          // Log successful webhook processing
+          await supabase.rpc('log_security_event', {
+            p_event_type: 'WEBHOOK_PROCESSED_SUCCESS',
+            p_description: 'Paystack webhook processed successfully',
+            p_metadata: { 
+              event_type: event.event,
+              business_id: businessId,
+              plan_type: planType,
+              amount: charge.amount
+            }
+          });
+
+          console.log('Subscription updated successfully for business:', businessId);
+        } else {
+          console.log(`Unhandled event type: ${event.event}`);
+          await supabase.rpc('log_security_event', {
+            p_event_type: 'UNHANDLED_WEBHOOK_EVENT',
+            p_description: `Unhandled webhook event type: ${event.event}`,
+            p_metadata: { event_type: event.event, ip: clientIP }
+          });
+        }
 
     return new Response(
       JSON.stringify({ received: true, status: 'success' }), 

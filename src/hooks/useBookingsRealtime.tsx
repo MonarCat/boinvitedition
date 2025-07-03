@@ -8,9 +8,9 @@ type BookingPayload = {
     status?: string;
     payment_status?: string;
     business_id?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
-  old: Record<string, any>;
+  old: Record<string, unknown>;
 };
 
 type PaymentPayload = {
@@ -19,9 +19,9 @@ type PaymentPayload = {
     booking_id?: string;
     business_id?: string;
     status?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
-  old: Record<string, any>;
+  old: Record<string, unknown>;
 };
 
 /**
@@ -47,7 +47,7 @@ export const useBookingsRealtime = (businessId?: string) => {
           table: 'bookings',
           filter: `business_id=eq.${businessId}`
         },
-        (payload: any) => {
+        (payload: BookingPayload) => {
           const bookingPayload = payload as BookingPayload;
           console.log('Booking change detected in real-time:', bookingPayload);
           
@@ -88,7 +88,7 @@ export const useBookingsRealtime = (businessId?: string) => {
           table: 'payment_transactions',
           filter: `business_id=eq.${businessId}`
         },
-        (payload: any) => {
+        (payload: PaymentPayload) => {
           const paymentPayload = payload as PaymentPayload;
           console.log('Payment transaction change detected in real-time:', paymentPayload);
           

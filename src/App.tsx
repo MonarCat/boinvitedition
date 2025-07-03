@@ -25,6 +25,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ResponsiveProvider } from "@/hooks/use-mobile";
 import { setupUpdatePromptOverride } from "@/utils/dismissUpdatePrompt";
 import { ensureAuthButtonsVisible } from "@/utils/buttonVisibility";
+import { initializeSupabaseConnection } from "@/integrations/supabase/connection";
 
 // Breakpoints for responsive design following Calendly & Odoo patterns
 const BREAKPOINTS = {
@@ -75,6 +76,9 @@ const App = () => {
     // Setup the update prompt override and ensure auth buttons stay visible
     setupUpdatePromptOverride();
     ensureAuthButtonsVisible();
+    
+    // Initialize enhanced Supabase connection handling
+    initializeSupabaseConnection(queryClient);
     
     return () => {
       motionQuery.removeEventListener('change', motionHandler);

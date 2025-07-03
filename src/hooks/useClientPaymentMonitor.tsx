@@ -1,42 +1,52 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { safeSupabaseOperation } from '@/utils/connectionHealth';
+import { enhancedRealtimeManager } from '@/services/EnhancedRealtimeManager';
+import type { ChannelStatus } from '@/services/EnhancedRealtimeManager';
 
 /**
  * Hook to monitor client payments and bookings
  * This hook will listen to payment_transactions, payments, and bookings tables
  * to ensure dashboard stats are always up-to-date
+ * 
+ * Updated to use the EnhancedRealtimeManager for more reliable connections
  */
 export const useClientPaymentMonitor = (businessId: string) => {
   const queryClient = useQueryClient();
+  const [connectionErrors, setConnectionErrors] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!businessId) return;
 
     console.log('🔄 Setting up payment and booking monitoring for business:', businessId);
     
-    // Create channels for payment tables
-    const paymentTransactionsChannel = supabase
-      .channel('client-payment-transactions-' + businessId)
-      .on(
-        'postgres_changes',
+    // Track subscription IDs for cleanup
+    const subscriptionIds: string[] = [];
+    
+    // Helper for handling connection status
+    const handleChannelStatus = (channelName: string, status: ChannelStatus) => {
+      console.log(`${channelName} subscription status:`, status);
+      
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        setConnectionErrors(prev => ({ ...prev, [channelName]: true }));
+        console.error(`❌ Error with ${channelName} channel`);
+      } else if (status === 'SUBSCRIBED') {
+        setConnectionErrors(prev => ({ ...prev, [channelName]: false }));
+      }
+    };
+
+    // Subscribe to payment transactions using EnhancedRealtimeManager
+    const setupPaymentTransactionsSubscription = () => {
+      const subscriptionId = enhancedRealtimeManager.subscribe(
         { 
-          event: '*', 
-          schema: 'public', 
           table: 'payment_transactions',
           filter: `business_id=eq.${businessId}`
         },
         (payload) => {
           console.log('💰 CLIENT: Payment transaction change detected:', payload);
-          
-          // Invalidate relevant queries for client payments
-          queryClient.invalidateQueries({ queryKey: ['client-payments', businessId] });
-          queryClient.invalidateQueries({ queryKey: ['payment-transactions', businessId] });
-          
-          // Also invalidate dashboard stats
-          queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
-          
+              
           // Show toast notification for new payments
           if (payload.eventType === 'INSERT') {
             toast.success('Payment transaction updated', {
@@ -44,33 +54,29 @@ export const useClientPaymentMonitor = (businessId: string) => {
               duration: 5000
             });
           }
-        }
-      )
-      .subscribe((status) => {
-        console.log('CLIENT: Payment transactions subscription status:', status);
-      });
+        },
+        (status) => handleChannelStatus('payment-transactions', status),
+        // Automatically invalidate these queries on any event
+        [
+          ['client-payments', businessId],
+          ['payment-transactions', businessId],
+          ['dashboard-stats', businessId]
+        ]
+      );
+      
+      subscriptionIds.push(subscriptionId);
+    };
     
-    // Also listen to the payments table
-    const paymentsChannel = supabase
-      .channel('client-payments-table-' + businessId)
-      .on(
-        'postgres_changes',
+    // Subscribe to payments using EnhancedRealtimeManager
+    const setupPaymentsSubscription = () => {
+      const subscriptionId = enhancedRealtimeManager.subscribe(
         { 
-          event: '*', 
-          schema: 'public', 
           table: 'payments',
           filter: `business_id=eq.${businessId}`
         },
         (payload) => {
           console.log('💳 CLIENT: Payments table change detected:', payload);
-          
-          // Invalidate relevant queries
-          queryClient.invalidateQueries({ queryKey: ['client-payments', businessId] });
-          queryClient.invalidateQueries({ queryKey: ['payments', businessId] });
-          
-          // Also invalidate dashboard stats
-          queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
-          
+              
           // Show toast notification for payment updates
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             toast.success('Payment updated', {
@@ -78,31 +84,29 @@ export const useClientPaymentMonitor = (businessId: string) => {
               duration: 5000
             });
           }
-        }
-      )
-      .subscribe((status) => {
-        console.log('CLIENT: Payments table subscription status:', status);
-      });
+        },
+        (status) => handleChannelStatus('payments-table', status),
+        // Automatically invalidate these queries on any event
+        [
+          ['client-payments', businessId],
+          ['payments', businessId],
+          ['dashboard-stats', businessId]
+        ]
+      );
       
-    // Add a channel for tracking bookings
-    const bookingsChannel = supabase
-      .channel('client-bookings-' + businessId)
-      .on(
-        'postgres_changes',
+      subscriptionIds.push(subscriptionId);
+    };
+    
+    // Subscribe to bookings using EnhancedRealtimeManager
+    const setupBookingsSubscription = () => {
+      const subscriptionId = enhancedRealtimeManager.subscribe(
         { 
-          event: '*', 
-          schema: 'public', 
           table: 'bookings',
           filter: `business_id=eq.${businessId}`
         },
         (payload) => {
           console.log('📅 CLIENT: Booking change detected:', payload);
-          
-          // Explicitly invalidate dashboard stats on booking changes
-          queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
-          queryClient.invalidateQueries({ queryKey: ['bookings', businessId] });
-          queryClient.invalidateQueries({ queryKey: ['bookings-list', businessId] });
-          
+              
           // Show toast notification for new bookings
           if (payload.eventType === 'INSERT') {
             toast.success('Booking created', {
@@ -110,18 +114,32 @@ export const useClientPaymentMonitor = (businessId: string) => {
               duration: 5000
             });
           }
-        }
-      )
-      .subscribe((status) => {
-        console.log('CLIENT: Bookings subscription status:', status);
-      });
+        },
+        (status) => handleChannelStatus('bookings', status),
+        // Automatically invalidate these queries on any event
+        [
+          ['dashboard-stats', businessId],
+          ['bookings', businessId],
+          ['bookings-list', businessId]
+        ]
+      );
+      
+      subscriptionIds.push(subscriptionId);
+    };
+
+    // Set up all subscriptions
+    setupPaymentTransactionsSubscription();
+    setupPaymentsSubscription();
+    setupBookingsSubscription();
 
     // Cleanup function
     return () => {
       console.log('🧹 Cleaning up client payment and booking monitoring');
-      supabase.removeChannel(paymentTransactionsChannel);
-      supabase.removeChannel(paymentsChannel);
-      supabase.removeChannel(bookingsChannel);
+      subscriptionIds.forEach(id => {
+        enhancedRealtimeManager.unsubscribeAll(id);
+      });
     };
   }, [businessId, queryClient]);
+  
+  return { hasConnectionErrors: Object.values(connectionErrors).some(Boolean) };
 };

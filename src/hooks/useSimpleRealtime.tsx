@@ -172,10 +172,6 @@ export const useSimpleRealtime = (options: UseSimpleRealtimeOptions) => {
           });
         
         channels.push(paymentsChannel);
-            }));
-          });
-        
-        channels.push(paymentsChannel);
       }
 
       // Clients subscription

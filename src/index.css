@@ -1,8 +1,8 @@
+@import url('./styles/mobile.css');
+@import url('./styles/enhanced-theme.css');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('./styles/mobile.css');
-@import url('./styles/enhanced-theme.css');
 
 @layer base {
   :root {

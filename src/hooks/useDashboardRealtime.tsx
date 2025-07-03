@@ -21,6 +21,7 @@ export const useDashboardRealtime = (businessId?: string) => {
       
       // Invalidate queries with the base key to refetch all related stats
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['client-business-transactions', businessId] });
     };
 
     channel

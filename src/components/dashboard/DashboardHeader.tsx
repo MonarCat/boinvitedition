@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,7 +23,7 @@ export const DashboardHeader: React.FC<Props> = ({
   theme,
   setTheme,
   onNewBooking,
-  connectionStatus,
+  isConnected,
   connectionError,
   onReconnect
 }) => (

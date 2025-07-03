@@ -129,7 +129,7 @@ const LandingPage = () => {
               <Link to="/safety" className="text-gray-600 hover:text-royal-red transition-colors">
                 Safety
               </Link>
-              <Link to="/auth">
+              <Link to="/auth?tab=login">
                 <Button 
                   variant="signIn"
                   className="relative z-50"
@@ -137,7 +137,7 @@ const LandingPage = () => {
                   Sign In
                 </Button>
               </Link>
-              <Link to="/auth">
+              <Link to="/auth?tab=signup">
                 <Button 
                   variant="signUp"
                   className="relative z-50"
@@ -148,7 +148,7 @@ const LandingPage = () => {
             </div>
 
             <div className="md:hidden">
-              <Link to="/auth">
+              <Link to="/auth?tab=login">
                 <Button 
                   variant="signIn"
                   className="relative z-50 mr-2"
@@ -156,7 +156,7 @@ const LandingPage = () => {
                   Sign In
                 </Button>
               </Link>
-              <Link to="/auth">
+              <Link to="/auth?tab=signup">
                 <Button 
                   variant="signUp"
                   className="relative z-50"

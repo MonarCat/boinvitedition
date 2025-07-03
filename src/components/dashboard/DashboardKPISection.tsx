@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,14 +16,20 @@ import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/utils';
 import { TimePeriodSelector, TimePeriod } from './TimePeriodSelector';
 
+interface Business {
+  id: string;
+  name: string;
+  [key: string]: unknown;
+}
+
 interface DashboardKPISectionProps {
-  business: any;
+  business: Business | null;
   stats: {
     activeBookings: number;
     totalRevenue: number;
     totalBookings: number;
     totalClients: number;
-  };
+  } | null; // Allow stats to be null
   currency: string;
   formatPrice?: (amount: number) => string; // Made optional since we'll use formatCurrency
   onRefresh: () => void;
@@ -44,6 +49,20 @@ export const DashboardKPISection = ({
   onTimePeriodChange
 }: DashboardKPISectionProps) => {
   const navigate = useNavigate();
+
+  // If stats are not yet available, render a loading state or null.
+  if (!stats) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading Stats...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Loading key metrics...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const getPeriodLabel = (period: TimePeriod) => {
     switch (period) {

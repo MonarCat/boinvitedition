@@ -647,7 +647,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
               services={services}
               selectedService={selectedService}
               onServiceSelect={handleServiceSelect}
-              currency={business.currency}
+              currency="KES"
             />
           ) : (
             <Card>
@@ -656,7 +656,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                   services={services}
                   selectedService={selectedService}
                   onServiceSelect={handleServiceSelect}
-                  currency={business.currency}
+                  currency="KES"
                 />
               </CardContent>
             </Card>
@@ -733,7 +733,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
                   businessId={businessId}
                   businessName={business.name}
                   amount={selectedService.price}
-                  currency={selectedService.currency || business.currency || 'KES'}
+                  currency="KES"
                   bookingDetails={{
                     serviceId: selectedService.id,
                     serviceName: selectedService.name,

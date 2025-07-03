@@ -23,7 +23,7 @@ export const ServicesList: React.FC<ServicesListProps> = ({
   services,
   selectedService,
   onServiceSelect,
-  currency = 'KES', // Default to KES for East African businesses
+  currency = 'KES', // Always default to KES for all businesses
 }) => {
   return (
     <div>
@@ -58,7 +58,7 @@ export const ServicesList: React.FC<ServicesListProps> = ({
                 </div>
                 <div className="text-right">
                   <p className="font-semibold text-lg text-blue-600">
-                    {currency} {service.price}
+                    KES {service.price.toLocaleString()}
                   </p>
                 </div>
               </div>

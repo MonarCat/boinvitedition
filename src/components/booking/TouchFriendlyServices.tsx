@@ -52,12 +52,7 @@ export const TouchFriendlyServices: React.FC<TouchFriendlyServicesProps> = ({
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', { 
-      style: 'currency', 
-      currency: currency || 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    }).format(price);
+    return `KES ${price.toLocaleString()}`;
   };
 
   const categoryNames = {

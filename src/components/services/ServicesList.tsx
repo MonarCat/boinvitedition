@@ -86,9 +86,10 @@ export const ServicesList = ({ onEditService }: ServicesListProps) => {
 
       toast.success('Service deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['services'] });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting service:', error);
-      toast.error('Failed to delete service: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error('Failed to delete service: ' + errorMessage);
     }
   };
 

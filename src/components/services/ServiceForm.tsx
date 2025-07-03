@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 
 interface ServiceFormData {
+  id?: string;
   name: string;
   description: string;
   price: number;
@@ -21,7 +22,7 @@ interface ServiceFormData {
 }
 
 interface ServiceFormProps {
-  service?: Service;
+  service?: ServiceFormData;
   onSuccess: () => void;
   onCancel: () => void;
 }

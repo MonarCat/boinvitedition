@@ -1,12 +1,13 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Smartphone, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Smartphone, Loader2, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { forcePaymentDashboardUpdate } from '@/utils/dashboardUpdateHelpers';
 
 interface MpesaPaymentProps {
   amount: number;
@@ -28,6 +29,7 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'success' | 'failed'>('idle');
+  const queryClient = useQueryClient();
 
   const handleMpesaPayment = async () => {
     if (!phoneNumber) {
@@ -44,6 +46,12 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
 
     setIsProcessing(true);
     setPaymentStatus('pending');
+
+    // Add a short delay before initiating payment to ensure UI is ready
+    toast.info("Preparing payment request...", { duration: 1500 });
+    
+    // Delay the actual payment request to ensure UI is ready
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
       console.log('Initiating M-Pesa payment:', {
@@ -98,6 +106,14 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
       // Start polling for payment status if we have a reference
       const reference = data.reference || data.payment_reference;
       if (reference) {
+        // Store reference in localStorage for potential manual refresh
+        try {
+          localStorage.setItem('lastPaymentReference', reference);
+          console.log('Payment reference stored for manual refresh:', reference);
+        } catch (err) {
+          console.error('Could not store payment reference:', err);
+        }
+        
         pollPaymentStatus(reference);
       } else {
         // If no reference, assume success after a delay
@@ -108,14 +124,14 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
         }, 3000);
       }
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('M-Pesa payment error:', error);
       setPaymentStatus('failed');
       setIsProcessing(false);
       
       let errorMessage = 'M-Pesa payment failed. Please try again.';
       
-      if (error.message) {
+      if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'string') {
         errorMessage = error;
@@ -127,32 +143,68 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
   };
 
   const pollPaymentStatus = async (reference: string) => {
-    const maxAttempts = 24; // 2 minutes with 5-second intervals
+    const maxAttempts = 36; // 3 minutes with 5-second intervals
     let attempts = 0;
 
+    // Check multiple tables for payment status - more robust approach
     const checkStatus = async () => {
       attempts++;
+      console.log(`Checking payment status (${attempts}/${maxAttempts}) for reference: ${reference}`);
       
       try {
-        // Check transaction status in our database
-        const { data: transaction, error } = await supabase
-          .from('client_business_transactions')
-          .select('status')
-          .eq('paystack_reference', reference)
-          .single();
+        // Check transaction status in our database in multiple tables
+        const [clientBusinessResult, paymentTxResult, paymentsResult] = await Promise.all([
+          // Check client_business_transactions table
+          supabase
+            .from('client_business_transactions')
+            .select('status')
+            .eq('paystack_reference', reference)
+            .maybeSingle(),
+          
+          // Check payment_transactions table
+          supabase
+            .from('payment_transactions')
+            .select('status')
+            .eq('paystack_reference', reference)
+            .maybeSingle(),
+          
+          // Check payments table
+          supabase
+            .from('payments')
+            .select('status')
+            .eq('reference', reference)
+            .maybeSingle()
+        ]);
 
-        if (error) {
-          console.error('Status check error:', error);
-          return;
-        }
+        // Get transaction from any of the tables
+        const transaction = clientBusinessResult.data || paymentTxResult.data || paymentsResult.data;
+        
+        // Log results for debugging
+        console.log('Payment status check results:', {
+          clientBusinessTx: clientBusinessResult.data?.status,
+          paymentTx: paymentTxResult.data?.status,
+          payment: paymentsResult.data?.status
+        });
 
-        if (transaction?.status === 'completed') {
+        if (transaction?.status === 'completed' || 
+            transaction?.status === 'success' || 
+            transaction?.status === 'paid') {
+          console.log('Payment confirmed as successful!');
           setPaymentStatus('success');
           setIsProcessing(false);
           toast.success('Payment completed successfully!');
+          
+          // Force dashboard update to ensure business sees the payment immediately
+          forcePaymentDashboardUpdate(businessId, queryClient, {
+            reference,
+            bookingId,
+            amount: transaction?.amount || amount
+          });
+          
           onSuccess(reference);
           return;
         } else if (transaction?.status === 'failed') {
+          console.log('Payment confirmed as failed');
           setPaymentStatus('failed');
           setIsProcessing(false);
           toast.error('Payment failed. Please try again.');
@@ -161,17 +213,31 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
         }
 
         // Continue polling if pending and within max attempts
-        if (attempts < maxAttempts && transaction?.status === 'pending') {
+        if (attempts < maxAttempts) {
+          // Update UI to show we're still checking
+          if (attempts % 4 === 0) { // Every 20 seconds (4 * 5s)
+            toast.info('Still checking payment status...', { duration: 3000 });
+          }
           setTimeout(checkStatus, 5000);
         } else if (attempts >= maxAttempts) {
+          console.log('Payment verification timed out after maximum attempts');
           setPaymentStatus('failed');
           setIsProcessing(false);
-          toast.error('Payment verification timeout. Please contact support if money was deducted.');
+          
+          // Show a more helpful error message with instructions for manual refresh
+          toast.error('Payment verification timeout', {
+            description: 'Please refresh the page in a few minutes to check your payment status. If money was deducted, please contact support.',
+            duration: 10000
+          });
           onError('Payment timeout');
         }
       } catch (error) {
         console.error('Status polling error:', error);
-        if (attempts >= maxAttempts) {
+        
+        // Don't give up on first error - keep trying unless we've hit the limit
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, 5000);
+        } else {
           setPaymentStatus('failed');
           setIsProcessing(false);
           onError('Status check failed');
@@ -179,8 +245,9 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
       }
     };
 
-    // Start polling after 5 seconds
-    setTimeout(checkStatus, 5000);
+    // Start polling sooner (after 3 seconds)
+    toast.info('Checking payment status...', { duration: 3000 });
+    setTimeout(checkStatus, 3000);
   };
 
   if (paymentStatus === 'success') {
@@ -241,6 +308,28 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
                 </p>
               </div>
             </div>
+            {/* Add manual refresh button for when automatic updates fail */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-3 w-full border-blue-300 text-blue-700"
+              onClick={() => {
+                toast.info("Manually checking payment status...");
+                if (isProcessing) {
+                  // If reference exists in component state, use it for polling
+                  const reference = localStorage.getItem('lastPaymentReference');
+                  if (reference) {
+                    pollPaymentStatus(reference);
+                  } else {
+                    toast.error("No payment reference found for manual refresh");
+                  }
+                }
+              }}
+              disabled={!isProcessing}
+            >
+              <Info className="w-4 h-4 mr-2" />
+              Refresh Payment Status
+            </Button>
           </div>
         )}
 

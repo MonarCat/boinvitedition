@@ -144,6 +144,38 @@ export const useDashboardRealtime = (businessId?: string) => {
       
       channels.push(clientTransactionChannel);
 
+      // Listen to payments table changes (additional payment source)
+      const paymentsTableChannel = supabase
+        .channel('dashboard-payments-table')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'payments',
+            filter: `business_id=eq.${businessId}`
+          },
+          (payload) => {
+            console.log('💳 DASHBOARD: Payments table change detected:', payload);
+            // Invalidate dashboard stats and related queries
+            queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
+            queryClient.invalidateQueries({ queryKey: ['business-data', businessId] });
+            queryClient.invalidateQueries({ queryKey: ['payments', businessId] });
+            // Show notification for new payments
+            if (payload.eventType === 'INSERT') {
+              toast.success('New payment recorded!', {
+                description: 'A new payment has been recorded.',
+                duration: 5000
+              });
+            }
+          }
+        )
+        .subscribe((status) => {
+          console.log('📡 Payments table channel status:', status);
+          setConnectionStatus(prev => ({ ...prev, payments: status === 'SUBSCRIBED' }));
+        });
+      channels.push(paymentsTableChannel);
+
       // Listen to client changes
       const clientChannel = supabase
         .channel('dashboard-clients')

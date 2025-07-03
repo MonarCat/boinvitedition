@@ -302,6 +302,27 @@ export class EnhancedRealtimeManager {
   }
 
   /**
+   * Get all active subscriptions for testing and diagnostics
+   * @returns Array of active subscription details
+   */
+  public getActiveSubscriptions(): { channel: string; filter?: string; status: ChannelStatus | 'PENDING' }[] {
+    const activeSubscriptions = [];
+    
+    for (const [channelKey, _] of this.channels.entries()) {
+      const status = this.diagnostics.connectionStatus[channelKey]?.status || 'PENDING';
+      const [schema, table, event, filter] = channelKey.split('.');
+      
+      activeSubscriptions.push({
+        channel: `${schema === 'all' ? 'public' : schema}.${table}`,
+        filter: filter === 'all' ? undefined : filter,
+        status
+      });
+    }
+    
+    return activeSubscriptions;
+  }
+
+  /**
    * Unsubscribe a specific listener from a channel
    */
   public unsubscribe(subscriptionId: string, listener: EventListener): void {

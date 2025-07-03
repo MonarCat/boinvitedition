@@ -6,21 +6,44 @@ export async function verifyPaymentAndUpdateBooking(reference, bookingId) {
     // Log verification attempt
     console.log(`Verifying payment: ${reference} for booking: ${bookingId}`);
     
-    // First, check if we already have this payment recorded in our database
-    const { data: existingPayment, error: existingError } = await supabase
-      .from('payment_transactions')
-      .select('*')
-      .eq('paystack_reference', reference)
-      .single();
+    // Check multiple tables for the payment to be more robust
+    const [paymentTxResult, clientBusinessTxResult, paymentsResult] = await Promise.all([
+      // Check payment_transactions table
+      supabase
+        .from('payment_transactions')
+        .select('*')
+        .eq('paystack_reference', reference)
+        .maybeSingle(),
+      
+      // Check client_business_transactions table
+      supabase
+        .from('client_business_transactions')
+        .select('*')
+        .eq('paystack_reference', reference)
+        .maybeSingle(),
+      
+      // Check payments table
+      supabase
+        .from('payments')
+        .select('*')
+        .eq('reference', reference)
+        .maybeSingle()
+    ]);
     
-    if (existingError && existingError.code !== 'PGRST116') {
-      // PGRST116 is "no rows returned" - other errors are actual problems
-      console.error('Error checking for existing payment:', existingError);
-      return { success: false, error: 'Failed to verify payment status' };
-    }
+    // Log all results for debugging
+    console.log('Payment verification results:', {
+      paymentTx: paymentTxResult.data?.status,
+      clientBusinessTx: clientBusinessTxResult.data?.status,
+      payment: paymentsResult.data?.status
+    });
     
-    if (existingPayment && existingPayment.status === 'completed') {
-      console.log('Payment already verified and marked as completed');
+    // Combine the results - if any of them show a successful payment, consider it verified
+    const existingPayment = paymentTxResult.data || clientBusinessTxResult.data || paymentsResult.data;
+    const paymentStatus = existingPayment?.status;
+    
+    // Check if we found a completed payment in any table
+    if (existingPayment && (paymentStatus === 'completed' || paymentStatus === 'success' || paymentStatus === 'paid')) {
+      console.log('Payment verified and marked as completed');
       
       // Update booking status if needed
       await updateBookingStatus(bookingId, 'paid');
@@ -30,7 +53,8 @@ export async function verifyPaymentAndUpdateBooking(reference, bookingId) {
         data: {
           verified: true,
           paymentId: existingPayment.id,
-          bookingId: bookingId
+          bookingId: bookingId,
+          paymentSource: existingPayment.table || 'payment_verification'
         }
       };
     }

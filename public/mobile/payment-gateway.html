@@ -226,6 +226,8 @@
             // Generate reference for this transaction
             const reference = generateReference();
             
+            // Delay opening the payment iframe to ensure UI is ready
+        setTimeout(() => {
             // Initialize Paystack payment
             const handler = PaystackPop.setup({
                 key: 'pk_live_bf23005a6155ba4e9865b77bd07eebf4c2f52512', // Use your actual Paystack public key
@@ -245,11 +247,13 @@
                     processing.style.display = 'none';
                     
                     // Send message to React Native app
-                    window.ReactNativeWebView.postMessage(JSON.stringify({
-                        status: 'success',
-                        reference: response.reference || reference,
-                        booking: bookingId
-                    }));
+                    if (window.ReactNativeWebView) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            status: 'success',
+                            reference: response.reference || reference,
+                            booking: bookingId
+                        }));
+                    }
                 },
                 onClose: function() {
                     // Re-enable button and hide processing
@@ -257,14 +261,22 @@
                     processing.style.display = 'none';
                     
                     // Send message to React Native app
-                    window.ReactNativeWebView.postMessage(JSON.stringify({
-                        status: 'closed',
-                        booking: bookingId
-                    }));
+                    if (window.ReactNativeWebView) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            status: 'closed',
+                            booking: bookingId
+                        }));
+                    }
                 }
             });
             
+            // Let user know payment is being prepared
+            const processingElem = document.getElementById('processing');
+            processingElem.innerHTML = '<div class="spinner"></div><p>Preparing secure payment...</p>';
+            
+            // Open the iframe after UI is ready
             handler.openIframe();
+        }, 1500); // 1.5 second delay before opening payment iframe
         });
         
         // Function to handle payment errors

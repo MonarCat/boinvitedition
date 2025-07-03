@@ -7,15 +7,39 @@ export const useClientPayments = (businessId: string) => {
   const queryClient = useQueryClient();
   
   // Set up real-time monitoring for client payments
-  useClientPaymentMonitor(businessId);
+  const { hasConnectionErrors } = useClientPaymentMonitor(businessId);
   
   // Ensure dashboard stats are invalidated when this hook is used for booking
   useEffect(() => {
     if (businessId) {
       // Manually invalidate dashboard stats to ensure they're refreshed
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
+      
+      // Also invalidate payment-related queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['client-payments', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['payment-transactions', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['payments', businessId] });
     }
   }, [businessId, queryClient]);
+  
+  // If we detect connection errors, automatically refresh data periodically
+  useEffect(() => {
+    if (!businessId || !hasConnectionErrors) return;
+    
+    console.log('⚠️ Connection errors detected - setting up polling refresh');
+    
+    // Set up polling every 15 seconds when real-time is having issues
+    const pollingInterval = setInterval(() => {
+      console.log('🔄 Polling for payment updates due to connection issues');
+      queryClient.invalidateQueries({ queryKey: ['client-payments', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['payment-transactions', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['payments', businessId] });
+    }, 15000);
+    
+    return () => {
+      clearInterval(pollingInterval);
+    };
+  }, [businessId, hasConnectionErrors, queryClient]);
 
   const { data: business, isLoading: businessLoading } = useQuery({
     queryKey: ['client-business', businessId],
@@ -95,5 +119,12 @@ export const useClientPayments = (businessId: string) => {
     business,
     services: services || [],
     servicesLoading: servicesLoading || businessLoading,
+    hasConnectionErrors,
+    refresh: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-payments', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['payment-transactions', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['payments', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
+    }
   };
 };

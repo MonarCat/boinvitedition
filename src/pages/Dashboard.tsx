@@ -1,4 +1,3 @@
-
 import React, { useState, lazy } from "react";
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
@@ -84,7 +83,8 @@ const Dashboard = () => {
     forceReconnect: reconnect
   } = useSimpleRealtime({
     businessId: business?.id || '',
-    showToasts: true
+    showToasts: true,
+    enabled: !!business?.id,
   });
   
   // Debounce reconnection attempts to prevent multiple clicks

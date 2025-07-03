@@ -94,11 +94,10 @@ export const useSimpleRealtime = (options: UseSimpleRealtimeOptions) => {
         channels.push(bookingsChannel);
       }
 
-      // Payment transactions subscription
+      // Payments subscription
       if (tables.payments) {
-        // Listen to payment_transactions table
-        const paymentTransactionsChannel = supabase
-          .channel('payment-transactions-' + businessId)
+        const paymentsChannel = supabase
+          .channel('payments-' + businessId)
           .on(
             'postgres_changes',
             { 
@@ -108,7 +107,7 @@ export const useSimpleRealtime = (options: UseSimpleRealtimeOptions) => {
               filter: `business_id=eq.${businessId}`
             },
             (payload) => {
-              console.log('💰 Payment transaction change detected:', payload);
+              console.log('💰 Payment change detected:', payload);
               
               // Invalidate relevant queries
               queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
@@ -116,7 +115,7 @@ export const useSimpleRealtime = (options: UseSimpleRealtimeOptions) => {
               
               // Show toast notification for new payments
               if (showToasts && payload.eventType === 'INSERT') {
-                toast.success('New payment transaction received!', {
+                toast.success('New payment received!', {
                   description: 'A new payment has been processed.',
                   duration: 5000
                 });
@@ -124,50 +123,11 @@ export const useSimpleRealtime = (options: UseSimpleRealtimeOptions) => {
             }
           )
           .subscribe((status) => {
-            console.log('Payment transactions subscription status:', status);
+            console.log('Payments subscription status:', status);
             setStatus(prev => ({
               ...prev,
               connected: status === 'SUBSCRIBED',
-              error: status === 'SUBSCRIBED' ? null : 'Connection issue with payment transactions'
-            }));
-          });
-        
-        channels.push(paymentTransactionsChannel);
-        
-        // Also listen to the payments table
-        const paymentsChannel = supabase
-          .channel('payments-table-' + businessId)
-          .on(
-            'postgres_changes',
-            { 
-              event: '*', 
-              schema: 'public', 
-              table: 'payments',
-              filter: `business_id=eq.${businessId}`
-            },
-            (payload) => {
-              console.log('💳 Payments table change detected:', payload);
-              
-              // Invalidate relevant queries
-              queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
-              queryClient.invalidateQueries({ queryKey: ['payments', businessId] });
-              queryClient.invalidateQueries({ queryKey: ['payment-transactions', businessId] });
-              
-              // Show toast notification for new payments
-              if (showToasts && payload.eventType === 'INSERT') {
-                toast.success('New payment entry received!', {
-                  description: 'A new payment has been recorded.',
-                  duration: 5000
-                });
-              }
-            }
-          )
-          .subscribe((status) => {
-            console.log('Payments table subscription status:', status);
-            setStatus(prev => ({
-              ...prev,
-              connected: status === 'SUBSCRIBED',
-              error: status === 'SUBSCRIBED' ? null : 'Connection issue with payments table'
+              error: status === 'SUBSCRIBED' ? null : 'Connection issue with payments'
             }));
           });
         

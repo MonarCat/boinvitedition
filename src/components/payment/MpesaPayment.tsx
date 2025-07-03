@@ -1,13 +1,12 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Smartphone, Loader2, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { Smartphone, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
-import { forcePaymentDashboardUpdate } from '@/utils/dashboardUpdateHelpers';
 
 interface MpesaPaymentProps {
   amount: number;
@@ -29,7 +28,6 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'success' | 'failed'>('idle');
-  const queryClient = useQueryClient();
 
   const handleMpesaPayment = async () => {
     if (!phoneNumber) {
@@ -46,7 +44,6 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
 
     setIsProcessing(true);
     setPaymentStatus('pending');
-    toast.info("Sending payment request to your phone...");
 
     try {
       console.log('Initiating M-Pesa payment:', {
@@ -101,33 +98,24 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
       // Start polling for payment status if we have a reference
       const reference = data.reference || data.payment_reference;
       if (reference) {
-        // Store reference in localStorage for potential manual refresh
-        try {
-          localStorage.setItem('lastPaymentReference', reference);
-          console.log('Payment reference stored for manual refresh:', reference);
-        } catch (err) {
-          console.error('Could not store payment reference:', err);
-        }
-        
-        // Start polling with an optimized backoff strategy
-        pollWithBackoff(reference);
+        pollPaymentStatus(reference);
       } else {
-        // If no reference, this is an unexpected success, but we handle it gracefully
-        console.warn('M-Pesa initiated successfully but no reference was returned.');
-        setPaymentStatus('success');
-        setIsProcessing(false);
-        onSuccess('mpesa-success-noref');
-        toast.success('Payment processed! Thank you.');
+        // If no reference, assume success after a delay
+        setTimeout(() => {
+          setPaymentStatus('success');
+          setIsProcessing(false);
+          onSuccess('mpesa-success');
+        }, 3000);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('M-Pesa payment error:', error);
       setPaymentStatus('failed');
       setIsProcessing(false);
       
       let errorMessage = 'M-Pesa payment failed. Please try again.';
       
-      if (error instanceof Error) {
+      if (error.message) {
         errorMessage = error.message;
       } else if (typeof error === 'string') {
         errorMessage = error;
@@ -138,142 +126,33 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
     }
   };
 
-  const pollWithBackoff = (reference: string) => {
-    let attempt = 0;
-    let delay = 2000; // Start with a 2-second delay
-    const maxDelay = 15000; // Maximum delay of 15 seconds
-    const maxAttempts = 20; // Poll for roughly 3 minutes
-
-    const checkStatus = async () => {
-      if (attempt >= maxAttempts) {
-        console.log('Payment verification timed out after maximum attempts');
-        setPaymentStatus('failed');
-        setIsProcessing(false);
-        toast.error('Payment verification timeout', {
-          description: 'If you paid, please contact support. You can also refresh to check again.',
-          duration: 10000
-        });
-        onError('Payment timeout');
-        return;
-      }
-
-      attempt++;
-      console.log(`Checking payment status (attempt ${attempt}/${maxAttempts}) for reference: ${reference}`);
-
-      try {
-        const { data: transaction, error } = await supabase
-          .from('payment_transactions')
-          .select('status, amount')
-          .eq('paystack_reference', reference) // Assuming M-Pesa reference is stored here
-          .single();
-
-        if (error && error.code !== 'PGRST116') { // Ignore "exact one row" error
-          throw error;
-        }
-
-        if (transaction?.status === 'completed' || transaction?.status === 'success') {
-          console.log('Payment confirmed as successful!');
-          setPaymentStatus('success');
-          setIsProcessing(false);
-          toast.success('Payment completed successfully!');
-          
-          forcePaymentDashboardUpdate(businessId, queryClient, {
-            reference,
-            bookingId,
-            amount: transaction?.amount || amount
-          });
-          
-          onSuccess(reference);
-          return; // Stop polling
-        } else if (transaction?.status === 'failed') {
-          console.log('Payment confirmed as failed');
-          setPaymentStatus('failed');
-          setIsProcessing(false);
-          toast.error('Payment failed. Please try again.');
-          onError('Payment failed');
-          return; // Stop polling
-        }
-
-        // If still pending, schedule the next poll
-        setTimeout(checkStatus, delay);
-        // Increase delay for next time, up to the max
-        delay = Math.min(delay + 2000, maxDelay);
-
-      } catch (err) {
-        console.error('Error during payment status polling:', err);
-        // On error, retry with the same delay
-        setTimeout(checkStatus, delay);
-      }
-    };
-
-    // Start the first check
-    setTimeout(checkStatus, delay);
-  };
-
-  // This function is kept for manual refresh but the primary polling is now pollWithBackoff
   const pollPaymentStatus = async (reference: string) => {
-    const maxAttempts = 36; // 3 minutes with 5-second intervals
+    const maxAttempts = 24; // 2 minutes with 5-second intervals
     let attempts = 0;
 
-    // Check multiple tables for payment status - more robust approach
     const checkStatus = async () => {
       attempts++;
-      console.log(`Checking payment status (${attempts}/${maxAttempts}) for reference: ${reference}`);
       
       try {
-        // Check transaction status in our database in multiple tables
-        const [clientBusinessResult, paymentTxResult, paymentsResult] = await Promise.all([
-          // Check client_business_transactions table
-          supabase
-            .from('client_business_transactions')
-            .select('status')
-            .eq('paystack_reference', reference)
-            .maybeSingle(),
-          
-          // Check payment_transactions table
-          supabase
-            .from('payment_transactions')
-            .select('status')
-            .eq('paystack_reference', reference)
-            .maybeSingle(),
-          
-          // Check payments table
-          supabase
-            .from('payments')
-            .select('status')
-            .eq('reference', reference)
-            .maybeSingle()
-        ]);
+        // Check transaction status in our database
+        const { data: transaction, error } = await supabase
+          .from('client_business_transactions')
+          .select('status')
+          .eq('paystack_reference', reference)
+          .single();
 
-        // Get transaction from any of the tables
-        const transaction = clientBusinessResult.data || paymentTxResult.data || paymentsResult.data;
-        
-        // Log results for debugging
-        console.log('Payment status check results:', {
-          clientBusinessTx: clientBusinessResult.data?.status,
-          paymentTx: paymentTxResult.data?.status,
-          payment: paymentsResult.data?.status
-        });
+        if (error) {
+          console.error('Status check error:', error);
+          return;
+        }
 
-        if (transaction?.status === 'completed' || 
-            transaction?.status === 'success' || 
-            transaction?.status === 'paid') {
-          console.log('Payment confirmed as successful!');
+        if (transaction?.status === 'completed') {
           setPaymentStatus('success');
           setIsProcessing(false);
           toast.success('Payment completed successfully!');
-          
-          // Force dashboard update to ensure business sees the payment immediately
-          forcePaymentDashboardUpdate(businessId, queryClient, {
-            reference,
-            bookingId,
-            amount: transaction?.amount || amount
-          });
-          
           onSuccess(reference);
           return;
         } else if (transaction?.status === 'failed') {
-          console.log('Payment confirmed as failed');
           setPaymentStatus('failed');
           setIsProcessing(false);
           toast.error('Payment failed. Please try again.');
@@ -282,31 +161,17 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
         }
 
         // Continue polling if pending and within max attempts
-        if (attempts < maxAttempts) {
-          // Update UI to show we're still checking
-          if (attempts % 4 === 0) { // Every 20 seconds (4 * 5s)
-            toast.info('Still checking payment status...', { duration: 3000 });
-          }
+        if (attempts < maxAttempts && transaction?.status === 'pending') {
           setTimeout(checkStatus, 5000);
         } else if (attempts >= maxAttempts) {
-          console.log('Payment verification timed out after maximum attempts');
           setPaymentStatus('failed');
           setIsProcessing(false);
-          
-          // Show a more helpful error message with instructions for manual refresh
-          toast.error('Payment verification timeout', {
-            description: 'Please refresh the page in a few minutes to check your payment status. If money was deducted, please contact support.',
-            duration: 10000
-          });
+          toast.error('Payment verification timeout. Please contact support if money was deducted.');
           onError('Payment timeout');
         }
       } catch (error) {
         console.error('Status polling error:', error);
-        
-        // Don't give up on first error - keep trying unless we've hit the limit
-        if (attempts < maxAttempts) {
-          setTimeout(checkStatus, 5000);
-        } else {
+        if (attempts >= maxAttempts) {
           setPaymentStatus('failed');
           setIsProcessing(false);
           onError('Status check failed');
@@ -314,9 +179,8 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
       }
     };
 
-    // Start polling sooner (after 3 seconds)
-    toast.info('Checking payment status...', { duration: 3000 });
-    setTimeout(checkStatus, 3000);
+    // Start polling after 5 seconds
+    setTimeout(checkStatus, 5000);
   };
 
   if (paymentStatus === 'success') {
@@ -377,28 +241,6 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
                 </p>
               </div>
             </div>
-            {/* Add manual refresh button for when automatic updates fail */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mt-3 w-full border-blue-300 text-blue-700"
-              onClick={() => {
-                toast.info("Manually checking payment status...");
-                if (isProcessing) {
-                  // If reference exists in component state, use it for polling
-                  const reference = localStorage.getItem('lastPaymentReference');
-                  if (reference) {
-                    pollPaymentStatus(reference);
-                  } else {
-                    toast.error("No payment reference found for manual refresh");
-                  }
-                }
-              }}
-              disabled={!isProcessing}
-            >
-              <Info className="w-4 h-4 mr-2" />
-              Refresh Payment Status
-            </Button>
           </div>
         )}
 

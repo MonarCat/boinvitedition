@@ -1,18 +1,8 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useClientPaymentMonitor } from './useClientPaymentMonitor';
 
 export const useClientPayments = (businessId: string) => {
-  const queryClient = useQueryClient();
-  
-  // Set up real-time monitoring for client payments. 
-  // This hook is now only responsible for monitoring connection status on the client side.
-  const { hasConnectionErrors } = useClientPaymentMonitor(businessId);
-  
-  // The useEffects that previously invalidated dashboard and payment queries have been removed.
-  // This responsibility is now handled by the useDashboardRealtime hook on the dashboard itself,
-  // which is a cleaner and more reliable approach.
-
   const { data: business, isLoading: businessLoading } = useQuery({
     queryKey: ['client-business', businessId],
     queryFn: async () => {
@@ -91,12 +81,5 @@ export const useClientPayments = (businessId: string) => {
     business,
     services: services || [],
     servicesLoading: servicesLoading || businessLoading,
-    hasConnectionErrors,
-    refresh: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-payments', businessId] });
-      queryClient.invalidateQueries({ queryKey: ['payment-transactions', businessId] });
-      queryClient.invalidateQueries({ queryKey: ['payments', businessId] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
-    }
   };
 };

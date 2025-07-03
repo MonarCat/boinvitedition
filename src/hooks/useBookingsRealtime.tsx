@@ -32,11 +32,14 @@ export const useBookingsRealtime = (businessId?: string) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (!businessId) return;
+    if (!businessId) {
+      console.log('❌ useBookingsRealtime: No businessId provided');
+      return;
+    }
 
-    console.log('Setting up real-time bookings listener for business:', businessId);
+    console.log('🔄 Setting up enhanced real-time booking listeners for business:', businessId);
 
-    // Listen to booking changes with detailed logging
+    // Listen to booking changes
     const bookingChannel = supabase
       .channel(`business-bookings-${businessId}`)
       .on(
@@ -49,7 +52,11 @@ export const useBookingsRealtime = (businessId?: string) => {
         },
         (payload: BookingPayload) => {
           const bookingPayload = payload as BookingPayload;
-          console.log('Booking change detected in real-time:', bookingPayload);
+          console.log('🎯 BOOKING CHANGE DETECTED - Real-time update triggered!', {
+            business_id: businessId,
+            booking_id: bookingPayload.new?.id,
+            payload: bookingPayload
+          });
           
           // Invalidate all booking-related queries with businessId
           queryClient.invalidateQueries({ queryKey: ['bookings', businessId] });
@@ -63,20 +70,13 @@ export const useBookingsRealtime = (businessId?: string) => {
             queryClient.invalidateQueries({ 
               queryKey: ['booking', bookingPayload.new.id]
             });
-            
-            // Log confirmed/completed bookings
-            if (
-              bookingPayload.new.status === 'confirmed' || 
-              bookingPayload.new.status === 'completed' ||
-              bookingPayload.new.payment_status === 'completed'
-            ) {
-              console.log('New confirmed/completed booking detected:', bookingPayload.new);
-            }
           }
+          
+          console.log('✅ All booking queries invalidated for business:', businessId);
         }
       )
       .subscribe((status) => {
-        console.log('Booking channel subscription status:', status);
+        console.log('📡 Booking channel subscription status:', status);
       });
 
     // Listen to payment transaction changes
@@ -92,7 +92,12 @@ export const useBookingsRealtime = (businessId?: string) => {
         },
         (payload: PaymentPayload) => {
           const paymentPayload = payload as PaymentPayload;
-          console.log('Payment transaction change detected in real-time:', paymentPayload);
+          console.log('💳 PAYMENT CHANGE DETECTED - Real-time update triggered!', {
+            business_id: businessId,
+            payment_id: paymentPayload.new?.id,
+            booking_id: paymentPayload.new?.booking_id,
+            payload: paymentPayload
+          });
           
           // Invalidate payment and financial related queries with businessId
           queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
@@ -108,9 +113,13 @@ export const useBookingsRealtime = (businessId?: string) => {
               queryKey: ['booking', paymentPayload.new.booking_id]
             });
           }
+          
+          console.log('✅ All payment queries invalidated for business:', businessId);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Payment channel subscription status:', status);
+      });
 
     // Listen to client changes (when new clients are created during booking)
     const clientChannel = supabase
@@ -124,22 +133,32 @@ export const useBookingsRealtime = (businessId?: string) => {
           filter: `business_id=eq.${businessId}`
         },
         (payload) => {
-          console.log('Client change detected in real-time:', payload);
+          console.log('👥 CLIENT CHANGE DETECTED - Real-time update triggered!', {
+            business_id: businessId,
+            payload: payload
+          });
           
           // Invalidate client-related queries
           queryClient.invalidateQueries({ queryKey: ['clients', businessId] });
           queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
           queryClient.invalidateQueries({ queryKey: ['business-data', businessId] });
+          
+          console.log('✅ All client queries invalidated for business:', businessId);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Client channel subscription status:', status);
+      });
+
+    console.log('🚀 All real-time channels subscribed for business:', businessId);
 
     // Cleanup function
     return () => {
-      console.log('Cleaning up booking real-time listeners');
+      console.log('🧹 Cleaning up booking real-time listeners for business:', businessId);
       supabase.removeChannel(bookingChannel);
       supabase.removeChannel(paymentChannel);
       supabase.removeChannel(clientChannel);
+      console.log('✅ All channels cleaned up');
     };
   }, [businessId, queryClient]);
 };

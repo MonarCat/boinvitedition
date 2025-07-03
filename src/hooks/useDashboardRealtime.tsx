@@ -8,7 +8,7 @@ export const useDashboardRealtime = (businessId?: string) => {
   useEffect(() => {
     if (!businessId) return;
 
-    console.log('Setting up real-time dashboard listeners for business:', businessId);
+    console.log('🔄 Setting up enhanced real-time dashboard listeners for business:', businessId);
 
     // Listen to booking changes
     const bookingChannel = supabase
@@ -22,9 +22,10 @@ export const useDashboardRealtime = (businessId?: string) => {
           filter: `business_id=eq.${businessId}`
         },
         (payload) => {
-          console.log('Booking change detected:', payload);
+          console.log('📊 DASHBOARD: Booking change detected:', payload);
           // Invalidate dashboard stats to trigger refetch
           queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
+          console.log('✅ Dashboard stats invalidated for booking change');
         }
       )
       .subscribe();

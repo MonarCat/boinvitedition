@@ -1,5 +1,7 @@
+
 import React from 'react';
-import { Box, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Grid, Typography } from '@/components/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Download, Smartphone, Briefcase, CalendarClock } from 'lucide-react';
 
 interface AppDownloadData {
@@ -45,36 +47,36 @@ export const AppDownloadSection = () => {
   ];
 
   return (
-    <Box className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Box className="container mx-auto px-4">
-        <Box className="text-center mb-12">
-          <Typography variant="h2" className="font-bold text-3xl md:text-4xl mb-4">
+    <div className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="font-bold text-3xl md:text-4xl mb-4">
             Download Our Mobile Apps
-          </Typography>
-          <Typography className="text-gray-600 max-w-2xl mx-auto">
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
             Enhance your Boinvit experience with our mobile applications. Choose the app that fits your needs.
-          </Typography>
-        </Box>
+          </p>
+        </div>
         
-        <Grid className="grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {apps.map((app, index) => (
             <Card key={index} className={`overflow-hidden border-2 ${app.isPrimary ? 'border-indigo-500' : 'border-emerald-500'}`}>
               <CardHeader className={`${app.isPrimary ? 'bg-indigo-500' : 'bg-emerald-500'} text-white p-6`}>
-                <Box className="flex items-center gap-4">
+                <div className="flex items-center gap-4">
                   {app.icon}
-                  <Box>
+                  <div>
                     <CardTitle className="text-xl font-bold">{app.name}</CardTitle>
                     <CardDescription className="text-white/90">{app.description}</CardDescription>
-                  </Box>
-                </Box>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="p-6">
                 <ul className="mb-6 space-y-2">
                   {app.features.map((feature, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <Box className={`w-5 h-5 rounded-full mt-1 flex items-center justify-center text-white ${app.isPrimary ? 'bg-indigo-500' : 'bg-emerald-500'}`}>
+                      <div className={`w-5 h-5 rounded-full mt-1 flex items-center justify-center text-white ${app.isPrimary ? 'bg-indigo-500' : 'bg-emerald-500'}`}>
                         ✓
-                      </Box>
+                      </div>
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -86,21 +88,21 @@ export const AppDownloadSection = () => {
                   <Download className="w-4 h-4 mr-2" />
                   Download App
                 </Button>
-                <Typography className="text-xs text-gray-500 text-center mt-4">
+                <p className="text-xs text-gray-500 text-center mt-4">
                   Android only. iOS version coming soon.
-                </Typography>
+                </p>
               </CardContent>
             </Card>
           ))}
-        </Grid>
+        </div>
         
-        <Box className="text-center mt-12">
-          <Typography className="text-gray-600 flex items-center justify-center gap-2">
+        <div className="text-center mt-12">
+          <p className="text-gray-600 flex items-center justify-center gap-2">
             <Smartphone className="w-4 h-4" />
             Both apps require Android 7.0 or higher
-          </Typography>
-        </Box>
-      </Box>
-    </Box>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };

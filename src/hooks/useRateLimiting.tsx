@@ -30,7 +30,7 @@ export const useRateLimiting = (config: RateLimitConfig = { maxRequests: 100, wi
     }
 
     if (record.count >= config.maxRequests) {
-      monitorRateLimiting(endpoint, record.count);
+      monitorRateLimiting(endpoint, record.count, endpoint);
       return false;
     }
 

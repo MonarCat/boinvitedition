@@ -1,6 +1,7 @@
-
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { realtimeManager } from '@/services/RealtimeConnectionManager';
+import { toast } from 'sonner';
 
 export const useDashboardHandlers = () => {
   const navigate = useNavigate();
@@ -31,6 +32,17 @@ export const useDashboardHandlers = () => {
     navigate('/app/subscription');
   };
 
+  const handleForceReconnect = () => {
+    realtimeManager.reconnectAll();
+    toast.info('Reconnecting...', {
+      description: 'Attempting to reconnect all real-time channels.'
+    });
+  };
+
+  const handleOpenSettings = () => {
+    navigate('/app/settings');
+  };
+
   return {
     handleNewBooking,
     handleCreateInvoice,
@@ -38,6 +50,8 @@ export const useDashboardHandlers = () => {
     handleManageServices,
     handleUpdateSettings,
     handleSubscription,
+    handleForceReconnect,
+    handleOpenSettings,
     showCreateBookingModal,
     setShowCreateBookingModal,
     navigate

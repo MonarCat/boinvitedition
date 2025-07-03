@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardKPISection } from '@/components/dashboard/DashboardKPISection';
 import { DashboardQuickActions } from '@/components/dashboard/DashboardQuickActions';
@@ -18,6 +19,8 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { useDashboardHandlers } from '@/hooks/useDashboardHandlers';
 import { useDashboardRealtime } from '@/hooks/useDashboardRealtime';
 import { useBookingsRealtime } from '@/hooks/useBookingsRealtime';
+import { RealtimeConnectionStatus } from '@/components/dashboard/RealtimeConnectionStatus';
+import { useRealtime } from '@/hooks/useRealtime';
 import { BusinessCreateBookingModal } from '@/components/booking/BusinessCreateBookingModal';
 import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
 import { Download, Shield, Users, TrendingUp } from 'lucide-react';
@@ -73,11 +76,20 @@ const Dashboard = () => {
     navigate,
   } = useDashboardHandlers();
 
-  // Set up real-time dashboard updates
-  useDashboardRealtime(business?.id);
+  // Set up optimized real-time updates using connection pooling
+  const {
+    connectionStatus,
+    connectionError,
+    forceReconnect: reconnect
+  } = useRealtime({
+    businessId: business?.id || '',
+    showToasts: true
+  });
   
-  // Set up enhanced real-time booking updates
-  useBookingsRealtime(business?.id);
+  // Debounce reconnection attempts to prevent multiple clicks
+  const forceReconnect = useDebouncedCallback(() => {
+    reconnect();
+  }, 2000);
 
   const { isExporting, exportBookings, exportClients, exportStaff } = useSpreadsheetExport(business?.id || '');
 
@@ -107,6 +119,9 @@ const Dashboard = () => {
           theme={theme}
           setTheme={setTheme}
           onNewBooking={handleNewBooking}
+          connectionStatus={connectionStatus}
+          connectionError={connectionError}
+          onReconnect={forceReconnect}
         />
         
         {/* Add Data Refresh Panel for better syncing */}

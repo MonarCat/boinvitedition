@@ -7,8 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production",
+    "build:analyze": "vite build --mode production --analyze",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:realtime": "echo 'Testing real-time functionality...' && vitest run src/services/__tests__/RealtimeConnectionManager.test.ts"
   },
   "dependencies": {
     "@capacitor/android": "^7.3.0",

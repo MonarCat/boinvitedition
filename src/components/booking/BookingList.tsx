@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -38,10 +38,13 @@ export const BookingList = ({ businessId, clientView = false }: BookingListProps
 
   const actualBusinessId = businessId || business?.id;
 
-  const { data: bookings, isLoading } = useQuery({
+  // Set up a refetch interval to keep bookings up to date
+  const { data: bookings, isLoading, refetch } = useQuery({
     queryKey: ['bookings-list', actualBusinessId, clientView],
     queryFn: async () => {
       if (!actualBusinessId) return [];
+      
+      console.log('Fetching bookings for business:', actualBusinessId);
       
       let query = supabase
         .from('bookings')
@@ -132,6 +135,50 @@ export const BookingList = ({ businessId, clientView = false }: BookingListProps
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  // Setup periodic refresh for bookings data
+  useEffect(() => {
+    if (!actualBusinessId) return;
+    
+    // Create a refresh interval that checks for new bookings every 15 seconds
+    const intervalId = setInterval(() => {
+      console.log('Auto-refreshing bookings list');
+      refetch();
+    }, 15000);
+    
+    return () => clearInterval(intervalId);
+  }, [actualBusinessId, refetch]);
+
+  // Setup real-time booking updates
+  useEffect(() => {
+    if (!actualBusinessId) return;
+    
+    console.log('Setting up booking list realtime listener');
+    
+    // Create channel for realtime updates
+    const bookingChannel = supabase
+      .channel(`bookings-list-${actualBusinessId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bookings',
+          filter: `business_id=eq.${actualBusinessId}`
+        },
+        (payload) => {
+          console.log('BookingList: Booking change detected in realtime', payload);
+          // Immediately refresh the data
+          refetch();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      console.log('Cleaning up booking list realtime listener');
+      supabase.removeChannel(bookingChannel);
+    };
+  }, [actualBusinessId, refetch, queryClient]);
 
   if (isLoading) {
     return (

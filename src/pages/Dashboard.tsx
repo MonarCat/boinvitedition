@@ -16,6 +16,8 @@ import { useSpreadsheetExport } from '@/hooks/useSpreadsheetExport';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useDashboardHandlers } from '@/hooks/useDashboardHandlers';
 import { useDashboardRealtime } from '@/hooks/useDashboardRealtime';
+import { useBookingsRealtime } from '@/hooks/useBookingsRealtime';
+import { BusinessCreateBookingModal } from '@/components/booking/BusinessCreateBookingModal';
 import { Download, Shield, Users, TrendingUp } from 'lucide-react';
 
 const Dashboard = () => {
@@ -57,11 +59,16 @@ const Dashboard = () => {
     handleManageServices,
     handleUpdateSettings,
     handleSubscription,
+    showCreateBookingModal,
+    setShowCreateBookingModal,
     navigate,
   } = useDashboardHandlers();
 
   // Set up real-time dashboard updates
   useDashboardRealtime(business?.id);
+  
+  // Set up enhanced real-time booking updates
+  useBookingsRealtime(business?.id);
 
   const { isExporting, exportBookings, exportClients, exportStaff } = useSpreadsheetExport(business?.id || '');
 
@@ -193,6 +200,15 @@ const Dashboard = () => {
 
         {/* Data refresh was already added above */}
       </div>
+      
+      {/* Modal for creating a booking for a walk-in client */}
+      {business && (
+        <BusinessCreateBookingModal
+          isOpen={showCreateBookingModal}
+          onClose={() => setShowCreateBookingModal(false)}
+          businessId={business.id}
+        />
+      )}
     </DashboardLayout>
   );
 };

@@ -67,6 +67,7 @@ export function DataRefreshPanel({ businessId }: DataRefreshPanelProps) {
             queryKey === 'dashboard-stats' || 
             queryKey === 'client-business-transactions' ||
             queryKey === 'bookings' || 
+            queryKey === 'bookings-list' ||
             queryKey === 'clients' ||
             queryKey === 'payment_transactions'
           );

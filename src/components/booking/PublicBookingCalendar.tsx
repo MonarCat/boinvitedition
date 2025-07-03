@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Calendar as CalendarIcon, ChevronLeft } from 'lucide-react';
-import { format, addMinutes, setHours, setMinutes } from 'date-fns';
+import { format, addMinutes, setHours, setMinutes, isSameDay, compareAsc } from 'date-fns';
 import { toast } from 'sonner';
 
 interface Service {
@@ -147,8 +147,12 @@ export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
             booking.booking_time === timeString
           ).length || 0;
           
-          // Check availability
-          const isAvailable = !isBlocked && currentBookings < maxCapacity;
+          // Check if slot is in the past when booking for today
+          const isToday = selectedDate && isSameDay(selectedDate, new Date());
+          const isPastTime = isToday && compareAsc(slotTime, new Date()) <= 0;
+          
+          // Check availability (not blocked, not in the past if today, and has capacity)
+          const isAvailable = !isBlocked && !isPastTime && currentBookings < maxCapacity;
           
           slots.push({
             time: timeString,

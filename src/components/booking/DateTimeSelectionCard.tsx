@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format } from "date-fns";
+import { format, isSameDay, parse, compareAsc } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,11 +22,31 @@ export const DateTimeSelectionCard: React.FC<DateTimeSelectionCardProps> = ({
   onDateSelect,
   onTimeSelect
 }) => {
-  const timeSlots = [
-    "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-    "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
-    "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM"
-  ];
+  // Filter out past time slots if the selected date is today
+  const timeSlots = useMemo(() => {
+    // Define all possible time slots inside the useMemo
+    const allTimeSlots = [
+      "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+      "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
+      "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM"
+    ];
+    
+    if (selectedDate && isSameDay(selectedDate, new Date())) {
+      const now = new Date();
+      return allTimeSlots.filter(timeStr => {
+        // Parse the time string to a Date object for today
+        const timeFormat = timeStr.includes('PM') && !timeStr.startsWith('12') ? 'h:mm aa' : 'h:mm aa';
+        const timeDate = parse(timeStr, timeFormat, new Date());
+        
+        // Set the parsed time to today's date for comparison
+        timeDate.setFullYear(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        // Only include future time slots (adding a small buffer)
+        return compareAsc(timeDate, now) > 0;
+      });
+    }
+    return allTimeSlots;
+  }, [selectedDate]);
 
   return (
     <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 shadow-md hover:shadow-xl transition-shadow duration-300">

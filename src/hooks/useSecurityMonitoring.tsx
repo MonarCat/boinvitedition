@@ -15,6 +15,8 @@ interface SecurityEvent {
   created_at: string;
   event_type?: string;
   description?: string;
+  ip_address?: string;
+  user_agent?: string;
 }
 
 export const useSecurityMonitoring = () => {
@@ -25,7 +27,8 @@ export const useSecurityMonitoring = () => {
   const logSecurityEvent = async (
     eventType: string,
     description: string,
-    metadata: Record<string, any> = {}
+    metadata: Record<string, any> = {},
+    severity: string = 'medium'
   ) => {
     try {
       if (!user) {
@@ -33,10 +36,11 @@ export const useSecurityMonitoring = () => {
         return;
       }
 
-      const { error } = await supabase.rpc('log_security_event', {
+      const { error } = await supabase.rpc('log_security_event_enhanced', {
         p_event_type: eventType,
         p_description: description,
-        p_metadata: metadata
+        p_metadata: metadata,
+        p_severity: severity
       });
       
       if (error) {
@@ -77,8 +81,7 @@ export const useSecurityMonitoring = () => {
 
       if (error) {
         if (error.code === 'PGRST301') {
-          // JWT expired
-          console.log('JWT expired, attempting to refresh session...');
+          // JWT expired - try refresh once more
           const { error: refreshError } = await supabase.auth.refreshSession();
           if (refreshError) {
             console.error('Failed to refresh session:', refreshError);
@@ -97,44 +100,13 @@ export const useSecurityMonitoring = () => {
             throw retryError;
           }
           
-          const transformedEvents: SecurityEvent[] = (retryData || []).map(item => ({
-            id: item.id,
-            action: item.action,
-            table_name: item.table_name || 'security',
-            record_id: item.record_id,
-            old_values: item.old_values,
-            new_values: item.new_values,
-            user_id: item.user_id,
-            created_at: item.created_at,
-            event_type: item.table_name,
-            description: typeof item.old_values === 'object' && item.old_values !== null && 'description' in item.old_values 
-              ? String(item.old_values.description) 
-              : undefined
-          }));
-          
-          setSecurityEvents(transformedEvents);
+          setSecurityEvents(transformSecurityEvents(retryData || []));
           return;
         }
         throw error;
       }
       
-      // Transform the data to match SecurityEvent interface
-      const transformedEvents: SecurityEvent[] = (data || []).map(item => ({
-        id: item.id,
-        action: item.action,
-        table_name: item.table_name || 'security',
-        record_id: item.record_id,
-        old_values: item.old_values,
-        new_values: item.new_values,
-        user_id: item.user_id,
-        created_at: item.created_at,
-        event_type: item.table_name,
-        description: typeof item.old_values === 'object' && item.old_values !== null && 'description' in item.old_values 
-          ? String(item.old_values.description) 
-          : undefined
-      }));
-      
-      setSecurityEvents(transformedEvents);
+      setSecurityEvents(transformSecurityEvents(data || []));
     } catch (error) {
       console.error('Failed to fetch security events:', error);
       toast.error('Failed to load security events');
@@ -143,55 +115,105 @@ export const useSecurityMonitoring = () => {
     }
   };
 
-  // Enhanced security monitoring functions
-  const monitorFailedLogins = (attempts: number) => {
-    if (attempts >= 5) {
-      logSecurityEvent('MULTIPLE_FAILED_LOGINS', 'Multiple failed login attempts detected', {
+  const transformSecurityEvents = (data: any[]): SecurityEvent[] => {
+    return data.map(item => ({
+      id: item.id,
+      action: item.action,
+      table_name: item.table_name || 'security',
+      record_id: item.record_id,
+      old_values: item.old_values,
+      new_values: item.new_values,
+      user_id: item.user_id,
+      created_at: item.created_at,
+      event_type: item.table_name,
+      description: typeof item.old_values === 'object' && item.old_values !== null && 'description' in item.old_values 
+        ? String(item.old_values.description) 
+        : undefined,
+      ip_address: item.ip_address,
+      user_agent: item.user_agent
+    }));
+  };
+
+  // Enhanced security monitoring functions with better threat detection
+  const monitorFailedLogins = async (attempts: number, email: string) => {
+    if (attempts >= 3) {
+      await logSecurityEvent('MULTIPLE_FAILED_LOGINS', 'Multiple failed login attempts detected', {
         attempts,
+        email,
         timestamp: new Date().toISOString(),
-        severity: 'high'
-      });
+        ip_address: await getClientIP()
+      }, attempts >= 5 ? 'high' : 'medium');
     }
   };
 
-  const monitorRateLimiting = (endpoint: string, requestCount: number) => {
-    if (requestCount > 100) {
-      logSecurityEvent('RATE_LIMIT_EXCEEDED', `Rate limit exceeded for endpoint: ${endpoint}`, {
+  const monitorRateLimiting = async (endpoint: string, requestCount: number, identifier: string) => {
+    if (requestCount > 50) {
+      await logSecurityEvent('RATE_LIMIT_WARNING', `High request volume detected for endpoint: ${endpoint}`, {
         endpoint,
         request_count: requestCount,
-        timestamp: new Date().toISOString(),
-        severity: 'medium'
-      });
+        identifier,
+        timestamp: new Date().toISOString()
+      }, requestCount > 100 ? 'high' : 'medium');
     }
   };
 
-  const monitorSuspiciousPayments = (amount: number, businessId: string) => {
-    if (amount > 100000) { // Large amounts
-      logSecurityEvent('LARGE_PAYMENT_ATTEMPT', 'Large payment amount detected', {
+  const monitorSuspiciousPayments = async (amount: number, businessId: string, clientEmail?: string) => {
+    // Enhanced payment monitoring with multiple thresholds
+    if (amount > 100000) { // Large amounts (>100k KES)
+      await logSecurityEvent('LARGE_PAYMENT_ATTEMPT', 'Large payment amount detected', {
         amount,
         business_id: businessId,
-        timestamp: new Date().toISOString(),
-        severity: 'high'
-      });
+        client_email: clientEmail,
+        timestamp: new Date().toISOString()
+      }, 'high');
+    } else if (amount > 50000) {
+      await logSecurityEvent('MEDIUM_PAYMENT_ALERT', 'Medium-large payment detected', {
+        amount,
+        business_id: businessId,
+        client_email: clientEmail,
+        timestamp: new Date().toISOString()
+      }, 'medium');
     }
   };
 
-  const monitorUnauthorizedAccess = (resource: string, userId: string) => {
-    logSecurityEvent('UNAUTHORIZED_ACCESS_ATTEMPT', `Unauthorized access to ${resource}`, {
+  const monitorUnauthorizedAccess = async (resource: string, userId: string, businessId?: string) => {
+    await logSecurityEvent('UNAUTHORIZED_ACCESS_ATTEMPT', `Unauthorized access to ${resource}`, {
       resource,
       user_id: userId,
+      business_id: businessId,
       timestamp: new Date().toISOString(),
-      severity: 'high'
-    });
+      ip_address: await getClientIP()
+    }, 'high');
   };
 
-  const monitorDataExport = (exportType: string, recordCount: number) => {
-    logSecurityEvent('DATA_EXPORT', `Data export performed: ${exportType}`, {
+  const monitorDataExport = async (exportType: string, recordCount: number, businessId?: string) => {
+    await logSecurityEvent('DATA_EXPORT', `Data export performed: ${exportType}`, {
       export_type: exportType,
       record_count: recordCount,
-      timestamp: new Date().toISOString(),
-      severity: 'medium'
-    });
+      business_id: businessId,
+      timestamp: new Date().toISOString()
+    }, recordCount > 1000 ? 'medium' : 'low');
+  };
+
+  const monitorBusinessAccess = async (businessId: string, action: string, success: boolean) => {
+    if (!success) {
+      await logSecurityEvent('BUSINESS_ACCESS_DENIED', `Access denied to business: ${action}`, {
+        business_id: businessId,
+        action,
+        user_id: user?.id,
+        timestamp: new Date().toISOString()
+      }, 'medium');
+    }
+  };
+
+  // Helper function to get client IP (limited in browser context)
+  const getClientIP = async (): Promise<string | undefined> => {
+    try {
+      // This would typically be handled by the server
+      return 'client-side'; // Placeholder
+    } catch {
+      return undefined;
+    }
   };
 
   useEffect(() => {
@@ -209,6 +231,7 @@ export const useSecurityMonitoring = () => {
     monitorRateLimiting,
     monitorSuspiciousPayments,
     monitorUnauthorizedAccess,
-    monitorDataExport
+    monitorDataExport,
+    monitorBusinessAccess
   };
 };

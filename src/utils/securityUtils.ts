@@ -6,17 +6,18 @@ export const sanitizeInput = (input: string): string => {
     .replace(/on\w+=/gi, '') // Remove event handlers
     .replace(/data:/gi, '') // Remove data: protocols
     .replace(/vbscript:/gi, '') // Remove vbscript: protocols
+    .replace(/[\x00-\x1f\x7f-\x9f]/g, '') // Remove control characters
     .trim();
 };
 
 export const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email) && email.length <= 254;
+  return emailRegex.test(email) && email.length <= 254 && email.length >= 3;
 };
 
 export const validatePhoneNumber = (phone: string): boolean => {
   const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
-  return phoneRegex.test(phone) && phone.length <= 20;
+  return phoneRegex.test(phone) && phone.length <= 20 && phone.length >= 10;
 };
 
 export const validateBusinessId = (businessId: string): boolean => {
@@ -39,7 +40,7 @@ export const hashData = async (data: string): Promise<string> => {
 };
 
 export const validateCSRFToken = (token: string, expectedToken: string): boolean => {
-  return token === expectedToken && token.length > 0;
+  return token === expectedToken && token.length > 20;
 };
 
 export const detectSuspiciousActivity = (userAgent: string, ipAddress: string): boolean => {
@@ -50,7 +51,8 @@ export const detectSuspiciousActivity = (userAgent: string, ipAddress: string): 
     /scraper/i,
     /automated/i,
     /curl/i,
-    /wget/i
+    /wget/i,
+    /postman/i
   ];
 
   return suspiciousPatterns.some(pattern => pattern.test(userAgent));
@@ -133,6 +135,106 @@ export const sanitizeWebhookPayload = (payload: any): any => {
   return sanitized;
 };
 
+// Enhanced payment amount validation
+export const validatePaymentAmount = (amount: number, maxAllowed: number = 1000000): boolean => {
+  return (
+    typeof amount === 'number' &&
+    amount > 0 &&
+    amount <= maxAllowed &&
+    Number.isFinite(amount) &&
+    amount === Math.round(amount * 100) / 100 // Max 2 decimal places
+  );
+};
+
+// SQL injection prevention helper
+export const validateSQLInput = (input: string): boolean => {
+  const sqlInjectionPatterns = [
+    /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/i,
+    /(--|\/\*|\*\/|xp_|sp_)/i,
+    /(\b(OR|AND)\s+\d+\s*=\s*\d+)/i,
+    /('(\s|%20)*(OR|AND)(\s|%20)*')/i
+  ];
+  
+  return !sqlInjectionPatterns.some(pattern => pattern.test(input));
+};
+
+// XSS prevention helper
+export const validateXSSInput = (input: string): boolean => {
+  const xssPatterns = [
+    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+    /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi,
+    /javascript:/gi,
+    /on\w+\s*=/gi,
+    /<img[^>]*src[^>]*>/gi
+  ];
+  
+  return !xssPatterns.some(pattern => pattern.test(input));
+};
+
+// Comprehensive input validation
+export const validateAndSanitizeInput = (
+  input: string,
+  options: {
+    maxLength?: number;
+    allowedChars?: RegExp;
+    required?: boolean;
+    allowHTML?: boolean;
+  } = {}
+): { isValid: boolean; sanitized: string; errors: string[] } => {
+  const errors: string[] = [];
+  
+  if (options.required && (!input || input.trim().length === 0)) {
+    errors.push('This field is required');
+  }
+  
+  // Check for XSS unless HTML is explicitly allowed
+  if (!options.allowHTML && !validateXSSInput(input)) {
+    errors.push('Input contains potentially dangerous content');
+  }
+  
+  // Check for SQL injection
+  if (!validateSQLInput(input)) {
+    errors.push('Input contains potentially dangerous SQL patterns');
+  }
+  
+  const sanitized = sanitizeInput(input);
+  
+  if (sanitized !== input && !options.allowHTML) {
+    errors.push('Some characters were removed for security reasons');
+  }
+  
+  if (options.maxLength && sanitized.length > options.maxLength) {
+    errors.push(`Input exceeds maximum length of ${options.maxLength} characters`);
+  }
+  
+  if (options.allowedChars && !options.allowedChars.test(sanitized)) {
+    errors.push('Input contains invalid characters');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    sanitized,
+    errors
+  };
+};
+
+// Rate limiting helper
+export const rateLimitKey = (identifier: string, action: string): string => {
+  return `ratelimit:${action}:${sanitizeInput(identifier)}`;
+};
+
+// URL validation for redirects
+export const isValidRedirectUrl = (url: string, allowedDomains: string[]): boolean => {
+  try {
+    const urlObj = new URL(url);
+    return allowedDomains.some(domain => 
+      urlObj.hostname === domain || urlObj.hostname.endsWith(`.${domain}`)
+    );
+  } catch {
+    return false;
+  }
+};
+
 // Extend Window interface for gtag
 declare global {
   interface Window {
@@ -158,55 +260,4 @@ export const logSecurityEvent = (eventType: string, details: Record<string, any>
       console.warn('Failed to send analytics event:', error);
     }
   }
-};
-
-export const rateLimitKey = (identifier: string, action: string): string => {
-  return `ratelimit:${action}:${identifier}`;
-};
-
-export const isValidRedirectUrl = (url: string, allowedDomains: string[]): boolean => {
-  try {
-    const urlObj = new URL(url);
-    return allowedDomains.some(domain => 
-      urlObj.hostname === domain || urlObj.hostname.endsWith(`.${domain}`)
-    );
-  } catch {
-    return false;
-  }
-};
-
-// Enhanced input validation with more comprehensive checks
-export const validateAndSanitizeInput = (
-  input: string,
-  options: {
-    maxLength?: number;
-    allowedChars?: RegExp;
-    required?: boolean;
-  } = {}
-): { isValid: boolean; sanitized: string; errors: string[] } => {
-  const errors: string[] = [];
-  
-  if (options.required && (!input || input.trim().length === 0)) {
-    errors.push('This field is required');
-  }
-  
-  const sanitized = sanitizeInput(input);
-  
-  if (sanitized !== input) {
-    errors.push('Some characters were removed for security reasons');
-  }
-  
-  if (options.maxLength && sanitized.length > options.maxLength) {
-    errors.push(`Input exceeds maximum length of ${options.maxLength} characters`);
-  }
-  
-  if (options.allowedChars && !options.allowedChars.test(sanitized)) {
-    errors.push('Input contains invalid characters');
-  }
-  
-  return {
-    isValid: errors.length === 0,
-    sanitized,
-    errors
-  };
 };

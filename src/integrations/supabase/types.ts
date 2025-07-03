@@ -47,6 +47,30 @@ export type Database = {
           },
         ]
       }
+      app_config: {
+        Row: {
+          config_key: string
+          config_value: Json
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          config_key: string
+          config_value: Json
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
@@ -1492,6 +1516,15 @@ export type Database = {
         Args: { p_event_type: string; p_description: string; p_metadata?: Json }
         Returns: string
       }
+      log_security_event_enhanced: {
+        Args: {
+          p_event_type: string
+          p_description: string
+          p_metadata?: Json
+          p_severity?: string
+        }
+        Returns: string
+      }
       safe_rate_limit_check: {
         Args: {
           p_identifier: string
@@ -1542,6 +1575,10 @@ export type Database = {
       }
       validate_business_ownership: {
         Args: { business_id: string }
+        Returns: boolean
+      }
+      validate_payment_amount: {
+        Args: { p_amount: number; p_business_id: string }
         Returns: boolean
       }
       validate_payment_security: {

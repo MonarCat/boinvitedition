@@ -1,8 +1,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useClientPaymentMonitor } from './useClientPaymentMonitor';
 
 export const useClientPayments = (businessId: string) => {
+  // Set up real-time monitoring for client payments
+  useClientPaymentMonitor(businessId);
   const { data: business, isLoading: businessLoading } = useQuery({
     queryKey: ['client-business', businessId],
     queryFn: async () => {

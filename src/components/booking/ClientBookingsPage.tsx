@@ -64,18 +64,8 @@ export const ClientBookingsPage = () => {
   };
 
   const formatPrice = (price: number, currency: string) => {
-    switch (currency) {
-      case 'KES':
-        return `KES ${price.toLocaleString()}`;
-      case 'USD':
-        return `$${price.toLocaleString()}`;
-      case 'EUR':
-        return `€${price.toLocaleString()}`;
-      case 'GBP':
-        return `£${price.toLocaleString()}`;
-      default:
-        return `${currency} ${price.toLocaleString()}`;
-    }
+    // Always use KES regardless of the currency passed
+    return `KES ${price.toLocaleString()}`;
   };
 
   if (isLoading) {

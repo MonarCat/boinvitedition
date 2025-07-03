@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS public.business_settings (
     max_bookings_per_slot INTEGER DEFAULT 5,
     booking_slot_duration_minutes INTEGER DEFAULT 30,
     timezone TEXT DEFAULT 'UTC',
-    currency TEXT DEFAULT 'USD',
+    currency TEXT DEFAULT 'KES',
     auto_confirm_bookings BOOLEAN DEFAULT true,
     require_payment BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),

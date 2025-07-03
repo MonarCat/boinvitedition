@@ -120,7 +120,12 @@ export const BlockedTimeSlots = ({ businessId }: BlockedTimeSlotsProps) => {
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
-                disabled={(date) => date < new Date()}
+                disabled={(date) => {
+                  // Allow blocking slots on same day (today)
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  return date < today;
+                }}
                 className="rounded-md border"
               />
             </div>

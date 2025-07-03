@@ -22,11 +22,9 @@ interface InvoiceFormProps {
   onCancel?: () => void;
 }
 
-const formatPrice = (price: number, currency: string = 'USD') => {
-  if (currency === 'KES') {
-    return `KES ${price}`;
-  }
-  return `$${price}`;
+const formatPrice = (price: number, currency: string = 'KES') => {
+  // Always use KES regardless of the currency passed
+  return `KES ${price}`;
 };
 
 export const InvoiceForm = ({ invoice, onSuccess, onCancel }: InvoiceFormProps) => {

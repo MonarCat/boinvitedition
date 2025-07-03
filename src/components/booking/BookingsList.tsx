@@ -14,10 +14,8 @@ export const BookingsList: React.FC<BookingsListProps> = ({
   paystackLoaded
 }) => {
   const formatPrice = (price: number, currency: string) => {
-    if (currency === 'KES') {
-      return `KES ${price.toLocaleString()}`;
-    }
-    return `${price.toLocaleString()}`;
+    // Always use KES regardless of the currency passed
+    return `KES ${price.toLocaleString()}`;
   };
 
   const getStatusColor = (status: string) => {

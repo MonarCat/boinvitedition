@@ -18,10 +18,8 @@ export const ServiceSelectionCard: React.FC<ServiceSelectionCardProps> = ({
   business
 }) => {
   const formatPrice = (price: number, currency: string) => {
-    if (currency === 'KES' || currency === 'KSH') {
-      return `KSh ${price.toLocaleString()}`;
-    }
-    return `${currency} ${price.toLocaleString()}`;
+    // Always use KES regardless of the currency passed
+    return `KES ${price.toLocaleString()}`;
   };
 
   return (

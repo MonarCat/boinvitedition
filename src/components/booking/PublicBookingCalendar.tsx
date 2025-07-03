@@ -40,11 +40,9 @@ interface BusinessHours {
   };
 }
 
-const formatPrice = (price: number, currency: string = 'USD') => {
-  if (currency === 'KES') {
-    return `KES ${price}`;
-  }
-  return `$${price}`;
+const formatPrice = (price: number, currency: string = 'KES') => {
+  // Always use KES regardless of the currency passed
+  return `KES ${price}`;
 };
 
 export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
@@ -210,7 +208,12 @@ export const PublicBookingCalendar: React.FC<PublicBookingCalendarProps> = ({
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              disabled={(date) => date < new Date()}
+              disabled={(date) => {
+                // Allow booking on same day (today)
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                return date < today;
+              }}
               className="rounded-md border w-full"
             />
           </div>

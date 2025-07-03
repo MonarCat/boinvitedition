@@ -3,13 +3,13 @@
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS notes TEXT;
 
 -- Add currency support to businesses table
-ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'USD';
+ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'KES';
 
--- Add currency to services table  
-ALTER TABLE public.services ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'USD';
+-- Add currency to services table
+ALTER TABLE public.services ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'KES';
 
 -- Add currency to invoices table
-ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'USD';
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'KES';
 
 -- Enable real-time updates for dashboard data
 ALTER TABLE public.bookings REPLICA IDENTITY FULL;

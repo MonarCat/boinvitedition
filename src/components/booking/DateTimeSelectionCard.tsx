@@ -58,7 +58,12 @@ export const DateTimeSelectionCard: React.FC<DateTimeSelectionCardProps> = ({
                   mode="single"
                   selected={selectedDate}
                   onSelect={onDateSelect}
-                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  disabled={(date) => {
+                    // Create a new date object set to midnight (start of day)
+                    const today = new Date(new Date().setHours(0, 0, 0, 0));
+                    // Allow booking on same day (today)
+                    return date < today;
+                  }}
                   initialFocus
                   className="p-2"
                 />

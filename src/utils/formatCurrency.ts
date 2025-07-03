@@ -8,19 +8,8 @@
 export const formatCurrency = (amount: number, currency: string = 'KES'): string => {
   if (!amount && amount !== 0) return ''; // Handle undefined/null values
   
-  switch (currency.toUpperCase()) {
-    case 'KES':
-    case 'KSH':
-      return `KES ${amount.toLocaleString()}`;
-    case 'USD':
-      return `$${amount.toLocaleString()}`;
-    case 'GBP':
-      return `£${amount.toLocaleString()}`;
-    case 'EUR':
-      return `€${amount.toLocaleString()}`;
-    default:
-      return `${currency} ${amount.toLocaleString()}`;
-  }
+  // Always use KES regardless of the currency passed
+  return `KES ${amount.toLocaleString()}`;
 };
 
 /**

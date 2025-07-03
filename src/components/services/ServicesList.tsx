@@ -124,7 +124,7 @@ export const ServicesList = ({ onEditService }: ServicesListProps) => {
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-1">
                 <DollarSign className="w-4 h-4" />
-                <span>${service.price}</span>
+                <span>KES {service.price}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />

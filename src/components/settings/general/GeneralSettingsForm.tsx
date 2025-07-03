@@ -21,26 +21,14 @@ export const GeneralSettingsForm: React.FC<GeneralSettingsFormProps> = ({
   isLoading,
   onSubmit
 }) => {
+  // Only using Nairobi as the default timezone
   const timezones = [
-    { value: 'UTC', label: 'UTC' },
-    { value: 'America/New_York', label: 'Eastern Time' },
-    { value: 'America/Chicago', label: 'Central Time' },
-    { value: 'America/Denver', label: 'Mountain Time' },
-    { value: 'America/Los_Angeles', label: 'Pacific Time' },
-    { value: 'Europe/London', label: 'London' },
-    { value: 'Europe/Paris', label: 'Paris' },
-    { value: 'Asia/Tokyo', label: 'Tokyo' },
-    { value: 'Africa/Nairobi', label: 'Nairobi' },
+    { value: 'Africa/Nairobi', label: 'Nairobi - East Africa Time (EAT)' },
   ];
 
+  // Only using Kenyan Shilling as the application currency
   const currencies = [
-    { value: 'USD', label: 'USD - US Dollar' },
-    { value: 'EUR', label: 'EUR - Euro' },
-    { value: 'GBP', label: 'GBP - British Pound' },
     { value: 'KES', label: 'KES - Kenyan Shilling' },
-    { value: 'NGN', label: 'NGN - Nigerian Naira' },
-    { value: 'CAD', label: 'CAD - Canadian Dollar' },
-    { value: 'AUD', label: 'AUD - Australian Dollar' },
   ];
 
   return (
@@ -49,14 +37,14 @@ export const GeneralSettingsForm: React.FC<GeneralSettingsFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg font-medium">Regional Settings</CardTitle>
+              <CardTitle className="text-lg font-medium">Kenya Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="timezone">Timezone</Label>
-                <Select name="timezone" defaultValue={settings?.timezone || 'UTC'}>
+                <Select name="timezone" defaultValue={settings?.timezone || 'Africa/Nairobi'}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select timezone" />
+                    <SelectValue placeholder="Nairobi - East Africa Time (EAT)" />
                   </SelectTrigger>
                   <SelectContent>
                     {timezones.map((tz) => (
@@ -70,9 +58,9 @@ export const GeneralSettingsForm: React.FC<GeneralSettingsFormProps> = ({
 
               <div>
                 <Label htmlFor="currency">Currency</Label>
-                <Select name="currency" defaultValue={settings?.currency || 'USD'}>
+                <Select name="currency" defaultValue={settings?.currency || 'KES'}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select currency" />
+                    <SelectValue placeholder="KES - Kenyan Shilling" />
                   </SelectTrigger>
                   <SelectContent>
                     {currencies.map((curr) => (

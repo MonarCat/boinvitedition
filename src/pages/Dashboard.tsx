@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
@@ -16,12 +17,14 @@ import { useSpreadsheetExport } from '@/hooks/useSpreadsheetExport';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useDashboardHandlers } from '@/hooks/useDashboardHandlers';
 import { useDashboardRealtime } from '@/hooks/useDashboardRealtime';
+import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
 import { Download, Shield, Users, TrendingUp } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [theme, setTheme] = useState('system');
   const [showEditBusiness, setShowEditBusiness] = useState(false);
+  const { monitorDataExport, monitorBusinessAccess } = useSecurityMonitoring();
 
   // Get the business for the logged-in user
   const { data: business } = useQuery({
@@ -33,7 +36,13 @@ const Dashboard = () => {
         .select('*')
         .eq('user_id', user.id)
         .single();
-      if (error) throw error;
+      if (error) {
+        // Log potential unauthorized access attempt
+        await monitorBusinessAccess('unknown', 'fetch_business', false);
+        throw error;
+      }
+      // Log successful business access
+      await monitorBusinessAccess(data.id, 'fetch_business', true);
       return data;
     },
     enabled: !!user?.id,
@@ -64,6 +73,22 @@ const Dashboard = () => {
   useDashboardRealtime(business?.id);
 
   const { isExporting, exportBookings, exportClients, exportStaff } = useSpreadsheetExport(business?.id || '');
+
+  // Enhanced export functions with security monitoring
+  const secureExportBookings = async () => {
+    await monitorDataExport('bookings', stats?.totalBookings || 0, business?.id);
+    return exportBookings();
+  };
+
+  const secureExportClients = async () => {
+    await monitorDataExport('clients', stats?.totalClients || 0, business?.id);
+    return exportClients();
+  };
+
+  const secureExportStaff = async () => {
+    await monitorDataExport('staff', stats?.totalStaff || 0, business?.id);
+    return exportStaff();
+  };
 
   console.log('Dashboard loaded with business:', business?.id, 'user:', user?.id);
 
@@ -105,7 +130,7 @@ const Dashboard = () => {
           business={business}
         />
 
-        {/* Quick Actions with Export Buttons */}
+        {/* Quick Actions with Secure Export Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <DashboardQuickActions 
             onNewBooking={handleNewBooking}
@@ -118,7 +143,7 @@ const Dashboard = () => {
           
           {business && (
             <>
-              {/* Export Data Card */}
+              {/* Export Data Card with Security Monitoring */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -128,17 +153,17 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <ExportButton
-                    onExport={exportBookings}
+                    onExport={secureExportBookings}
                     isExporting={isExporting}
                     label="Bookings"
                   />
                   <ExportButton
-                    onExport={exportClients}
+                    onExport={secureExportClients}
                     isExporting={isExporting}
                     label="Clients"
                   />
                   <ExportButton
-                    onExport={exportStaff}
+                    onExport={secureExportStaff}
                     isExporting={isExporting}
                     label="Staff"
                   />
@@ -178,7 +203,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Security Dashboard Section */}
+        {/* Enhanced Security Dashboard Section */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -190,8 +215,6 @@ const Dashboard = () => {
             <SecurityDashboard />
           </CardContent>
         </Card>
-
-        {/* Data refresh was already added above */}
       </div>
     </DashboardLayout>
   );

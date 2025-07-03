@@ -2,32 +2,45 @@
 import { useState, useEffect, useCallback } from 'react';
 import { generateSecureToken } from '@/utils/securityUtils';
 
-export const useCSRFProtection = () => {
+interface CSRFHook {
+  csrfToken: string;
+  validateCSRFToken: (token: string) => boolean;
+  refreshToken: () => void;
+}
+
+export const useCSRFProtection = (): CSRFHook => {
   const [csrfToken, setCsrfToken] = useState<string>('');
 
-  useEffect(() => {
-    // Generate CSRF token on component mount
+  const generateToken = useCallback(() => {
     const token = generateSecureToken();
     setCsrfToken(token);
-    
     // Store in session storage for validation
     sessionStorage.setItem('csrf_token', token);
+    return token;
   }, []);
+
+  useEffect(() => {
+    // Check if we have a valid token in session storage
+    const existingToken = sessionStorage.getItem('csrf_token');
+    if (existingToken && existingToken.length > 20) {
+      setCsrfToken(existingToken);
+    } else {
+      generateToken();
+    }
+  }, [generateToken]);
 
   const validateCSRFToken = useCallback((token: string): boolean => {
     const storedToken = sessionStorage.getItem('csrf_token');
-    return token === storedToken && token.length > 0;
+    return !!(token && storedToken && token === storedToken && token.length > 20);
   }, []);
 
-  const refreshCSRFToken = useCallback(() => {
-    const newToken = generateSecureToken();
-    setCsrfToken(newToken);
-    sessionStorage.setItem('csrf_token', newToken);
-  }, []);
+  const refreshToken = useCallback(() => {
+    generateToken();
+  }, [generateToken]);
 
   return {
     csrfToken,
     validateCSRFToken,
-    refreshCSRFToken
+    refreshToken
   };
 };

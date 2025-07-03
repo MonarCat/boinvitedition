@@ -1,45 +1,17 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useClientPaymentMonitor } from './useClientPaymentMonitor';
-import { useEffect } from 'react';
 
 export const useClientPayments = (businessId: string) => {
   const queryClient = useQueryClient();
   
-  // Set up real-time monitoring for client payments
+  // Set up real-time monitoring for client payments. 
+  // This hook is now only responsible for monitoring connection status on the client side.
   const { hasConnectionErrors } = useClientPaymentMonitor(businessId);
   
-  // Ensure dashboard stats are invalidated when this hook is used for booking
-  useEffect(() => {
-    if (businessId) {
-      // Manually invalidate dashboard stats to ensure they're refreshed
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
-      
-      // Also invalidate payment-related queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ['client-payments', businessId] });
-      queryClient.invalidateQueries({ queryKey: ['payment-transactions', businessId] });
-      queryClient.invalidateQueries({ queryKey: ['payments', businessId] });
-    }
-  }, [businessId, queryClient]);
-  
-  // If we detect connection errors, automatically refresh data periodically
-  useEffect(() => {
-    if (!businessId || !hasConnectionErrors) return;
-    
-    console.log('⚠️ Connection errors detected - setting up polling refresh');
-    
-    // Set up polling every 15 seconds when real-time is having issues
-    const pollingInterval = setInterval(() => {
-      console.log('🔄 Polling for payment updates due to connection issues');
-      queryClient.invalidateQueries({ queryKey: ['client-payments', businessId] });
-      queryClient.invalidateQueries({ queryKey: ['payment-transactions', businessId] });
-      queryClient.invalidateQueries({ queryKey: ['payments', businessId] });
-    }, 15000);
-    
-    return () => {
-      clearInterval(pollingInterval);
-    };
-  }, [businessId, hasConnectionErrors, queryClient]);
+  // The useEffects that previously invalidated dashboard and payment queries have been removed.
+  // This responsibility is now handled by the useDashboardRealtime hook on the dashboard itself,
+  // which is a cleaner and more reliable approach.
 
   const { data: business, isLoading: businessLoading } = useQuery({
     queryKey: ['client-business', businessId],

@@ -46,12 +46,7 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
 
     setIsProcessing(true);
     setPaymentStatus('pending');
-
-    // Add a short delay before initiating payment to ensure UI is ready
-    toast.info("Preparing payment request...", { duration: 1500 });
-    
-    // Delay the actual payment request to ensure UI is ready
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    toast.info("Sending payment request to your phone...");
 
     try {
       console.log('Initiating M-Pesa payment:', {
@@ -114,14 +109,15 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
           console.error('Could not store payment reference:', err);
         }
         
-        pollPaymentStatus(reference);
+        // Start polling with an optimized backoff strategy
+        pollWithBackoff(reference);
       } else {
-        // If no reference, assume success after a delay
-        setTimeout(() => {
-          setPaymentStatus('success');
-          setIsProcessing(false);
-          onSuccess('mpesa-success');
-        }, 3000);
+        // If no reference, this is an unexpected success, but we handle it gracefully
+        console.warn('M-Pesa initiated successfully but no reference was returned.');
+        setPaymentStatus('success');
+        setIsProcessing(false);
+        onSuccess('mpesa-success-noref');
+        toast.success('Payment processed! Thank you.');
       }
 
     } catch (error) {
@@ -142,6 +138,79 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
     }
   };
 
+  const pollWithBackoff = (reference: string) => {
+    let attempt = 0;
+    let delay = 2000; // Start with a 2-second delay
+    const maxDelay = 15000; // Maximum delay of 15 seconds
+    const maxAttempts = 20; // Poll for roughly 3 minutes
+
+    const checkStatus = async () => {
+      if (attempt >= maxAttempts) {
+        console.log('Payment verification timed out after maximum attempts');
+        setPaymentStatus('failed');
+        setIsProcessing(false);
+        toast.error('Payment verification timeout', {
+          description: 'If you paid, please contact support. You can also refresh to check again.',
+          duration: 10000
+        });
+        onError('Payment timeout');
+        return;
+      }
+
+      attempt++;
+      console.log(`Checking payment status (attempt ${attempt}/${maxAttempts}) for reference: ${reference}`);
+
+      try {
+        const { data: transaction, error } = await supabase
+          .from('payment_transactions')
+          .select('status, amount')
+          .eq('paystack_reference', reference) // Assuming M-Pesa reference is stored here
+          .single();
+
+        if (error && error.code !== 'PGRST116') { // Ignore "exact one row" error
+          throw error;
+        }
+
+        if (transaction?.status === 'completed' || transaction?.status === 'success') {
+          console.log('Payment confirmed as successful!');
+          setPaymentStatus('success');
+          setIsProcessing(false);
+          toast.success('Payment completed successfully!');
+          
+          forcePaymentDashboardUpdate(businessId, queryClient, {
+            reference,
+            bookingId,
+            amount: transaction?.amount || amount
+          });
+          
+          onSuccess(reference);
+          return; // Stop polling
+        } else if (transaction?.status === 'failed') {
+          console.log('Payment confirmed as failed');
+          setPaymentStatus('failed');
+          setIsProcessing(false);
+          toast.error('Payment failed. Please try again.');
+          onError('Payment failed');
+          return; // Stop polling
+        }
+
+        // If still pending, schedule the next poll
+        setTimeout(checkStatus, delay);
+        // Increase delay for next time, up to the max
+        delay = Math.min(delay + 2000, maxDelay);
+
+      } catch (err) {
+        console.error('Error during payment status polling:', err);
+        // On error, retry with the same delay
+        setTimeout(checkStatus, delay);
+      }
+    };
+
+    // Start the first check
+    setTimeout(checkStatus, delay);
+  };
+
+  // This function is kept for manual refresh but the primary polling is now pollWithBackoff
   const pollPaymentStatus = async (reference: string) => {
     const maxAttempts = 36; // 3 minutes with 5-second intervals
     let attempts = 0;

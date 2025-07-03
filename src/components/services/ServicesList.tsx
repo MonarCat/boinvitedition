@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Clock, DollarSign } from 'lucide-react';
+import { Edit, Trash2, Clock, Banknote } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Service {
@@ -123,7 +123,7 @@ export const ServicesList = ({ onEditService }: ServicesListProps) => {
             
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-1">
-                <DollarSign className="w-4 h-4" />
+                <Banknote className="w-4 h-4" />
                 <span>KES {service.price}</span>
               </div>
               <div className="flex items-center gap-1">

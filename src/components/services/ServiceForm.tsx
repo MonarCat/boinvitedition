@@ -21,7 +21,7 @@ interface ServiceFormData {
 }
 
 interface ServiceFormProps {
-  service?: any;
+  service?: Service;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -136,7 +136,7 @@ export const ServiceForm = ({ service, onSuccess, onCancel }: ServiceFormProps) 
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Price ($)</FormLabel>
+                <FormLabel>Price (KES)</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 

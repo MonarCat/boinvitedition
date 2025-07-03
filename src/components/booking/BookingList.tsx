@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, User, DollarSign, X } from 'lucide-react';
+import { Calendar, Clock, User, Banknote, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -233,8 +233,8 @@ export const BookingList = ({ businessId, clientView = false }: BookingListProps
                     {booking.booking_time}
                   </div>
                   <div className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4" />
-                    ${booking.total_amount}
+                    <Banknote className="h-4 w-4" />
+                    KES {booking.total_amount.toLocaleString()}
                   </div>
                 </div>
 

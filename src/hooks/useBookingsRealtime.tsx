@@ -51,10 +51,12 @@ export const useBookingsRealtime = (businessId?: string) => {
           const bookingPayload = payload as BookingPayload;
           console.log('Booking change detected in real-time:', bookingPayload);
           
-          // Invalidate all booking-related queries
-          queryClient.invalidateQueries({ queryKey: ['bookings'] });
-          queryClient.invalidateQueries({ queryKey: ['bookings-list'] });
-          queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+          // Invalidate all booking-related queries with businessId
+          queryClient.invalidateQueries({ queryKey: ['bookings', businessId] });
+          queryClient.invalidateQueries({ queryKey: ['bookings-list', businessId] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
+          queryClient.invalidateQueries({ queryKey: ['business-data', businessId] });
+          queryClient.invalidateQueries({ queryKey: ['clients', businessId] }); // Add clients invalidation
           
           // Invalidate specific booking if we have its ID
           if (bookingPayload.new && bookingPayload.new.id) {
@@ -92,14 +94,15 @@ export const useBookingsRealtime = (businessId?: string) => {
           const paymentPayload = payload as PaymentPayload;
           console.log('Payment transaction change detected in real-time:', paymentPayload);
           
-          // Invalidate payment and financial related queries
-          queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-          queryClient.invalidateQueries({ queryKey: ['client-business-transactions'] });
+          // Invalidate payment and financial related queries with businessId
+          queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
+          queryClient.invalidateQueries({ queryKey: ['business-data', businessId] });
+          queryClient.invalidateQueries({ queryKey: ['client-business-transactions', businessId] });
           
           // If the payment is associated with a booking, also invalidate booking queries
           if (paymentPayload.new && paymentPayload.new.booking_id) {
             queryClient.invalidateQueries({ 
-              queryKey: ['bookings'] 
+              queryKey: ['bookings', businessId] 
             });
             queryClient.invalidateQueries({ 
               queryKey: ['booking', paymentPayload.new.booking_id]
@@ -109,11 +112,34 @@ export const useBookingsRealtime = (businessId?: string) => {
       )
       .subscribe();
 
+    // Listen to client changes (when new clients are created during booking)
+    const clientChannel = supabase
+      .channel(`business-clients-${businessId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'clients',
+          filter: `business_id=eq.${businessId}`
+        },
+        (payload) => {
+          console.log('Client change detected in real-time:', payload);
+          
+          // Invalidate client-related queries
+          queryClient.invalidateQueries({ queryKey: ['clients', businessId] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
+          queryClient.invalidateQueries({ queryKey: ['business-data', businessId] });
+        }
+      )
+      .subscribe();
+
     // Cleanup function
     return () => {
       console.log('Cleaning up booking real-time listeners');
       supabase.removeChannel(bookingChannel);
       supabase.removeChannel(paymentChannel);
+      supabase.removeChannel(clientChannel);
     };
   }, [businessId, queryClient]);
 };

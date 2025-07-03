@@ -129,29 +129,41 @@ const LandingPage = () => {
               <Link to="/safety" className="text-gray-600 hover:text-royal-red transition-colors">
                 Safety
               </Link>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/auth')}
-                className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white auth-button relative z-50"
-              >
-                Sign In
-              </Button>
-              <Button 
-                onClick={() => navigate('/auth')}
-                className="bg-royal-red hover:bg-royal-red/90 text-white auth-button relative z-50"
-              >
-                Get Started
-              </Button>
+              <Link to="/auth">
+                <Button 
+                  variant="signIn"
+                  className="relative z-50"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/auth">
+                <Button 
+                  variant="signUp"
+                  className="relative z-50"
+                >
+                  Sign Up
+                </Button>
+              </Link>
             </div>
 
             <div className="md:hidden">
-              <Button 
-                variant="outline"
-                onClick={() => navigate('/auth')}
-                className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white auth-button relative z-50"
-              >
-                Sign In
-              </Button>
+              <Link to="/auth">
+                <Button 
+                  variant="signIn"
+                  className="relative z-50 mr-2"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/auth">
+                <Button 
+                  variant="signUp"
+                  className="relative z-50"
+                >
+                  Sign Up
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

@@ -141,6 +141,33 @@
     background-size: 200% 100%;
     animation: loading 1.5s infinite;
   }
+
+  /* Auth buttons */
+  .btn-glossy-blue {
+    background-color: #2563eb; /* Royal blue */
+    color: white;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    transition: all 0.3s ease;
+  }
+
+  .btn-glossy-blue:hover {
+    background-color: #1d4ed8;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+    transform: translateY(-2px);
+  }
+
+  .btn-glossy-red {
+    background-color: #e11d48; /* Royal red */
+    color: white;
+    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.4);
+    transition: all 0.3s ease;
+  }
+
+  .btn-glossy-red:hover {
+    background-color: #be123c;
+    box-shadow: 0 6px 20px rgba(225, 29, 72, 0.6);
+    transform: translateY(-2px);
+  }
 }
 
 @layer utilities {

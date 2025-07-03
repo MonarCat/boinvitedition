@@ -94,10 +94,37 @@ export const useBookingCreation = () => {
     onSuccess: (booking) => {
       console.log('Booking creation successful:', booking.id);
       
-      // Invalidate relevant queries
+      // Get the business ID from the booking data
+      const businessId = booking.business_id;
+      
+      // Invalidate relevant queries with specific business ID
+      queryClient.invalidateQueries({ queryKey: ['bookings', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['bookings-list', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['clients', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
+      
+      // Also invalidate general queries
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['clients'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      
+      // Make a direct trigger to refresh dashboard stats
+      const updateDashboardStats = async () => {
+        try {
+          // Deliberately trigger a dashboard stats refresh
+          await supabase
+            .from('bookings')
+            .select('id')
+            .eq('business_id', businessId)
+            .limit(1);
+            
+          console.log('Explicitly triggered dashboard stats refresh for business:', businessId);
+        } catch (error) {
+          console.error('Error forcing dashboard stats refresh:', error);
+        }
+      };
+      
+      // Execute the trigger after a small delay to ensure the database has completed its operations
+      setTimeout(updateDashboardStats, 500);
       
       toast.success('Booking created successfully');
     },

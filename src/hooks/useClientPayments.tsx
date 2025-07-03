@@ -1,11 +1,22 @@
-
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useClientPaymentMonitor } from './useClientPaymentMonitor';
+import { useEffect } from 'react';
 
 export const useClientPayments = (businessId: string) => {
+  const queryClient = useQueryClient();
+  
   // Set up real-time monitoring for client payments
   useClientPaymentMonitor(businessId);
+  
+  // Ensure dashboard stats are invalidated when this hook is used for booking
+  useEffect(() => {
+    if (businessId) {
+      // Manually invalidate dashboard stats to ensure they're refreshed
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
+    }
+  }, [businessId, queryClient]);
+
   const { data: business, isLoading: businessLoading } = useQuery({
     queryKey: ['client-business', businessId],
     queryFn: async () => {

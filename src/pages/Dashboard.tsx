@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, lazy } from "react";
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
@@ -19,8 +19,9 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { useDashboardHandlers } from '@/hooks/useDashboardHandlers';
 import { useDashboardRealtime } from '@/hooks/useDashboardRealtime';
 import { useBookingsRealtime } from '@/hooks/useBookingsRealtime';
-import { RealtimeConnectionStatus } from '@/components/dashboard/RealtimeConnectionStatus';
-import { useRealtime } from '@/hooks/useRealtime';
+import { SimpleRealtimeStatus } from '@/components/dashboard/SimpleRealtimeStatus';
+import { useSimpleRealtime } from '@/hooks/useSimpleRealtime';
+import { RealtimeMonitor } from '@/components/dashboard/RealtimeMonitor';
 import { BusinessCreateBookingModal } from '@/components/booking/BusinessCreateBookingModal';
 import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
 import { Download, Shield, Users, TrendingUp } from 'lucide-react';
@@ -76,12 +77,12 @@ const Dashboard = () => {
     navigate,
   } = useDashboardHandlers();
 
-  // Set up optimized real-time updates using connection pooling
+  // Set up simple real-time updates using direct Supabase channels
   const {
-    connectionStatus,
-    connectionError,
+    isConnected,
+    error: realtimeError,
     forceReconnect: reconnect
-  } = useRealtime({
+  } = useSimpleRealtime({
     businessId: business?.id || '',
     showToasts: true
   });
@@ -119,8 +120,8 @@ const Dashboard = () => {
           theme={theme}
           setTheme={setTheme}
           onNewBooking={handleNewBooking}
-          connectionStatus={connectionStatus}
-          connectionError={connectionError}
+          isConnected={isConnected}
+          connectionError={realtimeError}
           onReconnect={forceReconnect}
         />
         
@@ -237,6 +238,27 @@ const Dashboard = () => {
             <SecurityDashboard />
           </CardContent>
         </Card>
+
+        {/* New Simple Realtime Monitor */}
+        {business && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <span className="relative flex h-3 w-3 mr-1">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                Realtime Activity Monitor
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Import the new realtime monitor component */}
+              <React.Suspense fallback={<div>Loading realtime monitor...</div>}>
+                <RealtimeMonitor businessId={business.id} />
+              </React.Suspense>
+            </CardContent>
+          </Card>
+        )}
       </div>
       
       {/* Modal for creating a booking for a walk-in client */}

@@ -3,17 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import React from "react";
-import { RealtimeConnectionStatus } from "@/components/dashboard/RealtimeConnectionStatus";
-
-interface RealtimeStatus {
-  bookings: boolean;
-  payments: boolean;
-  clientTransactions: boolean;
-  clients: boolean;
-  staff: boolean;
-  staffAttendance: boolean;
-  adminAlerts: boolean;
-}
+import { SimpleRealtimeStatus } from "@/components/dashboard/SimpleRealtimeStatus";
 
 type Props = {
   business: {
@@ -24,7 +14,7 @@ type Props = {
   theme: string;
   setTheme: (t: string) => void;
   onNewBooking: () => void;
-  connectionStatus?: RealtimeStatus;
+  isConnected?: boolean;
   connectionError?: string | null;
   onReconnect?: () => void;
 };
@@ -43,9 +33,9 @@ export const DashboardHeader: React.FC<Props> = ({
       <div>
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Business Dashboard</h1>
-          {connectionStatus && connectionError !== undefined && (
-            <RealtimeConnectionStatus 
-              connectionStatus={connectionStatus}
+          {isConnected !== undefined && connectionError !== undefined && (
+            <SimpleRealtimeStatus 
+              isConnected={isConnected}
               connectionError={connectionError}
               onReconnect={onReconnect}
             />

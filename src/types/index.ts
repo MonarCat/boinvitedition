@@ -5,6 +5,7 @@ export interface Service {
   description: string;
   price: number;
   duration_minutes: number;
+  duration?: number; // Add optional duration property for compatibility
   currency?: string;
   category?: string; // Allow any string, not just union types
   is_transport_service?: boolean;

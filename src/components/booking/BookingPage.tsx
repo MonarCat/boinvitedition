@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBookingForm } from '@/hooks/useBookingForm';
 import { Button } from '@/components/ui/button';
@@ -306,7 +305,7 @@ export function BookingPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Duration:</span>
-                <span className="font-medium">{selectedService?.duration} minutes</span>
+                <span className="font-medium">{selectedService?.duration_minutes} minutes</span>
               </div>
               
               <Separator />

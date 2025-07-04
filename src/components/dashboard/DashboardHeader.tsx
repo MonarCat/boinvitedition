@@ -24,7 +24,7 @@ export const DashboardHeader: React.FC<Props> = ({
   theme,
   setTheme,
   onNewBooking,
-  connectionStatus,
+  isConnected,
   connectionError,
   onReconnect
 }) => (

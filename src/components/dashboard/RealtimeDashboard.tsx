@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useSimpleRealtime } from '@/hooks/useSimpleRealtime';
 import { Button } from '@/components/ui/button';
@@ -11,18 +12,9 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
 }) => {
   const { 
     isConnected, 
-    error, 
-    forceReconnect 
-  } = useSimpleRealtime({
-    businessId,
-    tables: {
-      bookings: true,
-      payments: true,
-      clients: true,
-      staff: true
-    },
-    showToasts: true
-  });
+    connectionError, 
+    reconnect 
+  } = useSimpleRealtime(businessId);
 
   return (
     <div className="p-4 bg-white rounded-md shadow">
@@ -44,9 +36,9 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
         </div>
       </div>
       
-      {error && (
+      {connectionError && (
         <div className="p-3 mb-4 text-sm bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800">
-          <p>Connection issue: {error}</p>
+          <p>Connection issue: {connectionError}</p>
         </div>
       )}
       
@@ -61,10 +53,10 @@ export const RealtimeDashboard: React.FC<RealtimeDashboardProps> = ({
       </div>
       
       <Button 
-        onClick={forceReconnect}
+        onClick={reconnect}
         variant="outline"
         className="w-full"
-        disabled={isConnected && !error}
+        disabled={isConnected && !connectionError}
       >
         Reconnect
       </Button>

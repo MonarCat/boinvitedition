@@ -3,6 +3,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { SupabaseProvider } from "@/context/SupabaseProvider";
+import { BookingProvider } from "./context/BookingContext";
 import { SecurityHeaders } from "@/components/security/SecurityHeaders";
 import AuthenticatedApp from "@/pages/AuthenticatedApp";
 import LandingPage from "@/pages/LandingPage";
@@ -130,7 +132,9 @@ const App = () => {
                   }}
                 />
                 <BrowserRouter>
-                  <AuthProvider>
+                  <SupabaseProvider>
+                    <BookingProvider>
+                      <AuthProvider>
                     <div className={`relative min-h-screen ${highContrastMode ? 'high-contrast-mode' : ''}`}>
                       <Routes>
                         {/* Landing page as default */}
@@ -178,6 +182,8 @@ const App = () => {
                       <WhatsAppFAB />
                     </div>
                   </AuthProvider>
+                    </BookingProvider>
+                  </SupabaseProvider>
                 </BrowserRouter>
               </TooltipProvider>
             </QueryClientProvider>

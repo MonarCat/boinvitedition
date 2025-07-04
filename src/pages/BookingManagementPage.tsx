@@ -1,7 +1,6 @@
-
 import React from "react";
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { BookingList } from '@/components/booking/BookingList';
+import { BookingPage } from '@/components/booking/BookingPage';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,11 +30,11 @@ const BookingManagementPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Booking Management</h1>
-            <p className="text-gray-600">Manage all your business bookings</p>
+            <h1 className="text-3xl font-bold">Booking Management</h1>
+            <p className="text-gray-600">Create and manage your bookings</p>
           </div>
           {business && (
             <ExportButton
@@ -46,7 +45,7 @@ const BookingManagementPage = () => {
           )}
         </div>
 
-        <BookingList businessId={business?.id} />
+        <BookingPage />
       </div>
     </DashboardLayout>
   );

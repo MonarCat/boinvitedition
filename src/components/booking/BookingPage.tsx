@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { useBooking } from '@/hooks/useBooking';
+import { useBookingForm } from '@/hooks/useBookingForm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
-import { StaffMember, Service } from '@/types/models';
 import { ChevronRight, Clock, CalendarDays, User, Sparkles } from 'lucide-react';
 
 export function BookingPage() {
@@ -30,7 +30,7 @@ export function BookingPage() {
     setSelectedStaff,
     createBooking,
     getAvailableTimeSlots,
-  } = useBooking();
+  } = useBookingForm();
 
   const [activeStep, setActiveStep] = useState(0);
   const [clientData, setClientData] = useState({
@@ -44,7 +44,7 @@ export function BookingPage() {
     ? getAvailableTimeSlots(selectedDate, selectedService.id)
     : [];
 
-  const handleSelectService = (service: Service) => {
+  const handleSelectService = (service: any) => {
     setSelectedService(service);
     setActiveStep(1);
   };
@@ -158,8 +158,8 @@ export function BookingPage() {
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-1">{service.description}</p>
                 <div className="flex justify-between items-center mt-2">
-                  <span className="text-sm">{service.duration} min</span>
-                  <span className="font-medium">${parseFloat(service.price.toString()).toFixed(2)}</span>
+                  <span className="text-sm">{service.duration_minutes} min</span>
+                  <span className="font-medium">${service.price.toFixed(2)}</span>
                 </div>
               </CardContent>
             </Card>

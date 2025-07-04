@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useBooking } from '@/hooks/useBooking';
+import { useBusinessBookings } from '@/hooks/useBusinessBookings';
 import { CalendarDays, Clock, DollarSign, Users, Calendar, LineChart, Activity, TrendingUp, ArrowUpRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -15,11 +16,11 @@ export function BusinessDashboard() {
     todayBookingCount,
     isLoading,
     refreshBookings
-  } = useBooking();
+  } = useBusinessBookings();
 
   // Calculate total revenue
   const totalRevenue = React.useMemo(() => {
-    return bookings.reduce((sum, booking) => sum + (parseFloat(booking.amount.toString()) || 0), 0);
+    return bookings.reduce((sum, booking) => sum + booking.amount, 0);
   }, [bookings]);
 
   // Upcoming bookings
@@ -111,7 +112,7 @@ export function BusinessDashboard() {
                   {services.length}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {services.filter(s => parseInt(s.price.toString()) > 0).length} paid services
+                  {services.filter(s => s.price > 0).length} paid services
                 </p>
               </CardContent>
             </Card>
@@ -215,7 +216,7 @@ export function BusinessDashboard() {
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-sm">
-                        <div className="font-medium">${parseFloat(booking.amount.toString()).toFixed(2)}</div>
+                        <div className="font-medium">${booking.amount.toFixed(2)}</div>
                         <div className="text-xs text-muted-foreground">
                           {format(new Date(booking.created_at), 'MMM d, yyyy')}
                         </div>
@@ -268,7 +269,7 @@ export function BusinessDashboard() {
                           {service.name}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          ${parseFloat(service.price.toString()).toFixed(2)}
+                          ${service.price.toFixed(2)}
                         </p>
                       </div>
                       <div className="flex items-center">
@@ -300,7 +301,7 @@ export function BusinessDashboard() {
                       </div>
                       <div className="flex items-center">
                         <span className="text-sm font-medium">
-                          ${parseFloat(client.amount.toString()).toFixed(2)}
+                          ${client.amount.toFixed(2)}
                         </span>
                       </div>
                     </div>

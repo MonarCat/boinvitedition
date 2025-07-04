@@ -78,7 +78,7 @@ export const useDashboardData = (businessId?: string) => {
           .eq('business_id', businessId)
           .gte('date', startDate)
           .lte('date', endDate)
-          .or('status.eq.confirmed,status.eq.completed,payment_status.eq.completed');
+          .or(`status.eq.confirmed,status.eq.completed,payment_status.eq.completed`);
         
         // Get revenue from completed payments
         const paymentsQuery = supabase
@@ -252,7 +252,7 @@ export const useDashboardData = (businessId?: string) => {
         .eq('business_id', actualBusinessId)
         .gte('date', startDate)
         .lte('date', endDate)
-        .or('status.eq.confirmed,status.eq.completed,payment_status.eq.completed');
+        .or(`status.eq.confirmed,status.eq.completed,payment_status.eq.completed`);
 
       // Get revenue from completed payments only
       const { data: periodPayments } = await supabase
@@ -346,7 +346,7 @@ export const useDashboardData = (businessId?: string) => {
           .eq('business_id', actualBusinessId)
           .gte('date', startDate)
           .lte('date', endDate)
-          .or('status.eq.confirmed,status.eq.completed,payment_status.eq.completed'),
+          .or(`status.eq.confirmed,status.eq.completed,payment_status.eq.completed`),
           
         supabase
           .from('bookings')

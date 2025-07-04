@@ -1,16 +1,19 @@
+
 import React, { useState, useEffect } from 'react';
-import { useSimpleRealtime } from '@/hooks/useSimpleRealtime';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { useCompleteRealtime } from '@/hooks/useCompleteRealtime';
+import { RealtimeTestPanel } from './RealtimeTestPanel';
 
 interface Booking {
   id: string;
-  client_name?: string;
+  customer_name?: string;
   service_name?: string;
   created_at: string;
   business_id: string;
+  total_amount?: number;
 }
 
 interface Payment {
@@ -38,10 +41,14 @@ export const RealtimeMonitor: React.FC<RealtimeMonitorProps> = ({ businessId }) 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   
-  const { isConnected, error, forceReconnect } = useSimpleRealtime({
-    businessId,
-    showToasts: true
-  });
+  const { 
+    connectionStatus, 
+    connectionError, 
+    isFullyConnected, 
+    connectedCount, 
+    totalConnections,
+    forceReconnect 
+  } = useCompleteRealtime({ businessId, enableToasts: true });
 
   // Load initial data
   useEffect(() => {
@@ -94,16 +101,16 @@ export const RealtimeMonitor: React.FC<RealtimeMonitorProps> = ({ businessId }) 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-bold">Real-time Dashboard</h2>
-          {isConnected ? (
-            <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-              <span className="w-2 h-2 mr-1 bg-green-500 rounded-full animate-pulse"></span>
-              Live
+          <h2 className="text-2xl font-bold">Real-time Dashboard Monitor</h2>
+          {isFullyConnected ? (
+            <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800">
+              <span className="w-2 h-2 mr-2 bg-green-500 rounded-full animate-pulse"></span>
+              All Connected ({connectedCount}/{totalConnections})
             </span>
           ) : (
-            <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
-              <span className="w-2 h-2 mr-1 bg-red-500 rounded-full"></span>
-              Offline
+            <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-yellow-100 text-yellow-800">
+              <span className="w-2 h-2 mr-2 bg-yellow-500 rounded-full"></span>
+              Partial ({connectedCount}/{totalConnections})
             </span>
           )}
         </div>
@@ -113,22 +120,28 @@ export const RealtimeMonitor: React.FC<RealtimeMonitorProps> = ({ businessId }) 
           variant="outline" 
           size="sm"
         >
-          Reconnect
+          Reconnect All
         </Button>
       </div>
       
-      {error && (
+      {connectionError && (
         <Alert variant="destructive">
           <AlertTitle>Connection Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{connectionError}</AlertDescription>
         </Alert>
       )}
+
+      {/* Real-time Test Panel */}
+      <RealtimeTestPanel businessId={businessId} />
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Recent Bookings */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Bookings</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Recent Bookings</span>
+              <span className={`w-3 h-3 rounded-full ${connectionStatus.bookings ? 'bg-green-500' : 'bg-red-500'}`}></span>
+            </CardTitle>
             <CardDescription>
               Latest booking activities
             </CardDescription>
@@ -138,8 +151,8 @@ export const RealtimeMonitor: React.FC<RealtimeMonitorProps> = ({ businessId }) 
               <ul className="space-y-2">
                 {bookings.map((booking) => (
                   <li key={booking.id} className="p-2 bg-slate-50 rounded-md text-sm">
-                    <div className="font-medium">{booking.client_name || 'Unknown Client'}</div>
-                    <div className="text-slate-500">{booking.service_name || 'Service'}</div>
+                    <div className="font-medium">{booking.customer_name || 'Unknown Client'}</div>
+                    <div className="text-slate-500">KES {Number(booking.total_amount || 0).toLocaleString()}</div>
                     <div className="text-xs text-slate-400">
                       {new Date(booking.created_at).toLocaleString()}
                     </div>
@@ -155,7 +168,10 @@ export const RealtimeMonitor: React.FC<RealtimeMonitorProps> = ({ businessId }) 
         {/* Recent Payments */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Payments</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Recent Payments</span>
+              <span className={`w-3 h-3 rounded-full ${connectionStatus.payments ? 'bg-green-500' : 'bg-red-500'}`}></span>
+            </CardTitle>
             <CardDescription>
               Latest payment transactions
             </CardDescription>
@@ -184,7 +200,10 @@ export const RealtimeMonitor: React.FC<RealtimeMonitorProps> = ({ businessId }) 
         {/* Recent Clients */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Clients</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Recent Clients</span>
+              <span className={`w-3 h-3 rounded-full ${connectionStatus.clients ? 'bg-green-500' : 'bg-red-500'}`}></span>
+            </CardTitle>
             <CardDescription>
               Latest client sign-ups
             </CardDescription>
@@ -209,12 +228,23 @@ export const RealtimeMonitor: React.FC<RealtimeMonitorProps> = ({ businessId }) 
         </Card>
       </div>
       
-      <p className="text-sm text-slate-500 text-center mt-4">
-        {isConnected 
-          ? "Real-time updates are active - new data will appear automatically"
-          : "Real-time updates are currently disabled - please reconnect or refresh the page"
-        }
-      </p>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h3 className="font-medium text-blue-900 mb-2">Real-Time Status Summary</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+          {Object.entries(connectionStatus).map(([key, connected]) => (
+            <div key={key} className={`flex items-center gap-2 p-2 rounded ${connected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+              <span className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`}></span>
+              <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-blue-700 mt-3">
+          {isFullyConnected 
+            ? "✅ All real-time connections are active. Your dashboard will update instantly when new data arrives."
+            : "⚠️ Some connections are down. Updates may be delayed. Click 'Reconnect All' to restore full functionality."
+          }
+        </p>
+      </div>
     </div>
   );
 };

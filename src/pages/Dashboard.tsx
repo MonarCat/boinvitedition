@@ -1,3 +1,4 @@
+
 import React from "react";
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { BusinessDashboard } from '@/components/dashboard/BusinessDashboard';
@@ -5,9 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
-import { SimpleRealtimeStatus } from '@/components/dashboard/SimpleRealtimeStatus';
+import { EnhancedRealtimeStatus } from '@/components/dashboard/EnhancedRealtimeStatus';
 import { RealtimeMonitor } from '@/components/dashboard/RealtimeMonitor';
-import { useSimpleRealtime } from '@/hooks/useSimpleRealtime';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -34,21 +34,20 @@ const Dashboard = () => {
     },
     enabled: !!user?.id,
   });
-  
-  // Set up realtime connection for this business
-  const { isConnected, connectionError, reconnect } = useSimpleRealtime(business?.id || '');
 
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold">{business?.name || 'Business Dashboard'}</h1>
-          <SimpleRealtimeStatus 
-            isConnected={isConnected} 
-            connectionError={connectionError} 
-            onReconnect={reconnect} 
-          />
         </div>
+        
+        {/* Enhanced Real-Time Status */}
+        {business && (
+          <div className="mb-6">
+            <EnhancedRealtimeStatus businessId={business.id} />
+          </div>
+        )}
         
         <BusinessDashboard />
         

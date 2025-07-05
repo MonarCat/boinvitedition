@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -80,7 +79,7 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
         throw new Error('Invalid business id.');
       }
       
-      // Base staff data
+      // Base staff data with proper typing
       const baseStaffData = {
         business_id: business.id,
         name: data.name,
@@ -93,8 +92,22 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
         shift: data.shift || null,
       };
       
-      // Safely add avatar URL if supported
-      const staffData = await safelyAddAvatarUrl(baseStaffData, avatarUrl);
+      // Safely add avatar URL if supported - but ensure proper typing
+      const staffDataWithAvatar = await safelyAddAvatarUrl(baseStaffData, avatarUrl);
+      
+      // Ensure the final object has the correct structure for Supabase
+      const staffData = {
+        business_id: baseStaffData.business_id,
+        name: baseStaffData.name,
+        email: baseStaffData.email,
+        phone: baseStaffData.phone,
+        gender: baseStaffData.gender,
+        is_active: baseStaffData.is_active,
+        specialties: baseStaffData.specialties,
+        workload: baseStaffData.workload,
+        shift: baseStaffData.shift,
+        ...(staffDataWithAvatar.avatar_url ? { avatar_url: staffDataWithAvatar.avatar_url } : {})
+      };
 
       let response;
       if (staff) {

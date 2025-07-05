@@ -10,7 +10,8 @@ import {
   Briefcase,
   LogOut,
   Menu,
-  Home
+  Home,
+  DollarSign
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,6 +30,7 @@ const navigation = [
   { name: 'Bookings', href: '/app/bookings', icon: Calendar },
   { name: 'Clients', href: '/app/clients', icon: Users },
   { name: 'Staff', href: '/app/staff', icon: UserCheck },
+  { name: 'Finance', href: '/app/finance', icon: DollarSign },
   { name: 'Invoices', href: '/app/invoices', icon: ClipboardList },
   { name: 'Settings', href: '/app/settings', icon: Settings },
   { name: 'Subscription', href: '/app/subscription', icon: CreditCard },
@@ -182,6 +184,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             type="button"
             className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
             onClick={() => setSidebarOpen(true)}
+            aria-label="Open sidebar"
           >
             <Menu className="h-6 w-6" />
           </button>

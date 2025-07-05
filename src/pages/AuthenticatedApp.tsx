@@ -7,6 +7,7 @@ import BookingManagementPage from '@/pages/BookingManagementPage';
 import ClientsPage from '@/pages/ClientsPage';
 import StaffPage from '@/pages/StaffPage';
 import InvoicesPage from '@/pages/InvoicesPage';
+import FinancePage from '@/pages/FinancePage';
 import SettingsPage from '@/pages/SettingsPage';
 import SubscriptionPage from '@/pages/SubscriptionPage';
 import StaffDashboardPage from '@/pages/StaffDashboardPage';
@@ -27,6 +28,7 @@ const AuthenticatedApp = () => {
       <Route path="clients" element={<ClientsPage />} />
       <Route path="staff" element={<StaffPage />} />
       <Route path="invoices" element={<InvoicesPage />} />
+      <Route path="finance" element={<FinancePage />} />
       <Route path="settings" element={<SettingsPage />} />
       <Route path="subscription" element={<SubscriptionPage />} />
       <Route path="staff-dashboard" element={<StaffDashboardPage />} />

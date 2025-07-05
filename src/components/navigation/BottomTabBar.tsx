@@ -6,7 +6,8 @@ import {
   Calendar, 
   Users, 
   Settings,
-  Briefcase
+  Briefcase,
+  DollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -21,7 +22,7 @@ const tabs: TabItem[] = [
   { name: 'Home', href: '/app/dashboard', icon: Home },
   { name: 'Services', href: '/app/services', icon: Briefcase },
   { name: 'Bookings', href: '/app/bookings', icon: Calendar },
-  { name: 'Clients', href: '/app/clients', icon: Users },
+  { name: 'Finance', href: '/app/finance', icon: DollarSign },
   { name: 'Settings', href: '/app/settings', icon: Settings },
 ];
 

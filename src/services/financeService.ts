@@ -1,4 +1,6 @@
+
 import { supabase } from '@/lib/supabase';
+import { calculateCommission, calculateNetAmount } from '@/utils/format';
 import type { 
   FinanceSummary, 
   Transaction, 
@@ -7,17 +9,19 @@ import type {
 } from '@/types/finance';
 
 /**
- * Get the financial summary for the current business
+ * Get the financial summary for the current business (KES currency)
  */
 export const getFinanceSummary = async (businessId: string): Promise<FinanceSummary> => {
   try {
-    // This would normally fetch from your Supabase DB
-    // For now we'll return mock data
+    // In a real implementation, this would fetch from Supabase
+    // For now, return mock data with KES calculations
+    const mockRevenue = 125000; // KES
+    
     return {
-      totalRevenue: 125000,
-      availableBalance: 45300,
-      pendingBalance: 12500,
-      totalFees: 6250,
+      totalRevenue: mockRevenue,
+      availableBalance: calculateNetAmount(mockRevenue) - 12500, // Net minus pending
+      pendingBalance: 12500, // KES
+      totalFees: calculateCommission(mockRevenue), // 5% commission
     };
   } catch (error) {
     console.error('Error fetching finance summary:', error);
@@ -26,19 +30,18 @@ export const getFinanceSummary = async (businessId: string): Promise<FinanceSumm
 };
 
 /**
- * Get transactions for the current business
+ * Get transactions for the current business (KES currency)
  */
 export const getTransactions = async (
   businessId: string,
   options: { limit?: number; offset?: number; type?: string }
 ): Promise<Transaction[]> => {
   try {
-    // This would normally fetch from your Supabase DB
-    // For now we'll return mock data
+    // Mock data with KES amounts
     const mockTransactions: Transaction[] = [
       {
         id: 'tx-001',
-        amount: 1500,
+        amount: 1500, // KES
         type: 'booking_payment',
         status: 'completed',
         description: 'Booking #1001',
@@ -46,7 +49,7 @@ export const getTransactions = async (
       },
       {
         id: 'tx-002',
-        amount: 3000,
+        amount: 3000, // KES
         type: 'booking_payment',
         status: 'completed',
         description: 'Booking #1002',
@@ -54,7 +57,7 @@ export const getTransactions = async (
       },
       {
         id: 'tx-003',
-        amount: 4500,
+        amount: 4500, // KES
         type: 'booking_payment',
         status: 'completed',
         description: 'Booking #1003',

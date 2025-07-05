@@ -8,6 +8,7 @@ import {
   getPaymentAccounts,
   updatePaymentAccount
 } from '@/services/financeService';
+import { calculateCommission, calculateNetAmount } from '@/utils/format';
 import type { 
   FinanceSummary, 
   Transaction, 
@@ -32,7 +33,15 @@ export const useFinance = () => {
     try {
       setLoading(true);
       const data = await getFinanceSummary(businessId);
-      setSummary(data);
+      
+      // Ensure consistent calculations with KES currency
+      const recalculatedSummary = {
+        ...data,
+        totalFees: calculateCommission(data.totalRevenue),
+        availableBalance: calculateNetAmount(data.totalRevenue) - data.pendingBalance
+      };
+      
+      setSummary(recalculatedSummary);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
@@ -89,6 +98,12 @@ export const useFinance = () => {
   const createWithdrawalRequest = async (amount: number, accountId: string) => {
     if (!businessId) return null;
     
+    // Validate minimum withdrawal amount in KES
+    if (amount < 100) {
+      setError(new Error('Minimum withdrawal amount is KES 100'));
+      return null;
+    }
+    
     try {
       setLoading(true);
       const withdrawal = await requestWithdrawal(businessId, amount, accountId);
@@ -131,8 +146,6 @@ export const useFinance = () => {
       loadPaymentAccounts();
     }
   }, [businessId]); // eslint-disable-line react-hooks/exhaustive-deps
-  // We're intentionally excluding the load functions from dependencies
-  // to avoid infinite render loops, as these functions don't need to be recreated
 
   return {
     loading,

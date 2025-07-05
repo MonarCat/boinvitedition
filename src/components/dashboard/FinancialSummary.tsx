@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +13,7 @@ import {
   HelpCircle 
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
-import { formatCurrency } from '@/utils';
+import { formatCurrency, calculateCommission, calculateNetAmount } from '@/utils/format';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface FinancialSummaryProps {
@@ -24,33 +25,19 @@ export const FinancialSummary = ({ transactions = [], isLoading = false }: Finan
   const { subscription } = useSubscription();
   const isPAYG = subscription?.plan_type === 'payg';
   
-  // Calculate commission rate based on subscription
-  const getCommissionRate = () => {
-    if (!subscription) return 0.05; // Default to PAYG rate
-    
-    if (subscription.plan_type === 'payg') return 0.05;
-    if (subscription.plan_type === 'starter') return 0.05;
-    if (subscription.plan_type === 'medium') return 0.05;
-    if (subscription.plan_type === 'premium') return 0.05;
-    return 0.05; // default
-  };
+  // Calculate financial metrics with consistent KES currency
+  const completedTransactions = transactions.filter(t => t.status === 'completed');
+  const totalRevenue = completedTransactions.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const totalCommission = calculateCommission(totalRevenue);
+  const netEarnings = calculateNetAmount(totalRevenue);
   
-  const commissionRate = getCommissionRate();
+  // Pending transactions
+  const pendingTransactions = transactions.filter(t => t.status === 'pending');
+  const pendingAmount = pendingTransactions.reduce((sum, t) => sum + Number(t.amount || 0), 0);
   
-  // Calculate financial metrics
-  const totalRevenue = transactions
-    .filter(t => t.status === 'completed')
-    .reduce((sum, t) => sum + Number(t.amount || 0), 0);
-  
-  const totalCommission = totalRevenue * commissionRate;
-  const netEarnings = totalRevenue - totalCommission;
-  
-  // Get badge for subscription type
   const getSubscriptionBadge = () => {
     if (!subscription) return null;
-    
-    // Only PAYG is available now
-  return <Badge className="bg-orange-500">Pay As You Go</Badge>;
+    return <Badge className="bg-orange-500">Pay As You Go</Badge>;
   };
 
   if (isLoading) {
@@ -67,7 +54,7 @@ export const FinancialSummary = ({ transactions = [], isLoading = false }: Finan
     <Card>
       <CardHeader className="flex flex-row items-center justify-between border-b pb-2">
         <CardTitle className="text-lg">
-          Financial Summary
+          Financial Summary (KES)
         </CardTitle>
         <div className="flex items-center gap-2">
           {getSubscriptionBadge()}
@@ -78,10 +65,8 @@ export const FinancialSummary = ({ transactions = [], isLoading = false }: Finan
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-xs max-w-xs">
-                  {isPAYG 
-                    ? "Pay As You Go: 5% commission on successful payments only, no monthly fees"
-                    : `Your ${subscription?.plan_type} plan has a ${commissionRate * 100}% platform fee`
-                  }
+                  Pay As You Go: 5% commission on successful payments only, no monthly fees. 
+                  All amounts displayed in Kenyan Shillings (KES).
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -94,7 +79,7 @@ export const FinancialSummary = ({ transactions = [], isLoading = false }: Finan
             <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
             <p>No financial data available yet</p>
             <p className="text-sm">
-              Transactions will appear here once you start processing payments
+              Transactions will appear here once you start processing payments in KES
             </p>
           </div>
         ) : (
@@ -112,10 +97,10 @@ export const FinancialSummary = ({ transactions = [], isLoading = false }: Finan
                 <div className="flex justify-between items-center mb-2">
                   <div className="text-sm text-orange-600 flex items-center gap-1">
                     <ArrowDownRight className="h-3 w-3" /> 
-                    {isPAYG ? 'PAYG Commission' : 'Platform Fee'}
+                    Platform Commission
                   </div>
                   <div className="text-xs text-orange-500 font-medium">
-                    {commissionRate * 100}%
+                    5%
                   </div>
                 </div>
                 <div className="text-2xl font-bold text-orange-600">
@@ -125,7 +110,7 @@ export const FinancialSummary = ({ transactions = [], isLoading = false }: Finan
               
               <div className="bg-green-50 p-4 rounded-lg border border-green-100">
                 <div className="flex justify-between items-center mb-2">
-                  <div className="text-sm text-green-600">Net Earnings</div>
+                  <div className="text-sm text-green-600">Your Net Earnings</div>
                   <TrendingUp className="h-4 w-4 text-green-500" />
                 </div>
                 <div className="text-2xl font-bold text-green-600">
@@ -134,24 +119,33 @@ export const FinancialSummary = ({ transactions = [], isLoading = false }: Finan
               </div>
             </div>
             
-            {isPAYG && (
+            {pendingTransactions.length > 0 && (
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <div className="flex items-center gap-2">
-                  <InfoIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium text-blue-700">Pay As You Go Benefits</h4>
-                    <p className="text-xs text-blue-600">
-                      You're only charged when you get paid. No monthly fees, unlimited bookings, and full platform access.
-                    </p>
-                  </div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm text-blue-700 font-medium">Pending Transactions</span>
+                </div>
+                <div className="text-lg font-semibold text-blue-800">
+                  {formatCurrency(pendingAmount)} ({pendingTransactions.length} pending)
                 </div>
               </div>
             )}
             
-            {/* Chart would go here for premium plans */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+              <div className="flex items-center gap-2">
+                <InfoIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                <div>
+                  <h4 className="font-medium text-blue-700">Pay As You Go Benefits</h4>
+                  <p className="text-xs text-blue-600">
+                    Only charged when you get paid. No monthly fees, unlimited bookings, full platform access. 
+                    All transactions processed in Kenyan Shillings (KES).
+                  </p>
+                </div>
+              </div>
+            </div>
             
             <div className="text-center text-xs text-gray-500">
-              <p>Data based on {transactions.filter(t => t.status === 'completed').length} completed transactions</p>
+              <p>Data based on {completedTransactions.length} completed transactions in KES</p>
             </div>
           </div>
         )}

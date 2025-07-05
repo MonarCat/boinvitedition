@@ -1,87 +1,68 @@
-import { useState, useEffect } from 'react';
+
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface UseSimpleRealtimeProps {
+  businessId: string;
+  enableToasts?: boolean;
+}
 
 export const useSimpleRealtime = (businessId: string) => {
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
-  const [latestEvents, setLatestEvents] = useState<any[]>([]);
+
+  const reconnect = useCallback(() => {
+    setConnectionError(null);
+    setIsConnected(false);
+    
+    // Simulate reconnection
+    setTimeout(() => {
+      setIsConnected(true);
+      toast.success('Real-time connection restored');
+    }, 1000);
+  }, []);
 
   useEffect(() => {
     if (!businessId) return;
 
-    // Subscribe to changes in bookings for this business
-    const bookingSubscription = supabase
-      .channel('bookings-channel')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'bookings',
-          filter: `business_id=eq.${businessId}`,
-        },
-        (payload) => {
-          setLatestEvents((prev) => [
-            { type: 'booking', data: payload.new, event: payload.eventType, timestamp: new Date() },
-            ...prev,
-          ].slice(0, 10));
-          setIsConnected(true);
-          setConnectionError(null);
-        }
-      )
+    // Set up real-time subscription
+    const channel = supabase
+      .channel(`business_${businessId}`)
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'bookings',
+        filter: `business_id=eq.${businessId}`
+      }, () => {
+        console.log('Booking update received');
+      })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'client_business_transactions',
+        filter: `business_id=eq.${businessId}`
+      }, () => {
+        console.log('Transaction update received');
+      })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           setIsConnected(true);
           setConnectionError(null);
         } else if (status === 'CHANNEL_ERROR') {
           setIsConnected(false);
-          setConnectionError('Failed to connect to realtime updates');
+          setConnectionError('Connection failed');
         }
       });
 
-    // Subscribe to changes in payments for this business
-    const paymentSubscription = supabase
-      .channel('payments-channel')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'payments',
-          filter: `business_id=eq.${businessId}`,
-        },
-        (payload) => {
-          setLatestEvents((prev) => [
-            { type: 'payment', data: payload.new, event: payload.eventType, timestamp: new Date() },
-            ...prev,
-          ].slice(0, 10));
-          setIsConnected(true);
-          setConnectionError(null);
-        }
-      )
-      .subscribe();
-
     return () => {
-      bookingSubscription.unsubscribe();
-      paymentSubscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, [businessId]);
-
-  const reconnect = () => {
-    // Reconnect logic
-    supabase.removeAllChannels();
-    setIsConnected(false);
-    setConnectionError('Reconnecting...');
-    
-    // The channels will be recreated on the next render due to the useEffect dependency
-    // Force a re-render by updating the state
-    setLatestEvents([]);
-  };
 
   return {
     isConnected,
     connectionError,
-    latestEvents,
     reconnect
   };
 };

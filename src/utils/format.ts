@@ -1,32 +1,21 @@
+
 /**
- * Format a number as currency
+ * Format a number as currency (KES only)
  * @param value The number to format
- * @param currency The currency code (default: 'KES')
- * @param locale The locale to use for formatting (default: 'en-KE')
- * @returns Formatted currency string
+ * @returns Formatted currency string in KES
  */
 export const formatCurrency = (
-  value: number,
-  currency: string = 'KES',
-  locale: string = 'en-KE'
+  value: number
 ): string => {
-  // For simple formatting without Intl (which might not be fully supported in all browsers)
-  if (currency === 'KES') {
-    return `KES ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (typeof value !== 'number' || isNaN(value)) {
+    return 'KES 0.00';
   }
 
-  // Use Intl.NumberFormat for more complex formatting if available
-  try {
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value);
-  } catch (error) {
-    console.error('Error formatting currency:', error);
-    return `${currency} ${value.toFixed(2)}`;
-  }
+  // Always format as KES currency
+  return `KES ${value.toLocaleString('en-KE', { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  })}`;
 };
 
 /**
@@ -36,5 +25,32 @@ export const formatCurrency = (
  * @returns Formatted percentage string
  */
 export const formatPercentage = (value: number, decimals: number = 1): string => {
+  if (typeof value !== 'number' || isNaN(value)) {
+    return '0.0%';
+  }
   return `${value.toFixed(decimals)}%`;
+};
+
+/**
+ * Calculate platform commission (5% for all transactions)
+ * @param amount The transaction amount
+ * @returns Commission amount
+ */
+export const calculateCommission = (amount: number): number => {
+  if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) {
+    return 0;
+  }
+  return amount * 0.05; // 5% commission
+};
+
+/**
+ * Calculate business net amount after commission
+ * @param amount The transaction amount
+ * @returns Net amount after 5% commission deduction
+ */
+export const calculateNetAmount = (amount: number): number => {
+  if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) {
+    return 0;
+  }
+  return amount - calculateCommission(amount);
 };

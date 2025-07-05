@@ -1221,6 +1221,7 @@ export type Database = {
       }
       staff: {
         Row: {
+          avatar_url: string | null
           business_id: string
           created_at: string | null
           email: string
@@ -1235,6 +1236,7 @@ export type Database = {
           workload: string | null
         }
         Insert: {
+          avatar_url?: string | null
           business_id: string
           created_at?: string | null
           email: string
@@ -1249,6 +1251,7 @@ export type Database = {
           workload?: string | null
         }
         Update: {
+          avatar_url?: string | null
           business_id?: string
           created_at?: string | null
           email?: string
@@ -1573,6 +1576,10 @@ export type Database = {
         Args: { p_business_id: string; p_user_id?: string }
         Returns: boolean
       }
+      validate_business_access: {
+        Args: { p_business_id: string; p_user_id?: string }
+        Returns: boolean
+      }
       validate_business_ownership: {
         Args: { business_id: string }
         Returns: boolean
@@ -1583,6 +1590,14 @@ export type Database = {
       }
       validate_payment_security: {
         Args: { _amount: number; _business_id: string; _metadata?: Json }
+        Returns: Json
+      }
+      validate_payment_security_enhanced: {
+        Args: {
+          p_amount: number
+          p_business_id: string
+          p_payment_method?: string
+        }
         Returns: Json
       }
       validate_webhook_security: {

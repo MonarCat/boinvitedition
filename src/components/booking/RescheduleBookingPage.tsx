@@ -14,7 +14,7 @@ interface Booking {
   booking_time: string;
   business_id: string;
   service_id: string;
-  has_rescheduled?: boolean;
+  reschedule_count?: number;
   status: string;
   services: {
     name: string;
@@ -66,7 +66,7 @@ export const RescheduleBookingPage = () => {
               booking_time,
               business_id,
               service_id,
-              has_rescheduled,
+              reschedule_count,
               status,
               services:service_id(name, duration_minutes),
               businesses:business_id(name)
@@ -96,14 +96,14 @@ export const RescheduleBookingPage = () => {
       if (!selectedDate || !booking) return;
       
       try {
-        // Fetch business hours
-        const { data: businessSettings, error: settingsError } = await supabase
-          .from('business_settings')
+        // Fetch business hours from businesses table
+        const { data: businessData, error: businessError } = await supabase
+          .from('businesses')
           .select('business_hours')
-          .eq('business_id', booking.business_id)
+          .eq('id', booking.business_id)
           .single();
         
-        if (settingsError) throw settingsError;
+        if (businessError) throw businessError;
         
         // Fetch existing bookings for the selected date
         const { data: existingBookings, error: bookingsError } = await supabase
@@ -117,7 +117,7 @@ export const RescheduleBookingPage = () => {
         if (bookingsError) throw bookingsError;
         
         // Generate time slots based on business hours
-        const businessHours = businessSettings?.business_hours || {};
+        const businessHours = businessData?.business_hours || {};
         const dayOfWeek = format(selectedDate, 'EEEE').toLowerCase();
         const dayHours = businessHours[dayOfWeek];
         
@@ -177,8 +177,8 @@ export const RescheduleBookingPage = () => {
   const canReschedule = () => {
     if (!booking) return false;
     
-    // Check if booking has already been rescheduled
-    if (booking.has_rescheduled) {
+    // Check if booking has already been rescheduled (using reschedule_count)
+    if (booking.reschedule_count && booking.reschedule_count > 0) {
       setError('This booking has already been rescheduled once.');
       return false;
     }
@@ -213,7 +213,7 @@ export const RescheduleBookingPage = () => {
         .update({
           booking_date: format(selectedDate, 'yyyy-MM-dd'),
           booking_time: selectedTime,
-          has_rescheduled: true,
+          reschedule_count: (booking.reschedule_count || 0) + 1,
           status: 'confirmed'
         })
         .eq('id', booking.id);

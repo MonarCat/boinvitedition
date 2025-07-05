@@ -205,28 +205,67 @@ export const RealServiceImageUpload: React.FC<RealServiceImageUploadProps> = ({
         )}
 
         {images.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {images.map((image, index) => (
-              <div key={index} className="relative group">
+          <div className="space-y-4">
+            {/* Main Image Preview */}
+            <div className="relative group overflow-hidden rounded-lg border aspect-video">
+              <div className="relative w-full h-full flex items-center justify-center bg-gray-100">
                 <img
-                  src={image}
-                  alt={`Service image ${index + 1}`}
-                  className="w-full h-32 object-cover rounded-lg border"
+                  src={images[0]}
+                  alt={`Main service image`}
+                  className="w-full h-full object-contain"
                   onError={(e) => {
-                    console.error('Image failed to load:', image);
+                    console.error('Image failed to load:', images[0]);
                     e.currentTarget.src = '/placeholder-image.png';
                   }}
                 />
-                <Button
-                  onClick={() => removeImage(index)}
-                  size="sm"
-                  variant="destructive"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="w-3 h-3" />
-                </Button>
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center">
+                  <Button
+                    onClick={() => removeImage(0)}
+                    size="sm"
+                    variant="destructive"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-3 h-3 mr-1" /> Remove
+                  </Button>
+                </div>
+                {images.length > 1 && (
+                  <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                    1/{images.length}
+                  </div>
+                )}
               </div>
-            ))}
+            </div>
+            
+            {/* Image Gallery Thumbnails */}
+            {images.length > 1 && (
+              <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
+                {images.map((image, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={image}
+                      alt={`Service image ${index + 1}`}
+                      className={`w-full h-16 object-cover rounded-md border-2 ${index === 0 ? 'border-blue-500' : 'border-transparent'}`}
+                      onError={(e) => {
+                        console.error('Image failed to load:', image);
+                        e.currentTarget.src = '/placeholder-image.png';
+                      }}
+                    />
+                    <Button
+                      onClick={() => removeImage(index)}
+                      size="icon"
+                      variant="destructive"
+                      className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-2 h-2" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <p className="text-xs text-gray-500">
+              First image will be displayed as the main image on service cards.
+            </p>
           </div>
         )}
 

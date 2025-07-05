@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Phone, Clock, Star, ChevronLeft, CreditCard, Calendar, MessageCircle, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { ServicesList } from './ServicesList';
+import { EnhancedServicesList } from './EnhancedServicesList';
 import { EmptyServiceSelection } from './EmptyServiceSelection';
 import { PublicBookingCalendar } from './PublicBookingCalendar';
 import { ClientToBusinessPayment } from '@/components/payment/ClientToBusinessPayment';
@@ -16,6 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ResponsiveCard } from './ResponsiveCard';
 import { TouchFriendlyServices } from './TouchFriendlyServices';
+import { EnhancedTouchFriendlyServices } from './EnhancedTouchFriendlyServices';
 import { BookingStep } from './MobileBottomNavigation';
 
 interface Service {
@@ -484,7 +486,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
         animate={{ opacity: 1, y: 0 }}
         className={cn(
           "relative rounded-2xl overflow-hidden mb-6 md:mb-8 bg-gradient-to-r from-blue-500 to-indigo-600",
-          isMobileView ? "h-40" : "h-48 md:h-64"
+          isMobileView ? "h-56" : "h-64 md:h-80"
         )}
       >
         {images.length > 0 ? (
@@ -550,8 +552,8 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
             src={business.logo_url || '/placeholder.svg'}
             alt={`${business.name} logo`} 
             className={cn(
-              "rounded-full border-4 border-white shadow-lg",
-              isMobileView ? "w-16 h-16" : "w-20 h-20" 
+              "rounded-full border-4 border-white shadow-lg object-cover",
+              isMobileView ? "w-24 h-24" : "w-28 h-28" 
             )}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -559,19 +561,35 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
           />
         </div>
 
-        <div className="absolute inset-0 flex items-end p-4 md:p-6">
-          <div className="text-white">
+        <div className="absolute inset-0 flex items-end p-4 md:p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+          <div className="text-white ml-20 md:ml-28">
             <h1 className={cn(
               "font-bold", 
-              isMobileView ? "text-xl" : "text-2xl md:text-3xl"
+              isMobileView ? "text-2xl" : "text-3xl md:text-4xl"
             )}>
               {business.name}
             </h1>
-            <div className="flex gap-2 items-center mt-1">
-              {business.is_verified && <Badge variant="secondary">Verified</Badge>}
-              <Badge variant="default">
+            <p className="text-gray-200 text-sm md:text-base mt-1 line-clamp-2">
+              {business.description || 'Quality services at your convenience'}
+            </p>
+            <div className="flex gap-2 items-center mt-2">
+              {business.is_verified && (
+                <Badge variant="secondary" className="bg-blue-500/30 text-white border-blue-300 text-sm">
+                  Verified Business
+                </Badge>
+              )}
+              <Badge variant="default" className="bg-green-500/30 text-white border-green-300 text-sm">
                 {paymentPolicy === 'pay_on_booking' ? 'Pay on Booking' : 'Pay After Service'}
               </Badge>
+              {business.average_rating && business.average_rating > 0 && (
+                <div className="flex items-center bg-yellow-500/30 px-2 py-1 rounded-full">
+                  <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                  <span className="font-medium">{business.average_rating.toFixed(1)}</span>
+                  {business.total_reviews && (
+                    <span className="text-xs ml-1">({business.total_reviews})</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -643,7 +661,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
           animate={{ opacity: 1 }}
         >
           {isMobileView ? (
-            <TouchFriendlyServices 
+            <EnhancedTouchFriendlyServices 
               services={services}
               selectedService={selectedService}
               onServiceSelect={handleServiceSelect}
@@ -652,7 +670,7 @@ export const ResponsiveBookingContent: React.FC<ResponsiveBookingContentProps> =
           ) : (
             <Card>
               <CardContent className="p-0">
-                <ServicesList
+                <EnhancedServicesList
                   services={services}
                   selectedService={selectedService}
                   onServiceSelect={handleServiceSelect}

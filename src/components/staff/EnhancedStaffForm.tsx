@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X } from 'lucide-react';
 import { toast } from 'sonner';
+import { StaffAvatarUpload } from './StaffAvatarUpload';
+import { useAvatarSupport } from '@/utils/columnSupport';
 
 interface EnhancedStaffFormProps {
   staff?: any;
@@ -26,6 +27,9 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
   const queryClient = useQueryClient();
   const [specialties, setSpecialties] = useState<string[]>(staff?.specialties || []);
   const [newSpecialty, setNewSpecialty] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string>(staff?.avatar_url || '');
+  const [avatarSupported, setAvatarSupported] = useState<boolean | null>(null);
+  const { checkAvatarSupport, safelyAddAvatarUrl } = useAvatarSupport();
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     defaultValues: {
@@ -74,7 +78,8 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
       if (!business.id) {
         throw new Error('Invalid business id.');
       }
-      const staffData = {
+      // Base staff data
+      const baseStaffData = {
         business_id: business.id,
         name: data.name,
         email: data.email,
@@ -85,6 +90,12 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
         workload: data.workload || null,
         shift: data.shift || null,
       };
+      
+      // Only add avatar_url if supported and provided
+      let staffData = baseStaffData;
+      if (avatarSupported && avatarUrl) {
+        staffData = { ...baseStaffData, avatar_url: avatarUrl };
+      }
 
       let response;
       if (staff) {
@@ -127,6 +138,19 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
     createStaffMutation.mutate(data);
   };
 
+  // Check if avatar_url column exists
+  useEffect(() => {
+    const checkSupport = async () => {
+      const supported = await checkAvatarSupport();
+      setAvatarSupported(supported);
+      if (!supported && avatarUrl) {
+        console.warn('avatar_url column not found in staff table. Avatar features will be disabled.');
+      }
+    };
+    
+    checkSupport();
+  }, [checkAvatarSupport, avatarUrl]);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-6">
       {businessLoading && (
@@ -143,6 +167,18 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
       {businessError && (
         <div className="text-red-600">
           Error loading business: {businessError.message}
+        </div>
+      )}
+
+      {/* Staff Avatar Upload */}
+      {avatarSupported !== false && (
+        <div className="flex justify-center py-4 border-b border-gray-100 mb-4">
+          <StaffAvatarUpload
+            staffId={staff?.id}
+            avatarUrl={avatarUrl}
+            onAvatarChange={setAvatarUrl}
+            name={watch('name')}
+          />
         </div>
       )}
 

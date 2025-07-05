@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { 
@@ -32,18 +33,22 @@ export const useFinance = () => {
     
     try {
       setLoading(true);
+      setError(null);
+      console.log('Loading real financial summary for business:', businessId);
+      
       const data = await getFinanceSummary(businessId);
       
-      // Ensure consistent calculations with KES currency
+      // Ensure all calculations use KES currency and are consistent
       const recalculatedSummary = {
         ...data,
         totalFees: calculateCommission(data.totalRevenue),
-        availableBalance: calculateNetAmount(data.totalRevenue) - data.pendingBalance
+        availableBalance: Math.max(0, calculateNetAmount(data.totalRevenue) - data.pendingBalance)
       };
       
+      console.log('Financial summary loaded:', recalculatedSummary);
       setSummary(recalculatedSummary);
-      setError(null);
     } catch (err) {
+      console.error('Error loading financial summary:', err);
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       setLoading(false);
@@ -55,10 +60,14 @@ export const useFinance = () => {
     
     try {
       setLoading(true);
-      const data = await getTransactions(businessId, options);
-      setTransactions(data);
       setError(null);
+      console.log('Loading real transactions for business:', businessId);
+      
+      const data = await getTransactions(businessId, options);
+      console.log('Transactions loaded:', data.length);
+      setTransactions(data);
     } catch (err) {
+      console.error('Error loading transactions:', err);
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       setLoading(false);
@@ -70,10 +79,12 @@ export const useFinance = () => {
     
     try {
       setLoading(true);
+      setError(null);
+      
       const data = await getWithdrawals(businessId, options);
       setWithdrawals(data);
-      setError(null);
     } catch (err) {
+      console.error('Error loading withdrawals:', err);
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       setLoading(false);
@@ -85,10 +96,12 @@ export const useFinance = () => {
     
     try {
       setLoading(true);
+      setError(null);
+      
       const data = await getPaymentAccounts(businessId);
       setPaymentAccounts(data);
-      setError(null);
     } catch (err) {
+      console.error('Error loading payment accounts:', err);
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       setLoading(false);
@@ -106,11 +119,13 @@ export const useFinance = () => {
     
     try {
       setLoading(true);
+      setError(null);
+      
       const withdrawal = await requestWithdrawal(businessId, amount, accountId);
       setWithdrawals(prev => [withdrawal, ...prev]);
-      setError(null);
       return withdrawal;
     } catch (err) {
+      console.error('Error creating withdrawal request:', err);
       setError(err instanceof Error ? err : new Error(String(err)));
       return null;
     } finally {
@@ -123,13 +138,15 @@ export const useFinance = () => {
     
     try {
       setLoading(true);
+      setError(null);
+      
       const updated = await updatePaymentAccount(businessId, accountId, details);
       setPaymentAccounts(prev => 
         prev.map(acc => acc.id === accountId ? updated : acc)
       );
-      setError(null);
       return updated;
     } catch (err) {
+      console.error('Error updating payment account:', err);
       setError(err instanceof Error ? err : new Error(String(err)));
       return null;
     } finally {
@@ -140,6 +157,7 @@ export const useFinance = () => {
   // Initial data loading
   useEffect(() => {
     if (businessId) {
+      console.log('Initializing finance data for business:', businessId);
       loadFinanceSummary();
       loadTransactions();
       loadWithdrawals();

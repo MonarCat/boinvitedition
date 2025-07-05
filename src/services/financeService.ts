@@ -13,18 +13,80 @@ import type {
  */
 export const getFinanceSummary = async (businessId: string): Promise<FinanceSummary> => {
   try {
-    // In a real implementation, this would fetch from Supabase
-    // For now, return mock data with KES calculations
-    const mockRevenue = 125000; // KES
+    console.log('Fetching real financial summary for business:', businessId);
+    
+    // Get completed bookings with payments
+    const { data: completedBookings, error: bookingsError } = await supabase
+      .from('bookings')
+      .select('total_amount, payment_status, created_at')
+      .eq('business_id', businessId)
+      .eq('payment_status', 'completed');
+    
+    if (bookingsError) throw bookingsError;
+    
+    // Get payment transactions
+    const { data: paymentTransactions, error: paymentsError } = await supabase
+      .from('payment_transactions')
+      .select('amount, status, business_amount, created_at')
+      .eq('business_id', businessId)
+      .eq('status', 'completed')
+      .eq('transaction_type', 'client_to_business');
+    
+    if (paymentsError) throw paymentsError;
+    
+    // Get client business transactions
+    const { data: clientTransactions, error: clientTxError } = await supabase
+      .from('client_business_transactions')
+      .select('business_amount, amount, status, created_at')
+      .eq('business_id', businessId)
+      .eq('status', 'completed');
+    
+    if (clientTxError) throw clientTxError;
+    
+    // Calculate total revenue from all sources
+    const bookingsRevenue = (completedBookings || [])
+      .reduce((sum, booking) => sum + Number(booking.total_amount || 0), 0);
+    
+    const paymentsRevenue = (paymentTransactions || [])
+      .reduce((sum, payment) => sum + Number(payment.business_amount || payment.amount || 0), 0);
+    
+    const clientTxRevenue = (clientTransactions || [])
+      .reduce((sum, tx) => sum + Number(tx.business_amount || 0), 0);
+    
+    const totalRevenue = bookingsRevenue + paymentsRevenue + clientTxRevenue;
+    
+    // Get pending amounts
+    const { data: pendingBookings, error: pendingError } = await supabase
+      .from('bookings')
+      .select('total_amount')
+      .eq('business_id', businessId)
+      .eq('payment_status', 'pending');
+    
+    if (pendingError) throw pendingError;
+    
+    const pendingAmount = (pendingBookings || [])
+      .reduce((sum, booking) => sum + Number(booking.total_amount || 0), 0);
+    
+    // Calculate commission and net amounts with KES currency
+    const totalFees = calculateCommission(totalRevenue);
+    const netAmount = calculateNetAmount(totalRevenue);
+    const availableBalance = netAmount - (pendingAmount * 0.95); // 95% of pending after commission
+    
+    console.log('Real financial summary calculated:', {
+      totalRevenue,
+      totalFees,
+      availableBalance,
+      pendingBalance: pendingAmount
+    });
     
     return {
-      totalRevenue: mockRevenue,
-      availableBalance: calculateNetAmount(mockRevenue) - 12500, // Net minus pending
-      pendingBalance: 12500, // KES
-      totalFees: calculateCommission(mockRevenue), // 5% commission
+      totalRevenue,
+      availableBalance: Math.max(0, availableBalance),
+      pendingBalance: pendingAmount,
+      totalFees,
     };
   } catch (error) {
-    console.error('Error fetching finance summary:', error);
+    console.error('Error fetching real finance summary:', error);
     throw error;
   }
 };
@@ -37,36 +99,73 @@ export const getTransactions = async (
   options: { limit?: number; offset?: number; type?: string }
 ): Promise<Transaction[]> => {
   try {
-    // Mock data with KES amounts
-    const mockTransactions: Transaction[] = [
-      {
-        id: 'tx-001',
-        amount: 1500, // KES
-        type: 'booking_payment',
-        status: 'completed',
-        description: 'Booking #1001',
-        createdAt: '2025-07-03T12:00:00Z',
-      },
-      {
-        id: 'tx-002',
-        amount: 3000, // KES
-        type: 'booking_payment',
-        status: 'completed',
-        description: 'Booking #1002',
-        createdAt: '2025-07-02T14:30:00Z',
-      },
-      {
-        id: 'tx-003',
-        amount: 4500, // KES
-        type: 'booking_payment',
-        status: 'completed',
-        description: 'Booking #1003',
-        createdAt: '2025-07-01T09:45:00Z',
-      },
-    ];
-    return mockTransactions;
+    console.log('Fetching real transactions for business:', businessId);
+    
+    let query = supabase
+      .from('bookings')
+      .select(`
+        id,
+        total_amount,
+        payment_status,
+        created_at,
+        customer_name,
+        services:service_id(name)
+      `)
+      .eq('business_id', businessId)
+      .order('created_at', { ascending: false });
+    
+    if (options.limit) {
+      query = query.limit(options.limit);
+    }
+    
+    if (options.offset) {
+      query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
+    }
+    
+    const { data: bookings, error: bookingsError } = await query;
+    if (bookingsError) throw bookingsError;
+    
+    // Also get payment transactions
+    const { data: payments, error: paymentsError } = await supabase
+      .from('payment_transactions')
+      .select('*')
+      .eq('business_id', businessId)
+      .order('created_at', { ascending: false })
+      .limit(options.limit || 10);
+    
+    if (paymentsError) throw paymentsError;
+    
+    // Combine and format transactions
+    const bookingTransactions: Transaction[] = (bookings || []).map(booking => ({
+      id: booking.id,
+      amount: Number(booking.total_amount || 0),
+      type: 'booking_payment' as const,
+      status: booking.payment_status === 'completed' ? 'completed' as const : 
+              booking.payment_status === 'pending' ? 'pending' as const : 'failed' as const,
+      description: `${booking.services?.name || 'Service'} - ${booking.customer_name || 'Customer'}`,
+      createdAt: booking.created_at,
+    }));
+    
+    const paymentTransactions: Transaction[] = (payments || []).map(payment => ({
+      id: payment.id,
+      amount: Number(payment.business_amount || payment.amount || 0),
+      type: 'booking_payment' as const,
+      status: payment.status === 'completed' ? 'completed' as const : 
+              payment.status === 'pending' ? 'pending' as const : 'failed' as const,
+      description: `Payment Transaction - ${payment.payment_method || 'Unknown'}`,
+      createdAt: payment.created_at,
+      reference: payment.paystack_reference,
+    }));
+    
+    // Combine and sort by date
+    const allTransactions = [...bookingTransactions, ...paymentTransactions]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, options.limit || 10);
+    
+    console.log('Real transactions fetched:', allTransactions.length);
+    return allTransactions;
   } catch (error) {
-    console.error('Error fetching transactions:', error);
+    console.error('Error fetching real transactions:', error);
     throw error;
   }
 };
@@ -79,32 +178,10 @@ export const getWithdrawals = async (
   options: { limit?: number; offset?: number }
 ): Promise<WithdrawalRequest[]> => {
   try {
-    // This would normally fetch from your Supabase DB
-    // For now we'll return mock data
-    const mockWithdrawals: WithdrawalRequest[] = [
-      {
-        id: 'wd-001',
-        amount: 10000,
-        status: 'processing',
-        createdAt: '2025-06-21T15:00:00Z',
-        accountDetails: {
-          type: 'mpesa',
-          phoneNumber: '+254712345678',
-        },
-      },
-      {
-        id: 'wd-002',
-        amount: 20000,
-        status: 'completed',
-        createdAt: '2025-06-22T10:30:00Z',
-        processedAt: '2025-06-23T09:15:00Z',
-        accountDetails: {
-          type: 'mpesa',
-          phoneNumber: '+254712345678',
-        },
-      },
-    ];
-    return mockWithdrawals;
+    // For now, return empty array as withdrawal system isn't fully implemented
+    // In production, this would query a withdrawals table
+    console.log('Fetching withdrawals for business:', businessId);
+    return [];
   } catch (error) {
     console.error('Error fetching withdrawals:', error);
     throw error;
@@ -120,8 +197,10 @@ export const requestWithdrawal = async (
   accountId: string
 ): Promise<WithdrawalRequest> => {
   try {
-    // This would normally create a record in your Supabase DB
-    // For now we'll return mock data
+    // For now, return a mock withdrawal as the full withdrawal system isn't implemented
+    // In production, this would create a record in a withdrawals table
+    console.log('Requesting withdrawal for business:', businessId, 'amount:', amount);
+    
     const mockWithdrawal: WithdrawalRequest = {
       id: `wd-${Date.now()}`,
       amount,
@@ -144,18 +223,44 @@ export const requestWithdrawal = async (
  */
 export const getPaymentAccounts = async (businessId: string): Promise<PaymentAccount[]> => {
   try {
-    // This would normally fetch from your Supabase DB
-    // For now we'll return mock data
-    const mockAccounts: PaymentAccount[] = [
-      {
-        id: 'acc-001',
-        type: 'mpesa',
-        isDefault: true,
-        phoneNumber: '+254712345678',
-        accountName: 'John Doe',
-      },
-    ];
-    return mockAccounts;
+    // Get business payout settings
+    const { data: payoutSettings, error } = await supabase
+      .from('business_payouts')
+      .select('*')
+      .eq('business_id', businessId)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      throw error;
+    }
+    
+    const accounts: PaymentAccount[] = [];
+    
+    if (payoutSettings) {
+      if (payoutSettings.mpesa_number) {
+        accounts.push({
+          id: 'mpesa-' + businessId,
+          type: 'mpesa',
+          isDefault: true,
+          phoneNumber: payoutSettings.mpesa_number,
+          accountName: payoutSettings.account_holder_name || 'Business Owner',
+        });
+      }
+      
+      if (payoutSettings.bank_account_number) {
+        accounts.push({
+          id: 'bank-' + businessId,
+          type: 'bank',
+          isDefault: !payoutSettings.mpesa_number, // Default if no M-Pesa
+          accountNumber: payoutSettings.bank_account_number,
+          bankName: payoutSettings.bank_name,
+          accountName: payoutSettings.account_holder_name || 'Business Owner',
+        });
+      }
+    }
+    
+    console.log('Payment accounts fetched:', accounts.length);
+    return accounts;
   } catch (error) {
     console.error('Error fetching payment accounts:', error);
     throw error;
@@ -171,16 +276,50 @@ export const updatePaymentAccount = async (
   details: Partial<PaymentAccount>
 ): Promise<PaymentAccount> => {
   try {
-    // This would normally update a record in your Supabase DB
-    // For now we'll return mock data
-    const mockAccount: PaymentAccount = {
+    // Update business payout settings
+    const updateData: any = {};
+    
+    if (details.phoneNumber) {
+      updateData.mpesa_number = details.phoneNumber;
+    }
+    
+    if (details.accountNumber) {
+      updateData.bank_account_number = details.accountNumber;
+    }
+    
+    if (details.bankName) {
+      updateData.bank_name = details.bankName;
+    }
+    
+    if (details.accountName) {
+      updateData.account_holder_name = details.accountName;
+    }
+    
+    const { data, error } = await supabase
+      .from('business_payouts')
+      .upsert({
+        business_id: businessId,
+        ...updateData,
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    // Return updated account
+    const updatedAccount: PaymentAccount = {
       id: accountId,
-      type: 'mpesa',
+      type: details.type || 'mpesa',
       isDefault: true,
-      phoneNumber: details.phoneNumber || '+254712345678',
-      accountName: details.accountName || 'John Doe',
+      phoneNumber: data.mpesa_number,
+      accountNumber: data.bank_account_number,
+      bankName: data.bank_name,
+      accountName: data.account_holder_name,
     };
-    return mockAccount;
+    
+    console.log('Payment account updated:', updatedAccount);
+    return updatedAccount;
   } catch (error) {
     console.error('Error updating payment account:', error);
     throw error;

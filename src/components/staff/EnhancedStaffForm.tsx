@@ -78,7 +78,8 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
       if (!business.id) {
         throw new Error('Invalid business id.');
       }
-      // Base staff data
+      
+      // Base staff data with proper typing
       const baseStaffData = {
         business_id: business.id,
         name: data.name,
@@ -91,11 +92,22 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
         shift: data.shift || null,
       };
       
-      // Only add avatar_url if supported and provided
-      let staffData = baseStaffData;
-      if (avatarSupported && avatarUrl) {
-        staffData = { ...baseStaffData, avatar_url: avatarUrl };
-      }
+      // Safely add avatar URL if supported - but ensure proper typing
+      const staffDataWithAvatar = await safelyAddAvatarUrl(baseStaffData, avatarUrl);
+      
+      // Ensure the final object has the correct structure for Supabase
+      const staffData = {
+        business_id: baseStaffData.business_id,
+        name: baseStaffData.name,
+        email: baseStaffData.email,
+        phone: baseStaffData.phone,
+        gender: baseStaffData.gender,
+        is_active: baseStaffData.is_active,
+        specialties: baseStaffData.specialties,
+        workload: baseStaffData.workload,
+        shift: baseStaffData.shift,
+        ...(staffDataWithAvatar.avatar_url ? { avatar_url: staffDataWithAvatar.avatar_url } : {})
+      };
 
       let response;
       if (staff) {

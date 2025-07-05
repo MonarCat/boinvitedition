@@ -42,7 +42,13 @@ export const EnhancedPaymentValidation: React.FC<EnhancedPaymentValidationProps>
         throw error;
       }
 
-      const result = data as PaymentValidationResult;
+      // Safely parse the JSON response
+      const result: PaymentValidationResult = {
+        valid: (data as any)?.valid || false,
+        warnings: (data as any)?.warnings || [],
+        flags: (data as any)?.flags || []
+      };
+      
       setValidationResult(result);
       onValidationResult(result);
 

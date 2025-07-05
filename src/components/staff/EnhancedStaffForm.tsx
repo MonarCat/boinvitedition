@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -78,6 +79,7 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
       if (!business.id) {
         throw new Error('Invalid business id.');
       }
+      
       // Base staff data
       const baseStaffData = {
         business_id: business.id,
@@ -91,11 +93,8 @@ export const EnhancedStaffForm = ({ staff, onSuccess, onCancel }: EnhancedStaffF
         shift: data.shift || null,
       };
       
-      // Only add avatar_url if supported and provided
-      let staffData = baseStaffData;
-      if (avatarSupported && avatarUrl) {
-        staffData = { ...baseStaffData, avatar_url: avatarUrl };
-      }
+      // Safely add avatar URL if supported
+      const staffData = await safelyAddAvatarUrl(baseStaffData, avatarUrl);
 
       let response;
       if (staff) {

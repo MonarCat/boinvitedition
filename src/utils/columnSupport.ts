@@ -1,28 +1,25 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Utility function to check if a column exists in a table
+ * Utility function to check if a column exists in a table by attempting a query
  * @param tableName The name of the table
  * @param columnName The name of the column
  * @returns A promise that resolves to a boolean indicating whether the column exists
  */
 export async function checkColumnExists(tableName: string, columnName: string): Promise<boolean> {
   try {
-    // Query the information_schema to check if the column exists
-    const { data, error } = await supabase
-      .from('information_schema.columns')
-      .select('column_name')
-      .eq('table_name', tableName)
-      .eq('column_name', columnName);
+    // Try to query the specific column to see if it exists
+    // This is a safer approach than querying information_schema
+    const { error } = await supabase
+      .from(tableName as any)
+      .select(columnName)
+      .limit(1);
     
-    if (error) {
-      console.error(`Error checking if ${columnName} exists in ${tableName}:`, error);
-      return false;
-    }
-    
-    return data && data.length > 0;
+    // If there's no error, the column exists
+    return !error;
   } catch (error) {
-    console.error(`Exception checking if ${columnName} exists in ${tableName}:`, error);
+    console.warn(`Error checking if ${columnName} exists in ${tableName}:`, error);
     return false;
   }
 }

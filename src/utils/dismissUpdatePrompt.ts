@@ -108,17 +108,10 @@ export const setupUpdatePromptOverride = (): void => {
   window.confirm = function(message: string): boolean {
     // Check if this is an update prompt
     if (message.includes('New version available') || message.includes('update') || message.includes('reload')) {
-      // Instead of blocking, show a non-blocking toast/notification
-      if (typeof window.toast?.info === 'function') {
-        window.toast.info({
-          title: 'Update Available',
-          description: 'A new version is available. Refresh to update when convenient.',
-          action: {
-            label: 'Update Now',
-            onClick: () => window.location.reload()
-          },
-          duration: 0 // Don't auto-dismiss
-        });
+      // Completely suppress update notifications - they're annoying to users
+      // We'll let natural page refreshes handle updates instead
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Update available - suppressed notification in production');
       }
       
       // Don't block the UI, just return false
@@ -134,7 +127,15 @@ export const setupUpdatePromptOverride = (): void => {
 declare global {
   interface Window {
     toast?: {
-      info: (options: any) => void;
+      info: (options: {
+        title?: string;
+        description?: string;
+        action?: {
+          label: string;
+          onClick: () => void;
+        };
+        duration?: number;
+      }) => void;
     };
   }
 }

@@ -1,12 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookingPageError } from '@/components/booking/BookingPageError';
 import { BookingPageLoading } from '@/components/booking/BookingPageLoading';
 import { CleanBookingLayout } from '@/components/booking/CleanBookingLayout';
 import { ResponsiveBookingContent } from '@/components/booking/ResponsiveBookingContent';
 import { MobileBottomNavigation, BookingStep } from '@/components/booking/MobileBottomNavigation';
+import { ClientNavigation } from '@/components/booking/ClientNavigation';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePublicBookingData } from '@/hooks/usePublicBookingData';
 import { isValidUUID, logQRCodeDebugInfo } from '@/utils/uuidValidation';
@@ -102,6 +105,22 @@ const PublicBookingPage = () => {
       className="bg-gradient-to-b from-gray-50 to-white"
       businessName={business.name}
     >
+      {/* Client Booking Management Navigation */}
+      <div className="mb-6">
+        <Card className="bg-white/80 backdrop-blur-sm border-blue-100">
+          <CardContent className="py-3 px-4">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <div className="mb-2 md:mb-0">
+                <p className="text-sm text-blue-700 font-medium">
+                  Already have a booking?
+                </p>
+              </div>
+              <ClientNavigation compact={isMobile} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <AnimatePresence mode="wait">
         <motion.div
           key="booking-content"

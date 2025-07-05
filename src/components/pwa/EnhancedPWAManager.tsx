@@ -22,13 +22,23 @@ export const EnhancedPWAManager = () => {
     updateAvailable: false
   });
 
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  // Define a more specific type for the BeforeInstallPromptEvent
+  interface BeforeInstallPromptEvent extends Event {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  }
+  
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     // Check if PWA is installed
     const checkInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      const isAppInstalled = (window.navigator as any).standalone === true;
+      // For iOS Safari, navigator has a non-standard 'standalone' property
+      interface NavigatorWithStandalone extends Navigator {
+        standalone?: boolean;
+      }
+      const isAppInstalled = (window.navigator as NavigatorWithStandalone).standalone === true;
       return isStandalone || isAppInstalled;
     };
 
@@ -47,7 +57,7 @@ export const EnhancedPWAManager = () => {
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setPwaState(prev => ({ ...prev, canInstall: true }));
     };
 
@@ -127,8 +137,8 @@ export const EnhancedPWAManager = () => {
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
-      {/* PWA Status */}
+    <div className="fixed top-4 left-4 z-50 space-y-2">
+      {/* PWA Status - Moved to top-left to avoid overlapping with sign-in button */}
       <div className="flex items-center gap-2">
         {pwaState.isInstalled && (
           <Badge variant="secondary" className="text-xs flex items-center gap-1">
@@ -207,23 +217,7 @@ export const EnhancedPWAManager = () => {
         </Card>
       )}
 
-      {/* Update Available */}
-      {pwaState.updateAvailable && (
-        <Card className="w-72 shadow-lg border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Download className="w-5 h-5 text-blue-600" />
-              <h3 className="font-semibold text-sm">Update Available</h3>
-            </div>
-            <p className="text-xs text-gray-600 mb-3">
-              A new version of the app is available with improvements and bug fixes.
-            </p>
-            <Button onClick={handleUpdate} size="sm" className="w-full">
-              Update Now
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Update Available card removed to prevent annoying users */}
     </div>
   );
 };

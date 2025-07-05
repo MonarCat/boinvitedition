@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ensureAuthButtonsVisible } from "@/utils/buttonVisibility";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { PaymentReceipt } from "@/components/payment/PaymentReceipt";
 import { useClientPayments } from "@/hooks/useClientPayments";
 import { MobileBookingHeader } from "@/components/booking/MobileBookingHeader";
@@ -10,9 +10,11 @@ import { DateTimeSelectionCard } from "@/components/booking/DateTimeSelectionCar
 import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
 import { ClientInformationCard } from "@/components/booking/ClientInformationCard";
 import { CleanBookingLayout } from "@/components/booking/CleanBookingLayout";
+import { ClientNavigation } from "@/components/booking/ClientNavigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { DirectBusinessPayment } from "@/components/payment/DirectBusinessPayment";
+import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { EnhancedTransportBooking } from "@/components/transport/EnhancedTransportBooking";
 import { TaxiBooking } from "@/components/transport/TaxiBooking";
@@ -358,6 +360,22 @@ const BookingPage = () => {
 
   return (
     <CleanBookingLayout>
+      {/* Client Booking Management Navigation */}
+      <div className="mb-6">
+        <Card className="bg-white/80 backdrop-blur-sm border-blue-100">
+          <CardContent className="py-3 px-4">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <div className="mb-2 md:mb-0">
+                <p className="text-sm text-blue-700 font-medium">
+                  Already have a booking?
+                </p>
+              </div>
+              <ClientNavigation compact={true} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Mobile View */}
       <div className="lg:hidden">
         <MobileBookingHeader business={business}>

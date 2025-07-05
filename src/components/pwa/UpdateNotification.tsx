@@ -12,5 +12,4 @@ interface UpdateNotificationProps {
 export const UpdateNotification: React.FC<UpdateNotificationProps> = () => {
   // Return null to completely hide the update notification
   return null;
-}
 };

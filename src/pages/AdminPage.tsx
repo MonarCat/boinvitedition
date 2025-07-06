@@ -6,6 +6,7 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import { FirstAdminSetup } from '@/components/admin/FirstAdminSetup';
 import { SecurityDashboard } from '@/components/security/SecurityDashboard';
 import { AdminReportsPanel } from '@/components/admin/AdminReportsPanel';
+import { RLSPolicyChecker } from '@/components/admin/RLSPolicyChecker';
 
 const AdminPage = () => {
   const { user } = useAuth();
@@ -47,6 +48,9 @@ const AdminPage = () => {
 
         {/* Admin Reports Panel with real-time financial monitoring */}
         <AdminReportsPanel />
+
+        {/* RLS Policy Status Checker */}
+        <RLSPolicyChecker />
 
         {/* Security dashboard for monitoring */}
         <SecurityDashboard />

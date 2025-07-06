@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { calculateCommission, calculateNetAmount } from '@/utils/format';
 import type { 
   FinanceSummary, 
@@ -125,7 +125,7 @@ export const getTransactions = async (
     const { data: bookings, error: bookingsError } = await query;
     if (bookingsError) throw bookingsError;
     
-    // Also get payment transactions
+    // Also get payment transactions if they exist
     const { data: payments, error: paymentsError } = await supabase
       .from('payment_transactions')
       .select('*')
@@ -133,7 +133,8 @@ export const getTransactions = async (
       .order('created_at', { ascending: false })
       .limit(options.limit || 10);
     
-    if (paymentsError) throw paymentsError;
+    // Don't throw error if payment_transactions doesn't exist, just continue with bookings
+    const paymentTransactions = paymentsError ? [] : (payments || []);
     
     // Combine and format transactions
     const bookingTransactions: Transaction[] = (bookings || []).map(booking => ({
@@ -142,11 +143,11 @@ export const getTransactions = async (
       type: 'booking_payment' as const,
       status: booking.payment_status === 'completed' ? 'completed' as const : 
               booking.payment_status === 'pending' ? 'pending' as const : 'failed' as const,
-      description: `${booking.services?.name || 'Service'} - ${booking.customer_name || 'Customer'}`,
+      description: `Service - ${booking.customer_name || 'Customer'}`,
       createdAt: booking.created_at,
     }));
     
-    const paymentTransactions: Transaction[] = (payments || []).map(payment => ({
+    const paymentTxList: Transaction[] = paymentTransactions.map(payment => ({
       id: payment.id,
       amount: Number(payment.business_amount || payment.amount || 0),
       type: 'booking_payment' as const,
@@ -158,7 +159,7 @@ export const getTransactions = async (
     }));
     
     // Combine and sort by date
-    const allTransactions = [...bookingTransactions, ...paymentTransactions]
+    const allTransactions = [...bookingTransactions, ...paymentTxList]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, options.limit || 10);
     

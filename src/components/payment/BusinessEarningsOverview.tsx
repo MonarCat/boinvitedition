@@ -101,7 +101,7 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
           <CardContent>
             <div className="text-2xl font-bold text-green-700">{formatCurrency(availableForPayout)}</div>
             <p className="text-xs text-green-600">
-              Ready for payout (>24 hours old)
+              Ready for payout ({'>'}24 hours old)
             </p>
           </CardContent>
         </Card>
@@ -114,7 +114,7 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
           <CardContent>
             <div className="text-2xl font-bold text-yellow-700">{formatCurrency(recentPending)}</div>
             <p className="text-xs text-yellow-600">
-              Recent payments (<24 hours)
+              Recent payments ({'<'}24 hours)
             </p>
           </CardContent>
         </Card>

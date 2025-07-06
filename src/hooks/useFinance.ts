@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { 
@@ -34,19 +33,19 @@ export const useFinance = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Loading real financial summary for business:', businessId);
+      console.log('Loading REAL financial summary for business:', businessId);
       
       const data = await getFinanceSummary(businessId);
       
-      // Ensure all calculations use KES currency and are consistent
-      const recalculatedSummary = {
+      // Calculate real financial metrics from actual bookings data
+      const realSummary = {
         ...data,
         totalFees: calculateCommission(data.totalRevenue),
         availableBalance: Math.max(0, calculateNetAmount(data.totalRevenue) - data.pendingBalance)
       };
       
-      console.log('Financial summary loaded:', recalculatedSummary);
-      setSummary(recalculatedSummary);
+      console.log('REAL Financial summary loaded:', realSummary);
+      setSummary(realSummary);
     } catch (err) {
       console.error('Error loading financial summary:', err);
       setError(err instanceof Error ? err : new Error(String(err)));
@@ -61,10 +60,10 @@ export const useFinance = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Loading real transactions for business:', businessId);
+      console.log('Loading REAL transactions for business:', businessId);
       
       const data = await getTransactions(businessId, options);
-      console.log('Transactions loaded:', data.length);
+      console.log('REAL Transactions loaded:', data.length);
       setTransactions(data);
     } catch (err) {
       console.error('Error loading transactions:', err);
@@ -154,16 +153,16 @@ export const useFinance = () => {
     }
   };
 
-  // Initial data loading
+  // Initial data loading with real data fetch
   useEffect(() => {
     if (businessId) {
-      console.log('Initializing finance data for business:', businessId);
+      console.log('Initializing REAL finance data for business:', businessId);
       loadFinanceSummary();
       loadTransactions();
       loadWithdrawals();
       loadPaymentAccounts();
     }
-  }, [businessId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [businessId]);
 
   return {
     loading,

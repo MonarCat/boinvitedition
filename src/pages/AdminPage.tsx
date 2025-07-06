@@ -1,9 +1,11 @@
+
 import React from "react";
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { FirstAdminSetup } from '@/components/admin/FirstAdminSetup';
 import { SecurityDashboard } from '@/components/security/SecurityDashboard';
+import { AdminReportsPanel } from '@/components/admin/AdminReportsPanel';
 
 const AdminPage = () => {
   const { user } = useAuth();
@@ -36,16 +38,18 @@ const AdminPage = () => {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage users, roles, and system settings</p>
+          <p className="text-gray-600">Manage platform operations, users, and monitor financial activity</p>
         </div>
 
         {!isAdmin && (
           <FirstAdminSetup />
         )}
 
-        {/* Add security dashboard to admin page */}
-        <SecurityDashboard />
+        {/* Admin Reports Panel with real-time financial monitoring */}
+        <AdminReportsPanel />
 
+        {/* Security dashboard for monitoring */}
+        <SecurityDashboard />
       </div>
     </DashboardLayout>
   );

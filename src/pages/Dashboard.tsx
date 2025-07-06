@@ -6,8 +6,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
-import { EnhancedRealtimeStatus } from '@/components/dashboard/EnhancedRealtimeStatus';
-import { RealtimeMonitor } from '@/components/dashboard/RealtimeMonitor';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -24,11 +22,9 @@ const Dashboard = () => {
         .eq('user_id', user.id)
         .single();
       if (error) {
-        // Log potential unauthorized access attempt
         await monitorBusinessAccess('unknown', 'fetch_business', false);
         throw error;
       }
-      // Log successful business access
       await monitorBusinessAccess(data.id, 'fetch_business', true);
       return data;
     },
@@ -42,20 +38,7 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold">{business?.name || 'Business Dashboard'}</h1>
         </div>
         
-        {/* Enhanced Real-Time Status */}
-        {business && (
-          <div className="mb-6">
-            <EnhancedRealtimeStatus businessId={business.id} />
-          </div>
-        )}
-        
         <BusinessDashboard />
-        
-        {business && (
-          <div className="mt-8">
-            <RealtimeMonitor businessId={business.id} />
-          </div>
-        )}
       </div>
     </DashboardLayout>
   );

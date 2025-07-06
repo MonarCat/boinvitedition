@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { DollarSign, TrendingUp, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import { useClientBusinessTransactions } from '@/hooks/useClientBusinessTransactions';
-import { formatCurrency } from '@/utils';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { DataRefreshPanel } from '@/components/dashboard/DataRefreshPanel';
 
 interface BusinessEarningsOverviewProps {
@@ -35,19 +36,23 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
     }
   };
   
-  // Force refresh function for transactions
-  const refreshTransactions = () => {
-    console.log('Manual refresh of transactions requested');
-    refetch();
-  };
-
-  // Calculate available for payout (completed transactions within 24 hours)
-  const last24Hours = new Date();
-  last24Hours.setHours(last24Hours.getHours() - 24);
+  // Calculate available for payout (completed transactions older than 24 hours)
+  const twentyFourHoursAgo = new Date();
+  twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
   
   const availableForPayout = transactions
-    .filter(t => t.status === 'completed' && new Date(t.created_at) >= last24Hours)
+    .filter(t => t.status === 'completed' && new Date(t.created_at) <= twentyFourHoursAgo)
     .reduce((sum, t) => sum + Number(t.business_amount || 0), 0);
+
+  // Calculate pending amount (transactions within 24 hours)
+  const recentPending = transactions
+    .filter(t => t.status === 'completed' && new Date(t.created_at) > twentyFourHoursAgo)
+    .reduce((sum, t) => sum + Number(t.business_amount || 0), 0);
+
+  // Calculate actual platform fees (5% of completed transactions)
+  const actualPlatformFees = transactions
+    .filter(t => t.status === 'completed')
+    .reduce((sum, t) => sum + Number(t.platform_fee || 0), 0);
 
   if (isLoading) {
     return (
@@ -65,32 +70,19 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
             </Card>
           ))}
         </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="animate-pulse flex flex-col space-y-4">
-              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
-              <div className="space-y-2">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-10 bg-gray-200 rounded"></div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Data Refresh Panel */}
       <DataRefreshPanel businessId={businessId} />
       
-      {/* Revenue Overview Cards */}
+      {/* Corrected Revenue Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Revenue (Real)</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -109,56 +101,66 @@ export const BusinessEarningsOverview: React.FC<BusinessEarningsOverviewProps> =
           <CardContent>
             <div className="text-2xl font-bold text-green-700">{formatCurrency(availableForPayout)}</div>
             <p className="text-xs text-green-600">
-              Ready for payout (last 24 hours)
+              Ready for payout (>24 hours old)
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-yellow-200 bg-yellow-50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Amount</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-yellow-800">Pending Amount</CardTitle>
+            <Clock className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(pendingAmount)}</div>
-            <p className="text-xs text-muted-foreground">
-              From {transactions.filter(t => t.status === 'pending').length} pending payments
+            <div className="text-2xl font-bold text-yellow-700">{formatCurrency(recentPending)}</div>
+            <p className="text-xs text-yellow-600">
+              Recent payments (<24 hours)
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-orange-200 bg-orange-50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Platform Fees</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-orange-800">Platform Fees</CardTitle>
+            <TrendingUp className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(platformFees)}
+            <div className="text-2xl font-bold text-orange-700">
+              {formatCurrency(actualPlatformFees)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              5% of total transaction value
+            <p className="text-xs text-orange-600">
+              5% of completed transactions
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Payout Information */}
+      {/* Corrected Financial Information */}
       <Card className="border-blue-200 bg-blue-50">
         <CardHeader>
           <CardTitle className="text-blue-900 flex items-center gap-2">
             <Clock className="w-5 h-5" />
-            Payout Information
+            Financial Summary (Real Data)
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-blue-800 space-y-2">
-          <div className="flex justify-between items-center">
-            <span>Available for immediate payout:</span>
-            <span className="font-bold text-lg">{formatCurrency(availableForPayout)}</span>
-          </div>
-          <div className="text-xs text-blue-600">
-            • Funds become available for payout 24 hours after transaction
-            • Configure your payout methods in the Payouts tab
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="font-medium">Total Earned:</span>
+              <div className="text-lg font-bold">{formatCurrency(totalRevenue)}</div>
+            </div>
+            <div>
+              <span className="font-medium">Platform Fees (5%):</span>
+              <div className="text-lg font-bold text-orange-600">-{formatCurrency(actualPlatformFees)}</div>
+            </div>
+            <div>
+              <span className="font-medium">Available Now:</span>
+              <div className="text-lg font-bold text-green-600">{formatCurrency(availableForPayout)}</div>
+            </div>
+            <div>
+              <span className="font-medium">Pending (24h rule):</span>
+              <div className="text-lg font-bold text-yellow-600">{formatCurrency(recentPending)}</div>
+            </div>
           </div>
         </CardContent>
       </Card>

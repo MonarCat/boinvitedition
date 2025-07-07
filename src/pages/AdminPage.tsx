@@ -7,6 +7,9 @@ import { FirstAdminSetup } from '@/components/admin/FirstAdminSetup';
 import { SecurityDashboard } from '@/components/security/SecurityDashboard';
 import { AdminReportsPanel } from '@/components/admin/AdminReportsPanel';
 import { RLSPolicyChecker } from '@/components/admin/RLSPolicyChecker';
+import { AdminStatsDashboard } from '@/components/admin/AdminStatsDashboard';
+import { BusinessList } from '@/components/admin/BusinessList';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const AdminPage = () => {
   const { user } = useAuth();
@@ -39,21 +42,41 @@ const AdminPage = () => {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage platform operations, users, and monitor financial activity</p>
+          <p className="text-gray-600">Manage platform operations, users, and monitor business activity</p>
         </div>
 
         {!isAdmin && (
           <FirstAdminSetup />
         )}
 
-        {/* Admin Reports Panel with real-time financial monitoring */}
-        <AdminReportsPanel />
+        {/* Stats Overview */}
+        <AdminStatsDashboard />
 
-        {/* RLS Policy Status Checker */}
-        <RLSPolicyChecker />
+        {/* Main Admin Tabs */}
+        <Tabs defaultValue="businesses" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="businesses">Business Management</TabsTrigger>
+            <TabsTrigger value="reports">Financial Reports</TabsTrigger>
+            <TabsTrigger value="security">Security & Monitoring</TabsTrigger>
+            <TabsTrigger value="system">System Status</TabsTrigger>
+          </TabsList>
 
-        {/* Security dashboard for monitoring */}
-        <SecurityDashboard />
+          <TabsContent value="businesses" className="space-y-4">
+            <BusinessList />
+          </TabsContent>
+
+          <TabsContent value="reports" className="space-y-4">
+            <AdminReportsPanel />
+          </TabsContent>
+
+          <TabsContent value="security" className="space-y-4">
+            <SecurityDashboard />
+          </TabsContent>
+
+          <TabsContent value="system" className="space-y-4">
+            <RLSPolicyChecker />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import { checkAdmin } from '@/utils/adminAuth';
 
 export type UserRole = 'admin' | 'moderator' | 'user';
 
@@ -11,40 +12,48 @@ export const useUserRoles = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Get current user's roles
-  const { data: userRoles, isLoading: rolesLoading } = useQuery({
-    queryKey: ['user-roles', user?.id],
+  // Get current user's admin status using the new is_admin flag
+  const { data: isAdmin, isLoading: rolesLoading } = useQuery({
+    queryKey: ['user-admin-status', user?.id],
     queryFn: async () => {
-      if (!user) return [];
-      
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
-      
-      if (error) throw error;
-      return data.map(r => r.role as UserRole);
+      if (!user) return false;
+      return await checkAdmin();
     },
     enabled: !!user,
   });
 
-  // Check if user has a specific role
+  // Legacy role checking function for compatibility
   const hasRole = (role: UserRole): boolean => {
-    return userRoles?.includes(role) || false;
+    if (role === 'admin') {
+      return isAdmin || false;
+    }
+    return false; // For now, only admin role is supported
   };
 
   // Assign admin role to a user by email
   const assignAdminMutation = useMutation({
     mutationFn: async (email: string) => {
-      const { error } = await supabase.rpc('assign_admin_role', {
-        _user_email: email
-      });
+      // First update the profiles table directly
+      const { data: userData, error: userError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+      
+      if (userError) {
+        throw new Error('User not found');
+      }
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_admin: true })
+        .eq('id', userData.id);
       
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success('Admin role assigned successfully!');
-      queryClient.invalidateQueries({ queryKey: ['user-roles'] });
+      queryClient.invalidateQueries({ queryKey: ['user-admin-status'] });
     },
     onError: (error: any) => {
       console.error('Error assigning admin role:', error);
@@ -53,11 +62,11 @@ export const useUserRoles = () => {
   });
 
   return {
-    userRoles,
+    userRoles: isAdmin ? ['admin'] : [],
     rolesLoading,
     hasRole,
-    isAdmin: hasRole('admin'),
-    isModerator: hasRole('moderator'),
+    isAdmin: isAdmin || false,
+    isModerator: false, // Not implemented yet
     assignAdmin: assignAdminMutation.mutate,
     assigningAdmin: assignAdminMutation.isPending,
   };

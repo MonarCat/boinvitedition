@@ -15,6 +15,16 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/utils';
 
+interface AdminStats {
+  business_count: number;
+  active_users: number;
+  total_bookings: number;
+  today_revenue: number;
+  pending_payouts: number;
+  platform_fees_today: number;
+  new_signups_today: number;
+}
+
 interface StatCardProps {
   title: string;
   value: string | number;
@@ -57,7 +67,7 @@ export const AdminStatsDashboard: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_admin_stats');
       if (error) throw error;
-      return data;
+      return data as AdminStats;
     },
     refetchInterval: 60000, // Refresh every minute
   });

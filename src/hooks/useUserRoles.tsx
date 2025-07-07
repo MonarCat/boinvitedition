@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
-import { checkAdmin } from '@/utils/adminAuth';
+import { checkAdmin, makeUserAdmin } from '@/utils/adminAuth';
 
 export type UserRole = 'admin' | 'moderator' | 'user';
 
@@ -33,29 +33,17 @@ export const useUserRoles = () => {
   // Assign admin role to a user by email
   const assignAdminMutation = useMutation({
     mutationFn: async (email: string) => {
-      // First update the profiles table directly
-      const { data: userData, error: userError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .single();
-      
-      if (userError) {
-        throw new Error('User not found');
+      const result = await makeUserAdmin(email);
+      if (!result.success) {
+        throw new Error(result.message);
       }
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_admin: true })
-        .eq('id', userData.id);
-      
-      if (error) throw error;
+      return result;
     },
     onSuccess: () => {
       toast.success('Admin role assigned successfully!');
       queryClient.invalidateQueries({ queryKey: ['user-admin-status'] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Error assigning admin role:', error);
       toast.error(error.message || 'Failed to assign admin role');
     },

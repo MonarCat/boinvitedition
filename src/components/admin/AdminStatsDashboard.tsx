@@ -67,7 +67,10 @@ export const AdminStatsDashboard: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_admin_stats');
       if (error) throw error;
-      return data as unknown as AdminStats;
+      
+      // Safely parse the JSON response
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+      return parsedData as AdminStats;
     },
     refetchInterval: 60000, // Refresh every minute
   });
@@ -93,7 +96,7 @@ export const AdminStatsDashboard: React.FC = () => {
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-red-600">Error loading admin stats: {error.message}</p>
+          <p className="text-red-600">Error loading admin stats: {(error as Error).message}</p>
         </CardContent>
       </Card>
     );

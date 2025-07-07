@@ -26,12 +26,25 @@ export const checkAdmin = async (): Promise<boolean> => {
 
 export const makeUserAdmin = async (email: string): Promise<{ success: boolean; message: string }> => {
   try {
-    const { error } = await supabase.rpc('assign_admin_role', {
-      _user_email: email
-    });
+    // First, try to find the user in profiles by email
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .single();
     
-    if (error) {
-      return { success: false, message: error.message };
+    if (profileError || !profile) {
+      return { success: false, message: 'User not found. Please make sure the user has signed up first.' };
+    }
+    
+    // Update the user's admin status
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ is_admin: true })
+      .eq('id', profile.id);
+    
+    if (updateError) {
+      return { success: false, message: updateError.message };
     }
     
     return { success: true, message: 'Admin role assigned successfully' };

@@ -8,6 +8,27 @@ import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { Eye, AlertCircle, CheckCircle } from 'lucide-react';
 
+interface BusinessProfile {
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+}
+
+interface BusinessData {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  city: string | null;
+  country: string | null;
+  is_active: boolean;
+  is_verified: boolean;
+  created_at: string;
+  currency: string | null;
+  user_id: string;
+  profiles: BusinessProfile;
+}
+
 export const BusinessList: React.FC = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
 
@@ -33,16 +54,7 @@ export const BusinessList: React.FC = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: businessStats } = useQuery({
-    queryKey: ['admin-business-stats'],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_admin_stats');
-      if (error) throw error;
-      return data;
+      return data as BusinessData[];
     },
   });
 
@@ -68,7 +80,7 @@ export const BusinessList: React.FC = () => {
         <CardContent>
           <div className="flex items-center gap-2 text-red-600">
             <AlertCircle className="w-4 h-4" />
-            <p>Error loading businesses: {error.message}</p>
+            <p>Error loading businesses: {(error as Error).message}</p>
           </div>
         </CardContent>
       </Card>
@@ -99,7 +111,7 @@ export const BusinessList: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {businesses?.map((business: any) => (
+              {businesses?.map((business) => (
                 <tr key={business.id} className="border-b hover:bg-gray-50">
                   <td className="p-2">
                     <div>

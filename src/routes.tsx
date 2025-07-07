@@ -13,6 +13,7 @@ import { ReviewServicePage } from './components/booking/ReviewServicePage';
 import { BookingDetailsPage } from './components/booking/BookingDetailsPage';
 import { BookingManagementLanding } from './components/booking/BookingManagementLanding';
 import { ClientBookingActions } from './components/booking/ClientBookingActions';
+import BookingSearchPage from './components/booking/BookingSearchPage';
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +41,10 @@ export const router = createBrowserRouter([
     element: <BookingManagementLanding />
   },
   {
+    path: '/booking/search',
+    element: <BookingSearchPage />
+  },
+  {
     path: '/booking/actions',
     element: <ClientBookingActions />
   },
@@ -52,8 +57,16 @@ export const router = createBrowserRouter([
     element: <BookingDetailsPage />
   },
   {
+    path: '/booking/reschedule',
+    element: <RescheduleBookingPage />
+  },
+  {
     path: '/booking/reschedule/:bookingId',
     element: <RescheduleBookingPage />
+  },
+  {
+    path: '/booking/review',
+    element: <ReviewServicePage />
   },
   {
     path: '/booking/review/:bookingId',

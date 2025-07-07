@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CreditCard } from 'lucide-react';
+import { CreditCard, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { PaymentAmountDisplay } from './PaymentAmountDisplay';
 import { ClientDetailsForm } from './ClientDetailsForm';
 import { PaymentMethodsInfo } from './PaymentMethodsInfo';
@@ -56,19 +57,26 @@ export const DirectPaystackPayment: React.FC<DirectPaystackPaymentProps> = ({
 
   const { isProcessing, processPayment } = usePaystackPayment();
 
+  // No longer tracking status - simplify the component
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  
   useEffect(() => {
-    // Preload Paystack script on component mount
-    const preloadScript = async () => {
-      try {
-        await loadPaystackScript();
+    // Simplified script loading approach
+    if (window.PaystackPop) {
+      setIsScriptLoaded(true);
+      return;
+    }
+    
+    // Load the script
+    loadPaystackScript()
+      .then(() => {
+        setIsScriptLoaded(true);
         console.log('DirectPaystackPayment: Paystack script loaded');
-      } catch (error) {
+      })
+      .catch((error) => {
         console.error('DirectPaystackPayment: Failed to load Paystack script:', error);
         toast.error('Payment system could not be loaded. Please refresh the page and try again.');
-      }
-    };
-    
-    preloadScript();
+      });
   }, []);
 
   const handlePayment = () => {
@@ -115,7 +123,7 @@ export const DirectPaystackPayment: React.FC<DirectPaystackPaymentProps> = ({
             isProcessing={isProcessing}
             amount={amount}
             currency={currency}
-            buttonText={buttonText}
+            buttonText={isScriptLoaded ? buttonText : 'Preparing Payment...'}
           />
 
           <PaymentSecurityNotice />

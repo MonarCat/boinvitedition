@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CreditCard, Smartphone, CheckCircle, AlertTriangle } from 'lucide-react';
 import { DirectPaystackPayment } from './DirectPaystackPayment';
-import { loadPaystackScript } from './PaystackScriptLoader';
+import { loadPaystackScript, preloadPaystackScript } from './PaystackScriptLoader';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 
 interface ClientToBusinessPaymentProps {
@@ -40,8 +40,11 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
   isMobile = false
 }) => {
   useEffect(() => {
-    // Preload Paystack script when payment component mounts
-    const preloadScript = async () => {
+    // Immediately start preloading Paystack when component mounts
+    preloadPaystackScript();
+    
+    // Also attempt full loading in parallel (won't duplicate due to global promise)
+    const loadScript = async () => {
       try {
         await loadPaystackScript();
         console.log('ClientToBusinessPayment: Paystack script loaded successfully');
@@ -50,7 +53,16 @@ export const ClientToBusinessPayment: React.FC<ClientToBusinessPaymentProps> = (
       }
     };
     
-    preloadScript();
+    loadScript();
+    
+    // Prefetch the Paystack domains to improve DNS resolution time
+    const prefetchDomains = ['paystack.co', 'js.paystack.co'];
+    prefetchDomains.forEach(domain => {
+      const link = document.createElement('link');
+      link.rel = 'dns-prefetch';
+      link.href = `//${domain}`;
+      document.head.appendChild(link);
+    });
   }, []);
 
   const handlePaymentSuccess = (reference: string) => {

@@ -34,12 +34,19 @@ export const ReviewServicePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [existingReview, setExistingReview] = useState<any | null>(null);
+  const [existingReview, setExistingReview] = useState<{id: string; rating: number; comment: string} | null>(null);
 
   // Load booking data on component mount
   useEffect(() => {
     const loadBooking = async () => {
       try {
+        if (!bookingId) {
+          setError('No booking ID provided. Please search for a booking first.');
+          setIsLoading(false);
+          navigate('/booking/search');
+          return;
+        }
+      
         // First try to get from session storage if coming from booking history
         const storedBooking = sessionStorage.getItem('reviewBooking');
         if (storedBooking) {
@@ -93,7 +100,7 @@ export const ReviewServicePage = () => {
     };
 
     loadBooking();
-  }, [bookingId]);
+  }, [bookingId, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -274,6 +281,8 @@ export const ReviewServicePage = () => {
                     type="button"
                     onClick={() => setRating(star)}
                     className="p-1 hover:scale-110 transition-transform"
+                    aria-label={`Rate ${star} out of 5 stars`}
+                    title={`Rate ${star} out of 5 stars`}
                   >
                     <Star
                       className={cn(

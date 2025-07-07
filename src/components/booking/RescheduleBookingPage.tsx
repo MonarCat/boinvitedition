@@ -46,6 +46,13 @@ export const RescheduleBookingPage = () => {
   useEffect(() => {
     const loadBooking = async () => {
       try {
+        if (!bookingId) {
+          setError('No booking ID provided. Please search for a booking first.');
+          setIsLoading(false);
+          navigate('/booking/search');
+          return;
+        }
+        
         // First try to get from session storage if coming from booking history
         const storedBooking = sessionStorage.getItem('rescheduleBooking');
         if (storedBooking) {
@@ -88,7 +95,7 @@ export const RescheduleBookingPage = () => {
     };
 
     loadBooking();
-  }, [bookingId]);
+  }, [bookingId, navigate]);
 
   // When date is selected, fetch available time slots
   useEffect(() => {
@@ -128,8 +135,8 @@ export const RescheduleBookingPage = () => {
         
         // Create time slots in 30-minute increments
         const slots: TimeSlot[] = [];
-        let [startHour, startMinute] = dayHours.open.split(':').map(Number);
-        let [endHour, endMinute] = dayHours.close.split(':').map(Number);
+        const [startHour, startMinute] = dayHours.open.split(':').map(Number);
+        const [endHour, endMinute] = dayHours.close.split(':').map(Number);
         
         const startTime = new Date(selectedDate);
         startTime.setHours(startHour, startMinute, 0, 0);

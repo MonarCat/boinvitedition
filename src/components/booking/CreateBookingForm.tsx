@@ -67,10 +67,20 @@ export const CreateBookingForm: React.FC<CreateBookingFormProps> = ({ businessId
   const [bookingDetails, setBookingDetails] = useState<Booking | null>(null);
 
   useEffect(() => {
-    loadPaystackScript()
-      .then(() => setPaystackLoaded(true))
-      .catch(() => toast.error('Failed to load payment system'));
-  }, []);
+    // Only load Paystack script when user reaches step 3 (client details)
+    // This prevents interference with the date/time selection process
+    if (step >= 3) {
+      loadPaystackScript()
+        .then(() => {
+          console.log('Paystack loaded successfully');
+          setPaystackLoaded(true);
+        })
+        .catch((error) => {
+          console.error('Failed to load payment system:', error);
+          toast.error('Failed to load payment system. Please refresh the page.');
+        });
+    }
+  }, [step]);
 
   const { data: services, isLoading: isLoadingServices } = useQuery({
     queryKey: ['business-services', businessId],

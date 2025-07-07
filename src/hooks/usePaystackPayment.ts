@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/types/supabase';
 
 interface PaymentMetadata {
   payment_type: 'client_to_business' | 'subscription';
@@ -10,6 +11,7 @@ interface PaymentMetadata {
   plan_type?: string;
   business_name?: string;
   customer_name?: string;
+  [key: string]: string | undefined; // Allow indexing
 }
 
 interface ClientDetails {
@@ -73,7 +75,7 @@ export const usePaystackPayment = () => {
           });
       }
       
-      // Log general payment transaction - convert metadata to JSON
+      // Log general payment transaction - using a properly typed metadata
       await supabase
         .from('payment_transactions')
         .insert({
@@ -84,7 +86,7 @@ export const usePaystackPayment = () => {
           payment_method: 'paystack',
           paystack_reference: reference,
           transaction_type: metadata.payment_type,
-          metadata: metadata as any // Cast to any to satisfy Json type requirement
+          metadata: metadata as Json // Cast to Json type
         });
     } catch (error) {
       console.error('Failed to log transaction:', error);
@@ -103,6 +105,13 @@ export const usePaystackPayment = () => {
   ) => {
     if (!validateInputs(showClientDetails, clientDetails)) return;
     
+    // Set processing state immediately for better UX
+    setIsProcessing(true);
+    
+    // Generate reference early
+    const reference = generateReference(metadata);
+    const paymentEmail = showClientDetails ? clientDetails.email : email;
+    
     // Check if Paystack is loaded
     if (!window.PaystackPop) {
       console.log('PaystackPop not found, attempting to load script...');
@@ -114,6 +123,7 @@ export const usePaystackPayment = () => {
         console.error('Failed to load Paystack script:', error);
         toast.error('Payment system failed to load. Please refresh the page and try again.');
         onError?.('Payment system failed to load');
+        setIsProcessing(false);
         return;
       }
       
@@ -122,13 +132,10 @@ export const usePaystackPayment = () => {
         console.error('PaystackPop still not available after loading script');
         toast.error('Payment system not available. Please try again later or contact support.');
         onError?.('Payment system not available');
+        setIsProcessing(false);
         return;
       }
     }
-
-    setIsProcessing(true);
-    const reference = generateReference(metadata);
-    const paymentEmail = showClientDetails ? clientDetails.email : email;
     
     console.log('Setting up Paystack payment:', {
       amount,

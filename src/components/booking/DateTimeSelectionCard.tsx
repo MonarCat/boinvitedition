@@ -77,7 +77,15 @@ export const DateTimeSelectionCard: React.FC<DateTimeSelectionCardProps> = ({
                 <Calendar
                   mode="single"
                   selected={selectedDate}
-                  onSelect={onDateSelect}
+                  onSelect={(date) => {
+                    // Use setTimeout to prevent any interference with script loading
+                    // This prevents stalling at date selection step
+                    if (date) {
+                      setTimeout(() => onDateSelect(date), 10);
+                    } else {
+                      onDateSelect(date);
+                    }
+                  }}
                   disabled={(date) => {
                     // Create a new date object set to midnight (start of day)
                     const today = new Date(new Date().setHours(0, 0, 0, 0));
@@ -93,7 +101,12 @@ export const DateTimeSelectionCard: React.FC<DateTimeSelectionCardProps> = ({
 
           <div>
             <Label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Select Time</Label>
-            <Select value={selectedTime} onValueChange={onTimeSelect}>
+            <Select 
+              value={selectedTime} 
+              onValueChange={(time) => {
+                // Use setTimeout to prevent any interference with script loading
+                setTimeout(() => onTimeSelect(time), 10);
+              }}>
               <SelectTrigger className="h-12 px-4 rounded-lg bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
                 <SelectValue placeholder={
                   <div className="flex items-center text-slate-500 dark:text-slate-400">

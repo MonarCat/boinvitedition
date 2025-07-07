@@ -29,59 +29,65 @@ export const BookingManagementLanding = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Link to="/booking/history" className="no-underline">
-            <Card className="h-full hover:shadow-md transition-all border-blue-100 hover:border-blue-300">
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                  <Search className="h-6 w-6 text-blue-600" />
-                </div>
-                <h2 className="text-lg font-semibold mb-2">Find Your Booking</h2>
-                <p className="text-gray-600 text-sm mb-4">
-                  View your booking details by entering your name and phone number
-                </p>
-                <Button variant="outline" className="mt-auto w-full">
-                  Find Booking
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>
-          </Link>
+          <Card 
+            className="h-full hover:shadow-md transition-all border-blue-100 hover:border-blue-300 cursor-pointer"
+            onClick={() => navigate('/booking/search')}
+            data-testid="find-booking-card"
+          >
+            <CardContent className="p-6 flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <Search className="h-6 w-6 text-blue-600" />
+              </div>
+              <h2 className="text-lg font-semibold mb-2">Find Your Booking</h2>
+              <p className="text-gray-600 text-sm mb-4">
+                View your booking details by entering your name and phone number
+              </p>
+              <Button variant="outline" className="mt-auto w-full">
+                Find Booking
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
           
-          <Link to="/booking/history" className="no-underline">
-            <Card className="h-full hover:shadow-md transition-all border-amber-100 hover:border-amber-300">
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-4">
-                  <Calendar className="h-6 w-6 text-amber-600" />
-                </div>
-                <h2 className="text-lg font-semibold mb-2">Reschedule</h2>
-                <p className="text-gray-600 text-sm mb-4">
-                  Change the date or time of your upcoming appointment
-                </p>
-                <Button variant="outline" className="mt-auto w-full">
-                  Reschedule Booking
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>
-          </Link>
+          <Card 
+            className="h-full hover:shadow-md transition-all border-amber-100 hover:border-amber-300 cursor-pointer"
+            onClick={() => navigate('/booking/reschedule')}
+            data-testid="reschedule-booking-card"
+          >
+            <CardContent className="p-6 flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-4">
+                <Calendar className="h-6 w-6 text-amber-600" />
+              </div>
+              <h2 className="text-lg font-semibold mb-2">Reschedule</h2>
+              <p className="text-gray-600 text-sm mb-4">
+                Change the date or time of your upcoming appointment
+              </p>
+              <Button variant="outline" className="mt-auto w-full">
+                Reschedule Booking
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
           
-          <Link to="/booking/history" className="no-underline">
-            <Card className="h-full hover:shadow-md transition-all border-green-100 hover:border-green-300">
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <PenSquare className="h-6 w-6 text-green-600" />
-                </div>
-                <h2 className="text-lg font-semibold mb-2">Write a Review</h2>
-                <p className="text-gray-600 text-sm mb-4">
-                  Share your feedback about a completed service
-                </p>
-                <Button variant="outline" className="mt-auto w-full">
-                  Leave Feedback
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>
-          </Link>
+          <Card 
+            className="h-full hover:shadow-md transition-all border-green-100 hover:border-green-300 cursor-pointer"
+            onClick={() => navigate('/booking/review')}
+            data-testid="review-booking-card"
+          >
+            <CardContent className="p-6 flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <PenSquare className="h-6 w-6 text-green-600" />
+              </div>
+              <h2 className="text-lg font-semibold mb-2">Write a Review</h2>
+              <p className="text-gray-600 text-sm mb-4">
+                Share your feedback about a completed service
+              </p>
+              <Button variant="outline" className="mt-auto w-full">
+                Leave Feedback
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
         </div>
         
         <div className="bg-gray-50 p-6 rounded-lg border">

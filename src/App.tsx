@@ -6,6 +6,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { SupabaseProvider } from "@/context/SupabaseProvider";
 import { BookingProvider } from "./context/BookingContext";
 import { SecurityHeaders } from "@/components/security/SecurityHeaders";
+import { preloadPaystackScript } from "@/components/payment/PaystackScriptLoader";
 import AuthenticatedApp from "@/pages/AuthenticatedApp";
 import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
@@ -77,6 +78,17 @@ const App = () => {
     // Setup the update prompt override and ensure auth buttons stay visible
     setupUpdatePromptOverride();
     ensureAuthButtonsVisible();
+    
+    // Safely preload payment scripts on relevant pages
+    try {
+      if (window.location.pathname.includes('/booking') || 
+          window.location.pathname.includes('/app')) {
+        preloadPaystackScript();
+      }
+    } catch (error) {
+      console.warn('Could not preload payment scripts:', error);
+      // Non-critical error, don't show to user
+    }
     
     return () => {
       motionQuery.removeEventListener('change', motionHandler);

@@ -67,7 +67,7 @@ export const AdminStatsDashboard: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_admin_stats');
       if (error) throw error;
-      return data as AdminStats;
+      return data as unknown as AdminStats;
     },
     refetchInterval: 60000, // Refresh every minute
   });

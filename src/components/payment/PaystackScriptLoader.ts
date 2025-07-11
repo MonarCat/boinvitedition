@@ -3,7 +3,7 @@
 let paystackLoadPromise: Promise<void> | null = null;
 let isPaystackLoaded = false;
 
-// Enhanced Paystack script loader with improved performance and caching
+// Enhanced Paystack script loader with better error handling
 export const loadPaystackScript = (retries = 3, delay = 500): Promise<void> => {
   // If Paystack is already loaded, return a resolved promise immediately
   if (isPaystackLoaded || (typeof window !== 'undefined' && window.PaystackPop)) {
@@ -25,43 +25,59 @@ export const loadPaystackScript = (retries = 3, delay = 500): Promise<void> => {
       return;
     }
 
-    // Check if script is already loading
-    const existingScript = document.querySelector('script[src*="paystack"]');
+    // Remove any existing failed scripts
+    const existingScripts = document.querySelectorAll('script[src*="paystack"]');
+    existingScripts.forEach(script => {
+      if (script.getAttribute('data-failed') === 'true') {
+        script.remove();
+      }
+    });
+
+    // Check if script is already loading successfully
+    const existingScript = document.querySelector('script[src*="paystack"]:not([data-failed="true"])');
     if (existingScript) {
       console.log('Paystack script is already loading');
-      existingScript.addEventListener('load', () => {
-        console.log('Existing Paystack script loaded');
+      const handleLoad = () => {
         if (window.PaystackPop) {
+          isPaystackLoaded = true;
           resolve();
         } else {
-          // Give a little time for PaystackPop to initialize
           setTimeout(() => {
             if (window.PaystackPop) {
+              isPaystackLoaded = true;
               resolve();
             } else {
+              existingScript.setAttribute('data-failed', 'true');
               reject(new Error('Paystack script loaded but PaystackPop not available'));
             }
-          }, 300);
+          }, 200);
         }
-      });
-      existingScript.addEventListener('error', () => {
-        console.error('Existing Paystack script failed to load');
-        paystackLoadPromise = null; // Reset promise on error
+      };
+
+      const handleError = () => {
+        existingScript.setAttribute('data-failed', 'true');
+        paystackLoadPromise = null;
         reject(new Error('Failed to load Paystack script'));
-      });
+      };
+
+      existingScript.addEventListener('load', handleLoad);
+      existingScript.addEventListener('error', handleError);
       return;
     }
 
-    // Create and load the script with priority and performance optimizations
+    // Create and load the script
     const script = document.createElement('script');
     script.src = 'https://js.paystack.co/v1/inline.js';
     script.async = true;
-    script.defer = false;
-    // Only use standard attributes to ensure compatibility
-    script.crossOrigin = 'anonymous';
+    script.setAttribute('data-paystack-loader', 'true');
     
-    script.onload = () => {
-      // Wait a moment for PaystackPop to be initialized
+    const cleanup = () => {
+      script.removeEventListener('load', handleLoad);
+      script.removeEventListener('error', handleError);
+    };
+
+    const handleLoad = () => {
+      cleanup();
       setTimeout(() => {
         if (window.PaystackPop) {
           console.log('Paystack script loaded successfully');
@@ -72,40 +88,44 @@ export const loadPaystackScript = (retries = 3, delay = 500): Promise<void> => {
           
           if (retries > 0) {
             console.log(`Retrying Paystack initialization (${retries} attempts left)...`);
-            // Remove script for clean retry
-            script.remove();
-            paystackLoadPromise = null; // Reset promise on retry
+            script.setAttribute('data-failed', 'true');
+            paystackLoadPromise = null;
             setTimeout(() => {
               loadPaystackScript(retries - 1, delay * 1.5)
                 .then(resolve)
                 .catch(reject);
             }, delay);
           } else {
-            paystackLoadPromise = null; // Reset promise on failure
+            script.setAttribute('data-failed', 'true');
+            paystackLoadPromise = null;
             reject(new Error('Paystack not properly initialized after multiple attempts'));
           }
         }
-      }, 500); // Increased timeout for better reliability
+      }, 200);
     };
     
-    script.onerror = () => {
-      console.error('Failed to load Paystack script');
+    const handleError = () => {
+      cleanup();
+      console.error('Failed to load Paystack script', script.src);
       
       if (retries > 0) {
         console.log(`Retrying Paystack script load (${retries} attempts left)...`);
-        // Remove script for clean retry
-        script.remove();
-        paystackLoadPromise = null; // Reset promise on retry
+        script.setAttribute('data-failed', 'true');
+        paystackLoadPromise = null;
         setTimeout(() => {
           loadPaystackScript(retries - 1, delay * 1.5)
             .then(resolve)
             .catch(reject);
         }, delay);
       } else {
-        paystackLoadPromise = null; // Reset promise on failure
+        script.setAttribute('data-failed', 'true');
+        paystackLoadPromise = null;
         reject(new Error('Failed to load Paystack script after multiple attempts'));
       }
     };
+
+    script.addEventListener('load', handleLoad);
+    script.addEventListener('error', handleError);
     
     document.head.appendChild(script);
   });
@@ -115,23 +135,9 @@ export const loadPaystackScript = (retries = 3, delay = 500): Promise<void> => {
 
 // Preload function that can be called as early as possible in app initialization
 export const preloadPaystackScript = (): void => {
-  try {
-    // Only add preload link if browser supports it
-    if (typeof document !== 'undefined') {
-      // Add a preload link for faster script loading
-      const preloadLink = document.createElement('link');
-      preloadLink.rel = 'preload';
-      preloadLink.as = 'script';
-      preloadLink.href = 'https://js.paystack.co/v1/inline.js';
-      document.head.appendChild(preloadLink);
-    
-      // We won't automatically load the script on preload to avoid interfering with booking flow
-      // Just add the preload hint for when it's actually needed
-    }
-  } catch (err) {
-    console.warn('Paystack preloading not supported', err);
-    // Silent fail - preloading is just an optimization
-  }
+  // Remove preload approach as it's causing issues
+  // Script will be loaded on-demand when needed
+  console.log('Paystack will be loaded on-demand when payment is initiated');
 };
 
 // Define proper types for Paystack response and metadata

@@ -6,7 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import { Eye, AlertCircle, CheckCircle } from 'lucide-react';
+import { Eye, AlertCircle, CheckCircle, Search, RefreshCw } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { BusinessDetailsModal } from './BusinessDetailsModal';
 
 interface BusinessProfile {
   email: string;
@@ -31,11 +33,12 @@ interface BusinessData {
 
 export const BusinessList: React.FC = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const { data: businesses, isLoading, error } = useQuery({
-    queryKey: ['admin-businesses'],
+  const { data: businesses, isLoading, error, refetch } = useQuery({
+    queryKey: ['admin-businesses', searchTerm],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('businesses')
         .select(`
           id,
@@ -51,6 +54,12 @@ export const BusinessList: React.FC = () => {
           user_id
         `)
         .order('created_at', { ascending: false });
+
+      if (searchTerm) {
+        query = query.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,city.ilike.%${searchTerm}%`);
+      }
+
+      const { data, error } = await query;
       
       if (error) throw error;
       
@@ -72,6 +81,7 @@ export const BusinessList: React.FC = () => {
       
       return businessesWithProfiles as BusinessData[];
     },
+    refetchInterval: 60000, // Refresh every minute
   });
 
   if (isLoading) {
@@ -104,15 +114,35 @@ export const BusinessList: React.FC = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Business Accounts
-          <Badge variant="outline">
-            {businesses?.length || 0} Total
-          </Badge>
-        </CardTitle>
-      </CardHeader>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              Business Accounts
+              <Badge variant="outline">
+                {businesses?.length || 0} Total
+              </Badge>
+            </CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => refetch()} disabled={isLoading}>
+                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search businesses..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+        </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -181,7 +211,7 @@ export const BusinessList: React.FC = () => {
                       onClick={() => setSelectedBusiness(business.id)}
                     >
                       <Eye className="w-4 h-4 mr-1" />
-                      View
+                      View Details
                     </Button>
                   </td>
                 </tr>
@@ -195,7 +225,17 @@ export const BusinessList: React.FC = () => {
             No businesses found
           </div>
         )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Business Details Modal */}
+      {selectedBusiness && (
+        <BusinessDetailsModal
+          businessId={selectedBusiness}
+          isOpen={!!selectedBusiness}
+          onClose={() => setSelectedBusiness(null)}
+        />
+      )}
+    </div>
   );
 };

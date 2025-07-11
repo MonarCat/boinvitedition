@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { EnhancedPlatformAnalytics } from './EnhancedPlatformAnalytics';
+import { EnhancedUserManagement } from './EnhancedUserManagement';
 import { 
   DollarSign, 
   Users, 
@@ -167,108 +169,11 @@ export const AdminReportsPanel = () => {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
-          <div className="flex gap-4 mb-4">
-            {(['day', 'week', 'month', 'year'] as TimePeriod[]).map(period => (
-              <Button
-                key={period}
-                variant={selectedPeriod === period ? 'default' : 'outline'}
-                onClick={() => setSelectedPeriod(period)}
-                size="sm"
-              >
-                {period.charAt(0).toUpperCase() + period.slice(1)}
-              </Button>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(platformStats?.totalRevenue || 0)}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  From {platformStats?.transactionCount || 0} transactions
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Platform Fees</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {formatCurrency(platformStats?.platformFees || 0)}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  5% commission earned
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{platformStats?.totalBookings || 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  {platformStats?.completedBookings || 0} completed
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">New Signups</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{platformStats?.newSignups || 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  New accounts this {selectedPeriod}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          <EnhancedPlatformAnalytics />
         </TabsContent>
 
         <TabsContent value="users" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Account Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg bg-yellow-50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle className="w-5 h-5 text-yellow-600" />
-                    <h4 className="font-medium">User Management Tools</h4>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Administrative tools for managing user accounts and troubleshooting.
-                  </p>
-                  <div className="space-y-2">
-                    <Button variant="outline" size="sm">
-                      Reset User Email
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Account Recovery
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      View User Activity
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <EnhancedUserManagement />
         </TabsContent>
       </Tabs>
     </div>

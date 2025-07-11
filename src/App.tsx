@@ -21,6 +21,9 @@ import NotFound from "@/pages/NotFound";
 import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
 import IntegrationsPage from "@/pages/IntegrationsPage";
 import AIFeaturesPage from "@/pages/AIFeaturesPage";
+import { TicketSearchPage } from "@/components/booking/TicketSearchPage";
+import { RescheduleBookingPage } from "@/components/booking/RescheduleBookingPage";
+import { ReviewServicePage } from "@/components/booking/ReviewServicePage";
 import { EnhancedPWAManager } from "@/components/pwa/EnhancedPWAManager";
 import { UpdateNotification } from "@/components/pwa/UpdateNotification";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
@@ -170,6 +173,11 @@ const App = () => {
                         <Route path="/book/:businessId" element={<PublicBookingPage />} />
                         <Route path="/booking/:businessId" element={<PublicBookingPage />} />
                         <Route path="/public-booking/:businessId" element={<PublicBookingPage />} />
+                        
+                        {/* Booking management tools - Public access */}
+                        <Route path="/find-booking" element={<TicketSearchPage />} />
+                        <Route path="/reschedule/:bookingId" element={<RescheduleBookingPage />} />
+                        <Route path="/review/:bookingId" element={<ReviewServicePage />} />
                         
                         {/* Authenticated app routes */}
                         <Route path="/app/*" element={<AuthenticatedApp />} />

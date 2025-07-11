@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -66,60 +67,71 @@ export const useDashboardData = (businessId?: string) => {
     
     // Helper function to fetch latest REAL stats after any update
     const fetchLatestRealStats = async () => {
-      console.log('REALTIME: Fetching latest REAL dashboard stats');
+      console.log('REALTIME: Fetching latest REAL dashboard stats for today');
       
       const { startDate, endDate } = getDateRange(timePeriod);
       
       try {
-        // Get REAL bookings with paid status (use created_at for today's filter)
-        const dateFilter = timePeriod === 'today' 
-          ? { gte: startDate, lte: endDate + 'T23:59:59.999Z' }
-          : { gte: startDate, lte: endDate };
-          
-        const bookingsQuery = await supabase
-          .from('bookings')
-          .select('total_amount, payment_status, status, created_at, booking_date')
-          .eq('business_id', businessId)
-          .gte(timePeriod === 'today' ? 'created_at' : 'booking_date', 
-               timePeriod === 'today' ? startDate : startDate)
-          .lte(timePeriod === 'today' ? 'created_at' : 'booking_date', 
-               timePeriod === 'today' ? endDate + 'T23:59:59.999Z' : endDate);
+        // Get today's payment transactions first (most reliable for revenue)
+        const todayStart = timePeriod === 'today' ? startDate + 'T00:00:00.000Z' : startDate;
+        const todayEnd = timePeriod === 'today' ? endDate + 'T23:59:59.999Z' : endDate;
         
-        // Get REAL revenue from paid bookings
-        const paidBookings = bookingsQuery.data?.filter(b => 
-          b.payment_status === 'paid' || b.payment_status === 'completed' || 
-          (b.status === 'completed' && b.payment_status !== 'pending')
-        ) || [];
-        
-        const totalRevenue = paidBookings.reduce((sum, booking) => 
-          sum + Number(booking.total_amount || 0), 0
-        );
-        
-        // Get REAL client count
-        const clientsQuery = await supabase
-          .from('clients')
-          .select('id', { count: 'exact', head: true })
-          .eq('business_id', businessId);
-        
-        // Get additional REAL payment transactions (include 'success' status)
-        const recentPaymentsQuery = await supabase
+        const { data: todayPayments } = await supabase
           .from('payment_transactions')
           .select('business_amount, amount, status, created_at')
           .eq('business_id', businessId)
           .in('status', ['completed', 'success'])
           .eq('transaction_type', 'client_to_business')
-          .gte('created_at', timePeriod === 'today' ? startDate : startDate)
-          .lte('created_at', timePeriod === 'today' ? endDate + 'T23:59:59.999Z' : endDate);
+          .gte('created_at', todayStart)
+          .lte('created_at', todayEnd);
         
-        const additionalRevenue = recentPaymentsQuery.data?.reduce((sum, payment) => 
+        console.log('Today\'s payments found:', todayPayments?.length || 0, todayPayments);
+        
+        // Calculate revenue from payment transactions
+        const revenueFromPayments = todayPayments?.reduce((sum, payment) => 
           sum + Number(payment.business_amount || payment.amount || 0), 0
         ) || 0;
         
+        // Get today's bookings
+        const { data: todayBookings } = await supabase
+          .from('bookings')
+          .select('total_amount, payment_status, status, created_at, booking_date')
+          .eq('business_id', businessId)
+          .gte('created_at', todayStart)
+          .lte('created_at', todayEnd);
+        
+        console.log('Today\'s bookings found:', todayBookings?.length || 0, todayBookings);
+        
+        // Get revenue from paid bookings
+        const paidBookings = todayBookings?.filter(b => 
+          b.payment_status === 'paid' || b.payment_status === 'completed'
+        ) || [];
+        
+        const revenueFromBookings = paidBookings.reduce((sum, booking) => 
+          sum + Number(booking.total_amount || 0), 0
+        );
+        
+        // Use the higher of the two revenue calculations
+        const totalRevenue = Math.max(revenueFromPayments, revenueFromBookings);
+        
+        console.log('Revenue calculation:', {
+          revenueFromPayments,
+          revenueFromBookings,
+          totalRevenue,
+          paidBookingsCount: paidBookings.length
+        });
+        
+        // Get REAL client count
+        const { count: clientCount } = await supabase
+          .from('clients')
+          .select('id', { count: 'exact', head: true })
+          .eq('business_id', businessId);
+        
         const newRealStats = {
-          activeBookings: bookingsQuery.data?.length || 0,
-          totalRevenue: totalRevenue + additionalRevenue,
-          totalBookings: bookingsQuery.data?.length || 0,
-          totalClients: clientsQuery.count || 0,
+          activeBookings: todayBookings?.length || 0,
+          totalRevenue: totalRevenue,
+          totalBookings: todayBookings?.length || 0,
+          totalClients: clientCount || 0,
           lastUpdated: new Date()
         };
         
@@ -134,8 +146,22 @@ export const useDashboardData = (businessId?: string) => {
       }
     };
     
-    // Subscribe to bookings table for REAL data updates
+    // Subscribe to payment transactions table for REAL data updates
     channel.on('postgres_changes', 
+      {
+        event: '*',
+        schema: 'public',
+        table: 'payment_transactions',
+        filter: `business_id=eq.${businessId}`
+      },
+      async (payload) => {
+        console.log('REALTIME: Payment transaction change detected!', payload);
+        await fetchLatestRealStats();
+        queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
+      }
+    )
+    // Subscribe to bookings table for REAL data updates
+    .on('postgres_changes', 
       {
         event: '*',
         schema: 'public',
@@ -158,19 +184,6 @@ export const useDashboardData = (businessId?: string) => {
       },
       async () => {
         console.log('REALTIME: REAL Client change detected!');
-        await fetchLatestRealStats();
-        queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
-      }
-    )
-    .on('postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'payment_transactions',
-        filter: `business_id=eq.${businessId}`
-      },
-      async () => {
-        console.log('REALTIME: REAL Payment transaction change detected!');
         await fetchLatestRealStats();
         queryClient.invalidateQueries({ queryKey: ['dashboard-stats', businessId] });
       }
@@ -244,25 +257,43 @@ export const useDashboardData = (businessId?: string) => {
 
       const { startDate, endDate } = getDateRange(timePeriod);
 
-      // Get REAL bookings for the period (use created_at for today's filter)
+      // Primary revenue source: Payment transactions (most reliable)
+      const todayStart = timePeriod === 'today' ? startDate + 'T00:00:00.000Z' : startDate;
+      const todayEnd = timePeriod === 'today' ? endDate + 'T23:59:59.999Z' : endDate;
+      
+      const { data: paymentTransactions } = await supabase
+        .from('payment_transactions')
+        .select('business_amount, amount, status, created_at')
+        .eq('business_id', actualBusinessId)
+        .in('status', ['completed', 'success'])
+        .eq('transaction_type', 'client_to_business')
+        .gte('created_at', todayStart)
+        .lte('created_at', todayEnd);
+
+      // Calculate revenue from payment transactions
+      const revenueFromPayments = paymentTransactions?.reduce((sum, payment) => 
+        sum + Number(payment.business_amount || payment.amount || 0), 0
+      ) || 0;
+
+      // Get REAL bookings for the period
       const { data: periodBookings } = await supabase
         .from('bookings')
         .select('total_amount, payment_status, status, created_at, booking_date')
         .eq('business_id', actualBusinessId)
-        .gte(timePeriod === 'today' ? 'created_at' : 'booking_date', 
-             timePeriod === 'today' ? startDate : startDate)
-        .lte(timePeriod === 'today' ? 'created_at' : 'booking_date', 
-             timePeriod === 'today' ? endDate + 'T23:59:59.999Z' : endDate);
+        .gte('created_at', todayStart)
+        .lte('created_at', todayEnd);
 
-      // Calculate REAL revenue from paid bookings
-      const completedBookings = periodBookings?.filter(booking => 
-        booking.payment_status === 'paid' || booking.payment_status === 'completed' || 
-        (booking.status === 'completed' && booking.payment_status !== 'pending')
+      // Calculate REAL revenue from paid bookings as backup
+      const paidBookings = periodBookings?.filter(booking => 
+        booking.payment_status === 'paid' || booking.payment_status === 'completed'
       ) || [];
       
-      const totalRevenue = completedBookings.reduce((sum, booking) => 
+      const revenueFromBookings = paidBookings.reduce((sum, booking) => 
         sum + Number(booking.total_amount || 0), 0
       );
+
+      // Use the higher of the two revenue calculations
+      const totalRevenue = Math.max(revenueFromPayments, revenueFromBookings);
 
       // Get REAL total clients count directly
       let totalClients = 0;
@@ -276,24 +307,10 @@ export const useDashboardData = (businessId?: string) => {
       } catch (error) {
         console.error('Error fetching REAL client count:', error);
       }
-
-      // Additional query to ensure we're catching all REAL recent payments
-      const { data: recentPayments } = await supabase
-        .from('payment_transactions')
-        .select('business_amount, amount')
-        .eq('business_id', actualBusinessId)
-        .eq('status', 'completed')
-        .eq('transaction_type', 'client_to_business')
-        .gte('created_at', new Date(new Date().setDate(new Date().getDate() - 1)).toISOString());
-        
-      // Calculate additional REAL recent revenue
-      const additionalRecentRevenue = recentPayments?.reduce((sum, payment) => 
-        sum + Number(payment.business_amount || payment.amount || 0), 0
-      ) || 0;
         
       const realStats = {
         activeBookings: periodBookings?.length || 0,
-        totalRevenue: totalRevenue + additionalRecentRevenue, // REAL revenue from REAL transactions
+        totalRevenue: totalRevenue,
         totalBookings: periodBookings?.length || 0,
         totalClients: totalClients,
       };

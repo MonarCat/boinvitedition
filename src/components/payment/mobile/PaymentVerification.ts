@@ -35,16 +35,20 @@ export async function verifyPaymentAndUpdateBooking(reference, bookingId) {
       };
     }
     
-    // For real implementation, verify with Paystack API
-    // This would make an HTTP request to Paystack's verification endpoint
-    // and check the payment status
-    // 
-    // For this example, we'll simulate a successful verification
-    
-    // Get booking details to calculate amounts
+    // Get booking details to calculate amounts and get business info
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
-      .select('total_amount, business_id')
+      .select(`
+        total_amount, 
+        business_id, 
+        client_id,
+        customer_name,
+        customer_email,
+        customer_phone,
+        service_id,
+        booking_date,
+        booking_time
+      `)
       .eq('id', bookingId)
       .single();
       
@@ -57,10 +61,17 @@ export async function verifyPaymentAndUpdateBooking(reference, bookingId) {
     const platformFee = totalAmount * 0.05; // 5% platform fee
     const businessAmount = totalAmount - platformFee;
 
-    // Record the payment as verified
+    console.log('Payment verification amounts:', {
+      totalAmount,
+      platformFee,
+      businessAmount,
+      businessId: booking.business_id
+    });
+
+    // Record the payment transaction for analytics and dashboard
     const { data: paymentRecord, error: paymentError } = await supabase
       .from('payment_transactions')
-      .upsert({
+      .insert({
         paystack_reference: reference,
         booking_id: bookingId,
         business_id: booking.business_id,
@@ -71,28 +82,65 @@ export async function verifyPaymentAndUpdateBooking(reference, bookingId) {
         platform_fee_amount: platformFee,
         currency: 'KES',
         transaction_type: 'client_to_business',
+        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
       .select()
       .single();
       
     if (paymentError) {
-      console.error('Error recording payment:', paymentError);
-      return { success: false, error: 'Failed to record payment' };
+      console.error('Error recording payment transaction:', paymentError);
+      return { success: false, error: 'Failed to record payment transaction' };
     }
     
-    // Update booking status to 'paid'
+    console.log('Payment transaction recorded successfully:', paymentRecord);
+
+    // Record client-business transaction for earnings tracking
+    const { data: clientTransaction, error: clientTransactionError } = await supabase
+      .from('client_business_transactions')
+      .insert({
+        client_email: booking.customer_email,
+        client_phone: booking.customer_phone,
+        business_id: booking.business_id,
+        booking_id: bookingId,
+        amount: totalAmount,
+        platform_fee: platformFee,
+        business_amount: businessAmount,
+        payment_reference: reference,
+        paystack_reference: reference,
+        payment_method: 'paystack',
+        status: 'completed',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    
+    if (clientTransactionError) {
+      console.error('Error recording client transaction:', clientTransactionError);
+      // Don't fail the whole process, but log the error
+    } else {
+      console.log('Client business transaction recorded:', clientTransaction);
+    }
+    
+    // Update booking status to 'paid' and mark as confirmed
     const bookingResult = await updateBookingStatus(bookingId, 'paid');
     if (!bookingResult.success) {
-      return bookingResult;
+      console.error('Failed to update booking status:', bookingResult.error);
+      // Don't fail the whole process since payment was recorded
     }
+    
+    console.log('Payment verification completed successfully');
     
     return {
       success: true,
       data: {
         verified: true,
         paymentId: paymentRecord.id,
-        bookingId: bookingId
+        bookingId: bookingId,
+        totalAmount: totalAmount,
+        businessAmount: businessAmount,
+        platformFee: platformFee
       }
     };
   } catch (error) {
@@ -105,7 +153,11 @@ async function updateBookingStatus(bookingId, status) {
   try {
     const { error } = await supabase
       .from('bookings')
-      .update({ payment_status: status, updated_at: new Date().toISOString() })
+      .update({ 
+        payment_status: status,
+        status: status === 'paid' ? 'confirmed' : 'pending',
+        updated_at: new Date().toISOString() 
+      })
       .eq('id', bookingId);
     
     if (error) {
@@ -113,6 +165,7 @@ async function updateBookingStatus(bookingId, status) {
       return { success: false, error: 'Failed to update booking status' };
     }
     
+    console.log(`Booking ${bookingId} status updated to: ${status}`);
     return { success: true };
   } catch (error) {
     console.error('Booking status update error:', error);

@@ -9,7 +9,7 @@ import StaffPage from '@/pages/StaffPage';
 import InvoicesPage from '@/pages/InvoicesPage';
 import FinancePage from '@/pages/FinancePage';
 import SettingsPage from '@/pages/SettingsPage';
-import SubscriptionPage from '@/pages/SubscriptionPage';
+import AdminPage from '@/pages/AdminPage';
 import StaffDashboardPage from '@/pages/StaffDashboardPage';
 import StaffAttendancePage from '@/pages/StaffAttendancePage';
 import BusinessDiscoveryPage from '@/pages/BusinessDiscoveryPage';
@@ -30,7 +30,7 @@ const AuthenticatedApp = () => {
       <Route path="invoices" element={<InvoicesPage />} />
       <Route path="finance" element={<FinancePage />} />
       <Route path="settings" element={<SettingsPage />} />
-      <Route path="subscription" element={<SubscriptionPage />} />
+      <Route path="admin" element={<AdminPage />} />
       <Route path="staff-dashboard" element={<StaffDashboardPage />} />
       <Route path="staff-attendance" element={<StaffAttendancePage />} />
       <Route path="discover" element={<BusinessDiscoveryPage />} />

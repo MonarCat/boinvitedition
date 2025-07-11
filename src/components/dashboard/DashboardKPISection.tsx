@@ -86,8 +86,8 @@ export const DashboardKPISection = ({
     }
   ];
 
-  const handleUpgradeClick = () => {
-    navigate('/app/subscription');
+  const handleFinanceClick = () => {
+    navigate('/app/finance');
   };
 
   return (
@@ -177,12 +177,12 @@ export const DashboardKPISection = ({
               </p>
             </div>
             <Button 
-              onClick={handleUpgradeClick}
+              onClick={handleFinanceClick}
               size="sm" 
               className="bg-royal-red hover:bg-royal-red/90 text-white"
             >
-              <ArrowUp className="w-4 h-4 mr-1" />
-              Manage Plan
+              <DollarSign className="w-4 h-4 mr-1" />
+              View Finance
             </Button>
           </div>
         </CardContent>

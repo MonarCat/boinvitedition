@@ -188,7 +188,8 @@ const App = () => {
                         <Route path="/staff" element={<Navigate to="/app/staff" replace />} />
                         <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
                         <Route path="/invoices" element={<Navigate to="/app/invoices" replace />} />
-                        <Route path="/subscription" element={<Navigate to="/app/subscription" replace />} />
+                        <Route path="/reports" element={<Navigate to="/app/finance" replace />} />
+                        <Route path="/admin" element={<Navigate to="/app/admin" replace />} />
                         
                         {/* Catch all - 404 page */}
                         <Route path="*" element={<NotFound />} />

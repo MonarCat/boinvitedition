@@ -33,8 +33,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
     { name: 'Clients', href: '/clients', icon: Users },
     { name: 'Services', href: '/services', icon: Wrench },
     { name: 'Staff', href: '/staff', icon: Users },
-    { name: 'Reports', href: '/reports', icon: FileText },
-    { name: 'Finance', href: '/finance', icon: CreditCard },
+    { name: 'Finance & Reports', href: '/finance', icon: CreditCard },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
@@ -55,9 +54,9 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
 
   const isActive = (href: string) => {
     if (href === '/') {
-      return location.pathname === '/';
+      return location.pathname === '/app' || location.pathname === '/app/';
     }
-    return location.pathname.startsWith(href);
+    return location.pathname === `/app${href}` || location.pathname.startsWith(`/app${href}/`);
   };
 
   return (
@@ -85,7 +84,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
               return (
                 <Link
                   key={item.name}
-                  to={item.href}
+                  to={item.href === '/' ? '/app' : `/app${item.href}`}
                   className={`
                     flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
                     ${isActive(item.href)

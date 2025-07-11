@@ -14,7 +14,7 @@ type Props = {
   handleViewClients: () => void;
   handleUpdateSettings: () => void;
   handleManageServices: () => void;
-  handleSubscription: () => void;
+  handleViewFinance: () => void;
   currency: string;
   navigate: (p: string) => void;
   showEditBusiness: boolean;
@@ -27,7 +27,7 @@ export const DashboardTabs: React.FC<Props> = ({
   handleViewClients, 
   handleUpdateSettings, 
   handleManageServices, 
-  handleSubscription, 
+  handleViewFinance, 
   currency, 
   navigate,
   business
@@ -151,8 +151,8 @@ export const DashboardTabs: React.FC<Props> = ({
                 <Button variant="outline" onClick={handleUpdateSettings}>Update Subdomain</Button>
               </div>
               <div>
-                <h4 className="font-medium mb-2">Subscription</h4>
-                <Button variant="outline" onClick={handleSubscription}>Manage Subscription</Button>
+                <h4 className="font-medium mb-2">Finance & Earnings</h4>
+                <Button variant="outline" onClick={handleViewFinance}>View Finance</Button>
               </div>
             </div>
           </CardContent>

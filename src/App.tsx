@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -27,7 +28,6 @@ import { ReviewServicePage } from "@/components/booking/ReviewServicePage";
 import { EnhancedPWAManager } from "@/components/pwa/EnhancedPWAManager";
 import { UpdateNotification } from "@/components/pwa/UpdateNotification";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
-import { useEffect, useState } from "react";
 import { MotionConfig } from "framer-motion";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ResponsiveProvider } from "@/hooks/use-mobile";

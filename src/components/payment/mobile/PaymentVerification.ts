@@ -81,7 +81,7 @@ export async function verifyPaymentAndUpdateBooking(reference, bookingId) {
       return { success: false, error: 'Failed to record payment' };
     }
     
-    // Update booking status
+    // Update booking status to 'paid'
     const bookingResult = await updateBookingStatus(bookingId, 'paid');
     if (!bookingResult.success) {
       return bookingResult;

@@ -71,20 +71,27 @@ export const useDashboardData = (businessId?: string) => {
       const { startDate, endDate } = getDateRange(timePeriod);
       
       try {
-        // Get REAL bookings for the period with enhanced filter
+        // Get REAL bookings with paid status (use created_at for today's filter)
+        const dateFilter = timePeriod === 'today' 
+          ? { gte: startDate, lte: endDate + 'T23:59:59.999Z' }
+          : { gte: startDate, lte: endDate };
+          
         const bookingsQuery = await supabase
           .from('bookings')
-          .select('total_amount, payment_status, status, created_at')
+          .select('total_amount, payment_status, status, created_at, booking_date')
           .eq('business_id', businessId)
-          .gte('booking_date', startDate)
-          .lte('booking_date', endDate);
+          .gte(timePeriod === 'today' ? 'created_at' : 'booking_date', 
+               timePeriod === 'today' ? startDate : startDate)
+          .lte(timePeriod === 'today' ? 'created_at' : 'booking_date', 
+               timePeriod === 'today' ? endDate + 'T23:59:59.999Z' : endDate);
         
-        // Get REAL revenue from completed payments
-        const completedBookings = bookingsQuery.data?.filter(b => 
-          b.payment_status === 'completed' || b.status === 'completed'
+        // Get REAL revenue from paid bookings
+        const paidBookings = bookingsQuery.data?.filter(b => 
+          b.payment_status === 'paid' || b.payment_status === 'completed' || 
+          (b.status === 'completed' && b.payment_status !== 'pending')
         ) || [];
         
-        const totalRevenue = completedBookings.reduce((sum, booking) => 
+        const totalRevenue = paidBookings.reduce((sum, booking) => 
           sum + Number(booking.total_amount || 0), 0
         );
         
@@ -94,13 +101,15 @@ export const useDashboardData = (businessId?: string) => {
           .select('id', { count: 'exact', head: true })
           .eq('business_id', businessId);
         
-        // Get additional REAL payment transactions
+        // Get additional REAL payment transactions (include 'success' status)
         const recentPaymentsQuery = await supabase
           .from('payment_transactions')
-          .select('business_amount, amount, status')
+          .select('business_amount, amount, status, created_at')
           .eq('business_id', businessId)
-          .eq('status', 'completed')
-          .eq('transaction_type', 'client_to_business');
+          .in('status', ['completed', 'success'])
+          .eq('transaction_type', 'client_to_business')
+          .gte('created_at', timePeriod === 'today' ? startDate : startDate)
+          .lte('created_at', timePeriod === 'today' ? endDate + 'T23:59:59.999Z' : endDate);
         
         const additionalRevenue = recentPaymentsQuery.data?.reduce((sum, payment) => 
           sum + Number(payment.business_amount || payment.amount || 0), 0
@@ -235,17 +244,20 @@ export const useDashboardData = (businessId?: string) => {
 
       const { startDate, endDate } = getDateRange(timePeriod);
 
-      // Get REAL bookings for the period, including all with completed payments 
+      // Get REAL bookings for the period (use created_at for today's filter)
       const { data: periodBookings } = await supabase
         .from('bookings')
-        .select('total_amount, payment_status, status, created_at')
+        .select('total_amount, payment_status, status, created_at, booking_date')
         .eq('business_id', actualBusinessId)
-        .gte('booking_date', startDate)
-        .lte('booking_date', endDate);
+        .gte(timePeriod === 'today' ? 'created_at' : 'booking_date', 
+             timePeriod === 'today' ? startDate : startDate)
+        .lte(timePeriod === 'today' ? 'created_at' : 'booking_date', 
+             timePeriod === 'today' ? endDate + 'T23:59:59.999Z' : endDate);
 
-      // Calculate REAL revenue from completed payments only
+      // Calculate REAL revenue from paid bookings
       const completedBookings = periodBookings?.filter(booking => 
-        booking.payment_status === 'completed' || booking.status === 'completed'
+        booking.payment_status === 'paid' || booking.payment_status === 'completed' || 
+        (booking.status === 'completed' && booking.payment_status !== 'pending')
       ) || [];
       
       const totalRevenue = completedBookings.reduce((sum, booking) => 

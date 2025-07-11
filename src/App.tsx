@@ -20,6 +20,7 @@ import SafetyTips from "@/pages/SafetyTips";
 import NotFound from "@/pages/NotFound";
 import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
 import IntegrationsPage from "@/pages/IntegrationsPage";
+import AIFeaturesPage from "@/pages/AIFeaturesPage";
 import { EnhancedPWAManager } from "@/components/pwa/EnhancedPWAManager";
 import { UpdateNotification } from "@/components/pwa/UpdateNotification";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
@@ -160,6 +161,7 @@ const App = () => {
                         
                         {/* Integrations Hub */}
                         <Route path="/integrations" element={<IntegrationsPage />} />
+                        <Route path="/ai-features" element={<AIFeaturesPage />} />
                         
                         {/* Mobile App Download Page */}
                         <Route path="/app-download" element={<MobileAppDownload />} />

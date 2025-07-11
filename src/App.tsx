@@ -19,6 +19,7 @@ import CookiePolicy from "@/pages/CookiePolicy";
 import SafetyTips from "@/pages/SafetyTips";
 import NotFound from "@/pages/NotFound";
 import BusinessDiscoveryPage from "@/pages/BusinessDiscoveryPage";
+import IntegrationsPage from "@/pages/IntegrationsPage";
 import { EnhancedPWAManager } from "@/components/pwa/EnhancedPWAManager";
 import { UpdateNotification } from "@/components/pwa/UpdateNotification";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
@@ -156,6 +157,9 @@ const App = () => {
                         
                         {/* Business Discovery Map */}
                         <Route path="/discover" element={<BusinessDiscoveryPage />} />
+                        
+                        {/* Integrations Hub */}
+                        <Route path="/integrations" element={<IntegrationsPage />} />
                         
                         {/* Mobile App Download Page */}
                         <Route path="/app-download" element={<MobileAppDownload />} />

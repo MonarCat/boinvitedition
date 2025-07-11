@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { GlobalPartnersSlider } from '@/components/landing/GlobalPartnersSlider';
 import { PricingSection } from '@/components/landing/PricingSection';
+import { AIFeaturesSection } from '@/components/landing/AIFeaturesSection';
+import { IntegrationsHub } from '@/components/landing/IntegrationsHub';
 import { ensureAuthButtonsVisible } from '@/utils/buttonVisibility';
 
 const LandingPage = () => {
@@ -162,23 +164,23 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Badge className="mb-4 bg-royal-red/10 text-royal-red">
-              🚀 Complete Business Management Platform
+              🚀 AI-Powered Business Management Platform
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Complete Business Management with 
-              <span className="text-royal-red"> Boinvit</span>
+              AI-First Business Management with 
+              <span className="text-royal-red"> Global Reach</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              All-in-one business management platform: bookings, invoicing, payments, staff management, 
-              analytics, and client relationship management. Everything you need to grow your business.
+              The only platform that combines AI-powered automation with global integrations. 
+              Reduce no-shows by 60%, save 4 hours daily, and connect with customers worldwide through WhatsApp, Telegram, and 5000+ apps.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
               <Button 
                 size="lg" 
                 onClick={() => navigate('/auth')}
                 className="bg-royal-red hover:bg-royal-red/90 text-white px-8 py-3 text-lg"
               >
-                Start Free Trial
+                Start Free AI Trial
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button 
@@ -187,8 +189,22 @@ const LandingPage = () => {
                 onClick={() => navigate('/demo')}
                 className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white px-8 py-3 text-lg"
               >
-                Watch Demo
+                Watch AI Demo
               </Button>
+            </div>
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center gap-1">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>14-day free trial</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>No credit card required</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Setup in 5 minutes</span>
+              </div>
             </div>
           </div>
         </div>
@@ -196,6 +212,12 @@ const LandingPage = () => {
 
       {/* Global Partners Slider */}
       <GlobalPartnersSlider />
+
+      {/* AI Features Section */}
+      <AIFeaturesSection />
+
+      {/* Integrations Hub */}
+      <IntegrationsHub />
 
       {/* Features Section */}
       <section className="py-16 bg-white">

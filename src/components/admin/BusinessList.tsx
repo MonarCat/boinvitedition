@@ -48,13 +48,29 @@ export const BusinessList: React.FC = () => {
           is_verified,
           created_at,
           currency,
-          user_id,
-          profiles!inner(email, first_name, last_name)
+          user_id
         `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as BusinessData[];
+      
+      // Fetch profiles separately for each business
+      const businessesWithProfiles = await Promise.all(
+        data.map(async (business) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email, first_name, last_name')
+            .eq('id', business.user_id)
+            .single();
+          
+          return {
+            ...business,
+            profiles: profile || { email: '', first_name: null, last_name: null }
+          };
+        })
+      );
+      
+      return businessesWithProfiles as BusinessData[];
     },
   });
 

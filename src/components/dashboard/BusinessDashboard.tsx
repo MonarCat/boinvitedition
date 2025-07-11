@@ -19,6 +19,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Booking, Service, StaffMember as Staff } from '@/types/models';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 // Interface for payment transactions
 interface PaymentTransaction {
@@ -254,7 +255,7 @@ export function BusinessDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-900">
-              ${todayRevenue.toFixed(2)}
+              {formatCurrency(todayRevenue)}
             </div>
             <p className="text-xs text-green-700">
               {todayBookingCount} bookings today
@@ -271,7 +272,7 @@ export function BusinessDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-900">
-              ${metrics.thisMonthRevenue.toFixed(2)}
+              {formatCurrency(metrics.thisMonthRevenue)}
             </div>
             <div className="flex items-center gap-1 text-xs">
               <span className={metrics.monthlyChangePercentage >= 0 ? "text-green-600" : "text-red-600"}>
@@ -308,7 +309,7 @@ export function BusinessDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-900">
-              ${metrics.upcomingRevenue.toFixed(2)}
+              {formatCurrency(metrics.upcomingRevenue)}
             </div>
             <p className="text-xs text-amber-700">
               {upcomingBookings.length} upcoming bookings
@@ -474,7 +475,7 @@ export function BusinessDashboard() {
                       </div>
                       <div className="flex flex-col items-end">
                         <div className="text-sm font-medium">
-                          ${client.amount.toFixed(2)}
+                          {formatCurrency(client.amount)}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {format(new Date(client.date), 'MMM d, yyyy')}
@@ -521,7 +522,7 @@ export function BusinessDashboard() {
                         </div>
                         <div className="flex flex-col items-end">
                           <div className="text-sm font-medium text-emerald-600">
-                            ${payment.business_amount?.toFixed(2) || payment.amount?.toFixed(2)}
+                            {formatCurrency(payment.business_amount || payment.amount)}
                           </div>
                           <div className="text-xs">
                             <Badge variant={payment.status === 'success' ? 'default' : 'outline'} className="font-normal">
@@ -586,7 +587,7 @@ export function BusinessDashboard() {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-sm">
-                          <div className="font-medium">${booking.amount.toFixed(2)}</div>
+                          <div className="font-medium">{formatCurrency(booking.amount)}</div>
                           <div className="text-xs text-muted-foreground flex items-center gap-1">
                             <FileClock className="h-3 w-3" />
                             {format(new Date(booking.created_at), 'MMM d, yyyy')}
@@ -657,7 +658,7 @@ export function BusinessDashboard() {
                             <div className="font-medium">{booking.service_name}</div>
                             <div className="text-sm text-muted-foreground mt-1 flex justify-between items-center">
                               <span>{booking.client_name}</span>
-                              <span className="font-medium">${booking.amount.toFixed(2)}</span>
+                              <span className="font-medium">{formatCurrency(booking.amount)}</span>
                             </div>
                           </div>
                         </div>
@@ -720,7 +721,7 @@ export function BusinessDashboard() {
                           {format(new Date(payment.created_at), 'MMM d, yyyy • h:mm a')}
                         </div>
                         <div className="text-lg font-medium text-green-600">
-                          ${payment.business_amount?.toFixed(2) || payment.amount?.toFixed(2)}
+                          {formatCurrency(payment.business_amount || payment.amount)}
                         </div>
                       </div>
                     </div>
@@ -751,7 +752,7 @@ export function BusinessDashboard() {
                     <div className="font-medium">
                       {new Date().toLocaleDateString('en-US', { month: 'long' })}
                     </div>
-                    <div className="font-bold">${metrics.thisMonthRevenue.toFixed(2)}</div>
+                    <div className="font-bold">{formatCurrency(metrics.thisMonthRevenue)}</div>
                   </div>
                   <Progress value={75} className="h-2" />
                 </div>
@@ -763,7 +764,7 @@ export function BusinessDashboard() {
                       {new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)
                         .toLocaleDateString('en-US', { month: 'long' })}
                     </div>
-                    <div className="font-bold">${metrics.lastMonthRevenue.toFixed(2)}</div>
+                    <div className="font-bold">{formatCurrency(metrics.lastMonthRevenue)}</div>
                   </div>
                   <Progress value={metrics.lastMonthRevenue / (metrics.thisMonthRevenue || 1) * 100} 
                     className="h-2" />
@@ -811,7 +812,7 @@ export function BusinessDashboard() {
                               {service.name}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              ${service.price.toFixed(2)} per booking
+                              {formatCurrency(service.price)} per booking
                             </p>
                           </div>
                           <div className="flex items-center gap-1">
@@ -861,7 +862,7 @@ export function BusinessDashboard() {
                           </div>
                           <div className="flex items-center">
                             <span className="text-sm font-medium">
-                              ${staffRevenue.toFixed(2)}
+                              {formatCurrency(staffRevenue)}
                             </span>
                           </div>
                         </div>

@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 import { Booking } from '@/types/models';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 // Interface for payment transactions based on the actual structure
 interface PaymentTransaction {
@@ -115,7 +116,7 @@ export const useRealtimeBookingNotifications = (businessId?: string) => {
           
           // Show a notification toast
           toast.success('New Payment Received!', {
-            description: `A payment of $${payload.new.amount?.toFixed(2) || '0.00'} has been received`,
+            description: `A payment of ${formatCurrency(payload.new.amount || 0)} has been received`,
             action: {
               label: 'View',
               onClick: () => {

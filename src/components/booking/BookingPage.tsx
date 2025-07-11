@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { ChevronRight, Clock, CalendarDays, User, Sparkles } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 export function BookingPage() {
   const {
@@ -158,7 +159,7 @@ export function BookingPage() {
                 <p className="text-sm text-muted-foreground mb-1">{service.description}</p>
                 <div className="flex justify-between items-center mt-2">
                   <span className="text-sm">{service.duration_minutes} min</span>
-                  <span className="font-medium">${service.price.toFixed(2)}</span>
+                  <span className="font-medium">{formatCurrency(service.price)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -312,7 +313,7 @@ export function BookingPage() {
               
               <div className="flex justify-between font-bold">
                 <span>Total:</span>
-                <span>${selectedService ? parseFloat(selectedService.price.toString()).toFixed(2) : '0.00'}</span>
+                <span>{formatCurrency(selectedService ? parseFloat(selectedService.price.toString()) : 0)}</span>
               </div>
             </CardContent>
           </Card>
@@ -409,7 +410,7 @@ export function BookingPage() {
                 <p><strong>Date:</strong> {selectedDate?.toLocaleDateString()}</p>
                 <p><strong>Time:</strong> {selectedTime}</p>
                 {selectedStaff && <p><strong>Staff:</strong> {selectedStaff.name}</p>}
-                <p><strong>Total:</strong> ${selectedService ? parseFloat(selectedService.price.toString()).toFixed(2) : '0.00'}</p>
+                <p><strong>Total:</strong> {formatCurrency(selectedService ? parseFloat(selectedService.price.toString()) : 0)}</p>
               </div>
             </div>
           </CardContent>

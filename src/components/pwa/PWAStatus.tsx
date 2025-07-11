@@ -38,18 +38,13 @@ const PWAStatus = () => {
       )}
       <Badge 
         variant={isOnline ? "default" : "destructive"}
-        className="text-xs flex items-center gap-1"
+        className="text-xs flex items-center justify-center w-8 h-6"
+        title={isOnline ? "Online" : "Offline"}
       >
         {isOnline ? (
-          <>
-            <Wifi className="h-3 w-3" />
-            Online
-          </>
+          <Wifi className="h-3 w-3" />
         ) : (
-          <>
-            <WifiOff className="h-3 w-3" />
-            Offline
-          </>
+          <WifiOff className="h-3 w-3" />
         )}
       </Badge>
     </div>

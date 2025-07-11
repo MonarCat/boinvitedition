@@ -59,7 +59,8 @@ export const EnhancedUserManagement = () => {
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
-        query = query.or(`email.ilike.%${searchTerm}%,first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`);
+        const searchPattern = `%${searchTerm.toLowerCase()}%`;
+        query = query.or(`email.ilike.${searchPattern},first_name.ilike.${searchPattern},last_name.ilike.${searchPattern}`);
       }
 
       const { data, error } = await query;

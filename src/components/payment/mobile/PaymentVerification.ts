@@ -41,15 +41,34 @@ export async function verifyPaymentAndUpdateBooking(reference, bookingId) {
     // 
     // For this example, we'll simulate a successful verification
     
-    // Record the payment as verified - only use existing columns
+    // Get booking details to calculate amounts
+    const { data: booking, error: bookingError } = await supabase
+      .from('bookings')
+      .select('total_amount, business_id')
+      .eq('id', bookingId)
+      .single();
+      
+    if (bookingError) {
+      console.error('Error fetching booking:', bookingError);
+      return { success: false, error: 'Failed to fetch booking details' };
+    }
+    
+    const totalAmount = booking.total_amount;
+    const platformFee = totalAmount * 0.05; // 5% platform fee
+    const businessAmount = totalAmount - platformFee;
+
+    // Record the payment as verified
     const { data: paymentRecord, error: paymentError } = await supabase
       .from('payment_transactions')
       .upsert({
         paystack_reference: reference,
         booking_id: bookingId,
+        business_id: booking.business_id,
         status: 'completed',
         payment_method: 'paystack',
-        amount: 0, // In a real implementation, get this from the verification response
+        amount: totalAmount,
+        business_amount: businessAmount,
+        platform_fee_amount: platformFee,
         currency: 'KES',
         transaction_type: 'client_to_business',
         updated_at: new Date().toISOString()

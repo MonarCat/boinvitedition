@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { generateSecureToken } from '@/utils/securityUtils';
+import { generateSecureCSRFToken } from '@/utils/enhancedSecurityUtils';
 
 interface CSRFHook {
   csrfToken: string;
@@ -12,10 +12,12 @@ export const useCSRFProtection = (): CSRFHook => {
   const [csrfToken, setCsrfToken] = useState<string>('');
 
   const generateToken = useCallback(() => {
-    const token = generateSecureToken();
+    const token = generateSecureCSRFToken();
     setCsrfToken(token);
     // Store in session storage for validation
     sessionStorage.setItem('csrf_token', token);
+    // Add timestamp for token expiry
+    sessionStorage.setItem('csrf_token_timestamp', Date.now().toString());
     return token;
   }, []);
 
@@ -31,7 +33,23 @@ export const useCSRFProtection = (): CSRFHook => {
 
   const validateCSRFToken = useCallback((token: string): boolean => {
     const storedToken = sessionStorage.getItem('csrf_token');
-    return !!(token && storedToken && token === storedToken && token.length > 20);
+    const tokenTimestamp = sessionStorage.getItem('csrf_token_timestamp');
+    
+    // Check if token exists and matches
+    if (!token || !storedToken || token !== storedToken || token.length < 32) {
+      return false;
+    }
+    
+    // Check if token is not expired (1 hour expiry)
+    if (tokenTimestamp) {
+      const timestamp = parseInt(tokenTimestamp);
+      const oneHour = 60 * 60 * 1000;
+      if (Date.now() - timestamp > oneHour) {
+        return false;
+      }
+    }
+    
+    return true;
   }, []);
 
   const refreshToken = useCallback(() => {

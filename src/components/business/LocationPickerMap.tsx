@@ -22,10 +22,12 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(
     initialLocation
   );
-  const GOOGLE_MAPS_API_KEY = "AIzaSyA4F9QAPbmF2NfMAh82RqPDtrrMceit1Oc";
+  // Use a public API key for development (should be restricted by domain in production)
+  const GOOGLE_MAPS_API_KEY = "AIzaSyBGDHzKQGLJn4Xc9KZW7hHJo8lmnNpqC8Y";
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    libraries: ["places"],
   });
 
   const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {

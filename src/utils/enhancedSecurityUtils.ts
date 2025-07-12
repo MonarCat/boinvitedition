@@ -143,6 +143,90 @@ export const validatePaymentAmount = (
   };
 };
 
+// Enhanced input validation with XSS prevention (alias for compatibility)
+export const validateInputSecure = (input: string, fieldType: 'email' | 'phone' | 'text' | 'url'): { isValid: boolean; sanitized: string; errors: string[] } => {
+  const errors: string[] = [];
+  let sanitized = input.trim();
+  
+  // Remove potentially dangerous characters
+  sanitized = sanitized.replace(/<[^>]*>/g, ''); // Remove HTML tags
+  sanitized = sanitized.replace(/javascript:/gi, ''); // Remove javascript: URLs
+  sanitized = sanitized.replace(/data:/gi, ''); // Remove data: URLs
+  sanitized = sanitized.replace(/vbscript:/gi, ''); // Remove vbscript: URLs
+  
+  // Field-specific validation
+  switch (fieldType) {
+    case 'email':
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(sanitized)) {
+        errors.push('Invalid email format');
+      }
+      if (sanitized.length > 254) {
+        errors.push('Email too long');
+      }
+      break;
+      
+    case 'phone':
+      const phoneRegex = /^\+?[\d\s\-\(\)]{10,20}$/;
+      if (!phoneRegex.test(sanitized)) {
+        errors.push('Invalid phone format');
+      }
+      break;
+      
+    case 'url':
+      try {
+        const url = new URL(sanitized);
+        if (!['http:', 'https:'].includes(url.protocol)) {
+          errors.push('Only HTTP/HTTPS URLs allowed');
+        }
+      } catch {
+        errors.push('Invalid URL format');
+      }
+      break;
+      
+    case 'text':
+      // Check for excessive length
+      if (sanitized.length > 10000) {
+        errors.push('Text too long');
+      }
+      // Check for suspicious patterns
+      if (/\b(eval|Function|setTimeout|setInterval)\b/i.test(sanitized)) {
+        errors.push('Potentially dangerous content detected');
+      }
+      break;
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    sanitized,
+    errors
+  };
+};
+
+// Security headers for API requests
+export const getSecurityHeaders = (csrfToken?: string): Record<string, string> => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Referrer-Policy': 'strict-origin-when-cross-origin'
+  };
+  
+  if (csrfToken) {
+    headers['X-CSRF-Token'] = csrfToken;
+  }
+  
+  return headers;
+};
+
+// Enhanced CSRF token generation
+export const generateSecureCSRFToken = (): string => {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+};
+
 // Business context validation
 export const validateBusinessContext = async (
   businessId: string,

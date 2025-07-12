@@ -1618,6 +1618,10 @@ export type Database = {
           distance_km: number
         }[]
       }
+      secure_assign_admin_role: {
+        Args: { _target_user_email: string; _admin_user_id?: string }
+        Returns: Json
+      }
       secure_validate_business_ownership: {
         Args: { p_business_id: string; p_user_id?: string }
         Returns: boolean

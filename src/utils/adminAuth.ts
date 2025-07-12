@@ -26,29 +26,21 @@ export const checkAdmin = async (): Promise<boolean> => {
 
 export const makeUserAdmin = async (email: string): Promise<{ success: boolean; message: string }> => {
   try {
-    // First, try to find the user in profiles by email
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', email)
-      .single();
+    // Use the secure role assignment function
+    const { data, error } = await supabase.rpc('secure_assign_admin_role', {
+      _target_user_email: email
+    });
     
-    if (profileError || !profile) {
-      return { success: false, message: 'User not found. Please make sure the user has signed up first.' };
+    if (error) {
+      console.error('Error assigning admin role:', error);
+      return { success: false, message: error.message };
     }
     
-    // Update the user's admin status
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ is_admin: true })
-      .eq('id', profile.id);
-    
-    if (updateError) {
-      return { success: false, message: updateError.message };
-    }
-    
-    return { success: true, message: 'Admin role assigned successfully' };
+    // Parse the result
+    const result = data as { success: boolean; message: string };
+    return result;
   } catch (error) {
+    console.error('Exception in makeUserAdmin:', error);
     return { success: false, message: 'Failed to assign admin role' };
   }
 };

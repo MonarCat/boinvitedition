@@ -4,19 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
-export interface Subscription {
+export interface PayAsYouGoSubscription {
   id: string;
   user_id: string;
   business_id: string;
   plan_type: 'payg';
-  status: 'active' | 'inactive' | 'trialing' | 'past_due' | 'canceled';
-  trial_ends_at: string | null;
-  current_period_end: string;
-  paystack_reference?: string;
-  staff_limit?: number;
-  bookings_limit?: number;
-  payment_interval?: string;
-  commission_rate?: number;
+  status: 'active';
+  commission_rate: 0.05; // Always 5%
   created_at: string;
   updated_at: string;
 }
@@ -43,7 +37,7 @@ export const useSubscription = () => {
           return null;
         }
         
-        return data as Subscription | null;
+        return data as PayAsYouGoSubscription | null;
       } catch (err) {
         console.error('Subscription fetch error:', err);
         return null;
@@ -52,10 +46,8 @@ export const useSubscription = () => {
     enabled: !!user,
   });
 
-  // Check if subscription is active
-  const isActive = subscription && 
-    subscription.status === 'active' && 
-    new Date(subscription.current_period_end) > new Date();
+  // PAYG is always active once created
+  const isActive = subscription && subscription.status === 'active';
 
   // Create or upgrade subscription
   const createSubscriptionMutation = useMutation({
@@ -72,21 +64,12 @@ export const useSubscription = () => {
       
       console.log('Creating subscription:', { planType, businessId, paystackReference });
       
-      let subscriptionData: Partial<Subscription> = {};
-
-      switch (planType) {
-        case 'payg':
-          subscriptionData = {
-            plan_type: 'payg',
-            status: 'active',
-            commission_rate: 0.05, // 5% commission
-            staff_limit: 999,
-            bookings_limit: 999999,
-          };
-          break;
-        default:
-          throw new Error('Invalid plan type');
-      }
+      // Simple PAYG setup - no subscriptions, just 5% commission
+      const subscriptionData = {
+        plan_type: 'payg' as const,
+        status: 'active' as const,
+        commission_rate: 0.05, // Fixed 5% commission
+      };
 
       // First, verify the business exists and belongs to the user
       const { data: businessData, error: businessError } = await supabase
@@ -101,17 +84,14 @@ export const useSubscription = () => {
         throw new Error('Business not found or access denied');
       }
 
-      // Create the subscription
+      // Create simple PAYG record
       const newSubscriptionData = {
         user_id: user.id,
         business_id: businessId,
-        plan_type: subscriptionData?.plan_type || 'payg',
+        plan_type: 'payg' as const,
         status: 'active' as const,
-        staff_limit: subscriptionData?.staff_limit || null,
-        bookings_limit: subscriptionData?.bookings_limit || null,
-        commission_rate: subscriptionData?.commission_rate || 0.05,
-        paystack_reference: paystackReference || undefined,
-        current_period_end: new Date(new Date().setFullYear(new Date().getFullYear() + 100)).toISOString(), // 100 years from now
+        commission_rate: 0.05, // Fixed 5% commission
+        current_period_end: new Date(2099, 11, 31).toISOString(), // Far future date
       };
 
       console.log('Upserting subscription data:', newSubscriptionData);

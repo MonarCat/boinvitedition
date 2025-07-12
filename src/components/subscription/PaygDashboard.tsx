@@ -9,7 +9,8 @@ import { toast } from 'sonner';
 
 export const PaygDashboard = ({ businessId }) => {
   const { subscription } = useSubscription();
-  const isPaygSubscription = subscription?.plan_type === 'payg';
+  // All businesses use PAYG model now
+  const isPaygSubscription = true;
   
   // Fetch transactions for this business
   const { data: transactions, isLoading } = useQuery({
@@ -31,43 +32,37 @@ export const PaygDashboard = ({ businessId }) => {
       
       return data || [];
     },
-    enabled: !!businessId && isPaygSubscription
+    enabled: !!businessId
   });
 
-  if (!subscription) {
-    return null;
-  }
-  
-  if (!isPaygSubscription) {
-    return <PaygBanner />;
-  }
+  // Always show PAYG dashboard
 
   return (
     <div className="space-y-6">
       <Card className="border-orange-200">
-        <CardHeader className="bg-orange-50 border-b border-orange-100">
-          <CardTitle className="text-lg text-orange-800">
-            Pay As You Go Dashboard
+        <CardHeader className="bg-primary/10 border-b border-primary/20">
+          <CardTitle className="text-lg text-primary">
+            Pay As You Earn - 5% Commission
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+          <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h3 className="font-medium text-orange-800">Your PAYG Plan is Active</h3>
-                <p className="text-sm text-orange-700">
-                  You're only charged a 5% commission when you successfully receive payment from clients
+                <h3 className="font-medium text-primary">Pay As You Earn Model Active</h3>
+                <p className="text-sm text-muted-foreground">
+                  Simple pricing: We only take 5% commission when you successfully get paid by clients
                 </p>
               </div>
-              <div className="text-sm bg-white px-3 py-2 rounded border border-orange-200">
-                <span className="font-medium text-orange-800">Commission Rate:</span> 5%
+              <div className="text-sm bg-background px-3 py-2 rounded border border-primary/20">
+                <span className="font-medium text-primary">Commission:</span> 5%
               </div>
             </div>
           </div>
           
-          <p className="text-sm text-gray-600 mb-6">
-            With Pay As You Go, you have full access to all premium features with no monthly subscription fees.
-            Commission is only calculated on successful payments.
+          <p className="text-sm text-muted-foreground mb-6">
+            No monthly fees, no subscriptions, no hidden costs. You only pay when you earn.
+            Full access to all features with just a 5% commission on successful payments.
           </p>
         </CardContent>
       </Card>

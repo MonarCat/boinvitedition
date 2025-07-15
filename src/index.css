@@ -6,61 +6,56 @@
 
 @layer base {
   :root {
-    /* Light Theme Colors - Optimized for contrast */
+    /* Modern Fresha-inspired Color System */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 222 47% 11%;
     
-    /* Royal Blue Theme - Adjusted for better contrast */
-    --royal-blue: 240 100% 25%;
-    --royal-blue-light: 240 70% 45%;
-    --royal-blue-dark: 240 100% 15%;
-    --royal-blue-foreground: 0 0% 100%;
-    --royal-blue-muted: 240 40% 95%;
+    /* Modern Primary - Clean dark for better contrast */
+    --primary: 222 47% 11%;
+    --primary-foreground: 0 0% 98%;
     
-    /* Royal Red Theme - Adjusted for better contrast */
-    --royal-red: 0 84% 50%;
-    --royal-red-light: 0 84% 60%;
-    --royal-red-dark: 0 84% 40%;
-    --royal-red-foreground: 0 0% 100%;
-    --royal-red-accent: 0 84% 45%;
-    --royal-red-muted: 0 40% 95%;
+    /* Secondary - Light neutral */
+    --secondary: 220 13% 91%;
+    --secondary-foreground: 222 47% 11%;
     
-    /* Accent Green - Adjusted for better contrast */
-    --accent-green: 120 60% 30%;
-    --accent-green-light: 120 60% 40%;
-    --accent-green-dark: 120 60% 20%;
-    --accent-green-foreground: 0 0% 100%;
+    /* Soft accent colors */
+    --accent: 220 13% 91%;
+    --accent-foreground: 222 47% 11%;
     
-    /* Primary colors */
-    --primary: var(--royal-blue);
-    --primary-foreground: var(--royal-blue-foreground);
+    /* Muted colors for subtle elements */
+    --muted: 220 13% 95%;
+    --muted-foreground: 220 9% 46%;
     
-    /* Secondary colors */
-    --secondary: 210 40% 95%;
-    --secondary-foreground: 222.2 84% 4.9%;
+    /* UI elements */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 222 47% 11%;
+    --radius: 0.75rem;
     
-    /* UI elements - Optimized for readability */
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 40%;
-    --accent: var(--accent-green);
-    --accent-foreground: var(--accent-green-foreground);
-    --destructive: 0 84.2% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 214.3 31.8% 85%;
-    --input: 214.3 31.8% 85%;
-    --ring: var(--royal-blue);
-    --radius: 0.5rem;
+    /* Search highlight color */
+    --search-highlight: 262 83% 58%;
+    --search-highlight-bg: 262 83% 95%;
+    
+    /* Success color */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 98%;
+    
+    /* Warning color */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 98%;
     
     /* Chart Colors */
-    --chart-1: var(--royal-blue);
-    --chart-2: var(--royal-red);
-    --chart-3: var(--accent-green);
-    --chart-4: 43 74% 50%;
-    --chart-5: 27 87% 50%;
+    --chart-1: 222 47% 11%;
+    --chart-2: 262 83% 58%;
+    --chart-3: 142 76% 36%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 0 84% 60%;
   }
 }
 

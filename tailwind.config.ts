@@ -52,11 +52,17 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				'royal-red': {
-					DEFAULT: 'hsl(var(--royal-red))',
-					foreground: 'hsl(var(--royal-red-foreground))',
-					muted: 'hsl(var(--royal-red-muted))',
-					accent: 'hsl(var(--royal-red-accent))'
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
+				},
+				highlight: {
+					DEFAULT: 'hsl(var(--search-highlight))',
+					bg: 'hsl(var(--search-highlight-bg))'
 				}
 			},
 			borderRadius: {

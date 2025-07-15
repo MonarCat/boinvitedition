@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ModernButton } from "@/components/ui/modern-button";
+import { ModernInput } from "@/components/ui/modern-input";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Calendar, Clock, ArrowRight } from "lucide-react";
+import { Search, MapPin, Calendar, Clock, ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const ModernHeroSection = () => {
@@ -10,104 +10,129 @@ const ModernHeroSection = () => {
   const [location, setLocation] = useState("");
 
   return (
-    <div className="relative bg-gradient-to-b from-background to-muted/30 min-h-[90vh] flex items-center">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+    <div className="relative bg-gradient-hero min-h-[95vh] flex items-center overflow-hidden">
+      {/* Enhanced Background Effects */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent" />
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
+      </div>
       
       <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
+        <div className="max-w-5xl mx-auto text-center space-y-10">
           
-          {/* Badge */}
-          <Badge variant="secondary" className="px-4 py-2 text-sm font-medium">
-            Trusted by 617,493+ businesses worldwide
-          </Badge>
+          {/* Enhanced Badge */}
+          <div className="animate-fade-in-up">
+            <Badge variant="secondary" className="px-6 py-3 text-sm font-medium bg-white/10 backdrop-blur-sm border-white/20 text-white">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Trusted by 617,493+ businesses worldwide
+            </Badge>
+          </div>
 
-          {/* Main Heading */}
-          <div className="space-y-4">
-            <h1 className="text-5xl md:text-7xl font-bold text-foreground leading-tight tracking-tight">
+          {/* Enhanced Main Heading */}
+          <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            <h1 className="text-6xl md:text-8xl font-poppins font-bold text-white leading-tight tracking-tight">
               Book local beauty and
               <br />
-              <span className="text-highlight">wellness services</span>
+              <span className="text-gradient bg-gradient-to-r from-accent to-white bg-clip-text text-transparent">
+                wellness services
+              </span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto leading-relaxed font-light">
               Discover and book appointments with top-rated salons, spas, and wellness professionals in your area.
             </p>
           </div>
 
-          {/* Search Form */}
-          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border p-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-              
-              {/* Service Search */}
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                <Input
-                  placeholder="All treatments and venues"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-0 bg-transparent focus:ring-0 text-base h-12"
-                />
-              </div>
+          {/* Enhanced Search Form */}
+          <div className="max-w-5xl mx-auto animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+            <div className="glass rounded-3xl p-6 shadow-2xl border border-white/20">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end">
+                
+                {/* Service Search */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/90">Service</label>
+                  <ModernInput
+                    placeholder="All treatments and venues"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    icon={<Search className="w-5 h-5" />}
+                    variant="ghost"
+                    inputSize="lg"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:bg-white/20"
+                  />
+                </div>
 
-              {/* Location */}
-              <div className="relative flex-1">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                <Input
-                  placeholder="Current location"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="pl-10 border-0 bg-transparent focus:ring-0 text-base h-12"
-                />
-              </div>
+                {/* Location */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/90">Location</label>
+                  <ModernInput
+                    placeholder="Current location"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    icon={<MapPin className="w-5 h-5" />}
+                    variant="ghost"
+                    inputSize="lg"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:bg-white/20"
+                  />
+                </div>
 
-              {/* Date */}
-              <div className="relative flex-1">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                <Input
-                  placeholder="Any date"
-                  type="date"
-                  className="pl-10 border-0 bg-transparent focus:ring-0 text-base h-12"
-                />
-              </div>
+                {/* Date */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/90">Date</label>
+                  <ModernInput
+                    placeholder="Any date"
+                    type="date"
+                    icon={<Calendar className="w-5 h-5" />}
+                    variant="ghost"
+                    inputSize="lg"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:bg-white/20"
+                  />
+                </div>
 
-              {/* Time & Search Button */}
-              <div className="relative flex-1">
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                <Input
-                  placeholder="Any time"
-                  type="time"
-                  className="pl-10 border-0 bg-transparent focus:ring-0 text-base h-12"
-                />
-              </div>
+                {/* Search Button */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-transparent select-none">Search</label>
+                  <ModernButton 
+                    size="lg" 
+                    variant="accent"
+                    className="w-full h-12 rounded-xl text-base font-semibold shadow-accent hover:shadow-xl transition-all duration-300"
+                    icon={<ArrowRight className="w-5 h-5" />}
+                    iconPosition="right"
+                  >
+                    Search
+                  </ModernButton>
+                </div>
 
-            </div>
-            
-            <div className="mt-4 flex justify-center">
-              <Button size="lg" className="px-8 py-3 rounded-xl text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground">
-                Search
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
+              </div>
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="text-center">
-            <p className="text-muted-foreground text-lg">
-              <span className="font-semibold text-foreground">617,493</span> appointments booked today
+          {/* Enhanced Stats */}
+          <div className="text-center animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
+            <p className="text-white/70 text-lg md:text-xl">
+              <span className="font-semibold text-white text-2xl md:text-3xl">617,493</span> appointments booked today
             </p>
           </div>
 
-          {/* CTA Section */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
-            <Link to="/signup">
-              <Button size="lg" variant="outline" className="px-8 py-3 rounded-xl border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+          {/* Enhanced CTA Section */}
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-8 animate-fade-in-up" style={{ animationDelay: "0.8s" }}>
+            <Link to="/auth">
+              <ModernButton 
+                size="xl" 
+                variant="outline" 
+                className="px-10 py-4 rounded-xl border-white/20 text-white hover:bg-white hover:text-primary font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              >
                 Get the app
-              </Button>
+              </ModernButton>
             </Link>
-            <Link to="/login">
-              <Button size="lg" variant="ghost" className="px-8 py-3 rounded-xl text-muted-foreground hover:text-foreground">
+            <Link to="/auth">
+              <ModernButton 
+                size="xl" 
+                variant="ghost" 
+                className="px-10 py-4 rounded-xl text-white/80 hover:text-white hover:bg-white/10 font-semibold transition-all duration-300"
+              >
                 List your business
-              </Button>
+              </ModernButton>
             </Link>
           </div>
 

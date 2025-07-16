@@ -203,14 +203,17 @@ export const validateInputSecure = (input: string, fieldType: 'email' | 'phone' 
   };
 };
 
-// Security headers for API requests
+// Enhanced security headers for API requests
 export const getSecurityHeaders = (csrfToken?: string): Record<string, string> => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'X-XSS-Protection': '1; mode=block',
-    'Referrer-Policy': 'strict-origin-when-cross-origin'
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:",
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()'
   };
   
   if (csrfToken) {

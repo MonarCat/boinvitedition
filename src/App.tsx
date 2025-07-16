@@ -10,6 +10,10 @@ import { SecurityHeaders } from "@/components/security/SecurityHeaders";
 import { preloadPaystackScript } from "@/components/payment/PaystackScriptLoader";
 import AuthenticatedApp from "@/pages/AuthenticatedApp";
 import LandingPage from "@/pages/LandingPage";
+import DemoPage from "@/pages/DemoPage";
+import DiscoverPage from "@/pages/DiscoverPage";
+import SafetyPage from "@/pages/SafetyPage";
+import AppDownloadPage from "@/pages/AppDownloadPage";
 import BookingPage from "@/pages/BookingPage";
 import AuthPage from "@/pages/AuthPage";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
@@ -114,6 +118,12 @@ const App = () => {
                       <Routes>
                         {/* Landing page */}
                         <Route path="/" element={<LandingPage />} />
+                        
+                        {/* Public pages */}
+                        <Route path="/demo" element={<DemoPage />} />
+                        <Route path="/discover" element={<DiscoverPage />} />
+                        <Route path="/safety" element={<SafetyPage />} />
+                        <Route path="/app-download" element={<AppDownloadPage />} />
                         
                         {/* Authentication */}
                         <Route path="/auth" element={<AuthPage />} />

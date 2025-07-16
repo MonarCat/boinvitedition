@@ -1,124 +1,143 @@
-
 import React from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Play, Calendar, Users, MapPin, CreditCard } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
+import { Play, Calendar, Users, MapPin, CreditCard, ArrowLeft, Star } from 'lucide-react';
 import DemoVideo from '@/components/demo/DemoVideo';
 
 const DemoPage = () => {
+  const navigate = useNavigate();
+
   const demoFeatures = [
     {
-      icon: <Calendar className="h-6 w-6" />,
+      icon: <Calendar className="h-6 w-6 text-primary" />,
       title: 'Smart Booking System',
       description: 'Automated scheduling with conflict detection and optimal time slot suggestions.'
     },
     {
-      icon: <Users className="h-6 w-6" />,
+      icon: <Users className="h-6 w-6 text-primary" />,
       title: 'Customer Management',
       description: 'Complete client profiles with booking history and preferences.'
     },
     {
-      icon: <MapPin className="h-6 w-6" />,
+      icon: <MapPin className="h-6 w-6 text-primary" />,
       title: 'Transport Integration',
       description: 'Full transport services with route planning and real-time tracking.'
     },
     {
-      icon: <CreditCard className="h-6 w-6" />,
+      icon: <CreditCard className="h-6 w-6 text-primary" />,
       title: 'Global Payments',
       description: 'Multi-currency support with international payment gateways.'
     }
   ];
 
   return (
-    <DashboardLayout>
-      <div className="space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-gray-900">Boinvit Platform Demo</h1>
-          <h2 className="text-2xl text-gray-700">Coming Soon!</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Experience the future of business management with our comprehensive booking and service platform.
-            Compete global and local leaders.
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b bg-white sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Home
+              </Button>
+              <h1 className="text-xl font-semibold">Platform Demo</h1>
+            </div>
+            <Button onClick={() => navigate('/auth')}>
+              Get Started
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Hero Section */}
+      <div className="bg-gradient-to-br from-primary/5 to-primary/10 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Badge className="mb-4 bg-primary/10 text-primary">
+            <Play className="h-4 w-4 mr-2" />
+            Interactive Demo
+          </Badge>
+          <h1 className="text-4xl font-bold text-foreground mb-6">
+            See Boinvit in Action
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Experience the future of business management with our comprehensive platform that helps you compete with global and local leaders.
           </p>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Play className="h-5 w-5" />
-                Platform Overview
-              </CardTitle>
-              <CardDescription>
-                Watch how Boinvit revolutionizes business operations
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DemoVideo />
-            </CardContent>
-          </Card>
+      {/* Demo Video Section */}
+      <div className="py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <DemoVideo />
+        </div>
+      </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Key Features</CardTitle>
-              <CardDescription>
-                Discover what makes Boinvit the perfect solution for your business
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {demoFeatures.map((feature, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
-                    <div className="flex-shrink-0 text-blue-600">
-                      {feature.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-medium mb-1">{feature.title}</h3>
-                      <p className="text-sm text-gray-600">{feature.description}</p>
-                    </div>
+      {/* Demo Features */}
+      <div className="py-16 bg-muted/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              Explore Key Features
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Discover what makes Boinvit the complete business management solution
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {demoFeatures.map((feature, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    {feature.icon}
+                    <CardTitle className="text-lg">{feature.title}</CardTitle>
                   </div>
-                ))}
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <CardDescription className="text-muted-foreground">
+                    {feature.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-l-4 border-l-primary">
+            <CardContent className="p-8 text-center">
+              <Star className="h-12 w-12 text-primary mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-foreground mb-4">
+                Ready to Transform Your Business?
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Join thousands of businesses already using Boinvit's pay-as-you-go platform
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button size="lg" onClick={() => navigate('/auth')}>
+                  <Play className="h-4 w-4 mr-2" />
+                  Start with Pay As You Go
+                </Button>
+                <Button size="lg" variant="outline" onClick={() => navigate('/discover')}>
+                  Explore Businesses
+                </Button>
               </div>
             </CardContent>
           </Card>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {demoFeatures.map((feature, index) => (
-            <Card key={index}>
-              <CardHeader className="text-center">
-                <div className="flex justify-center text-blue-600 mb-2">
-                  {feature.icon}
-                </div>
-                <CardTitle className="text-lg">{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-center">
-                  {feature.description}
-                </CardDescription>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-          <CardContent className="p-8 text-center space-y-4">
-            <h2 className="text-2xl font-bold">Ready to Get Started?</h2>
-            <p className="text-lg opacity-90">
-              Join thousands of businesses already using Boinvit to streamline their operations.
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Button variant="secondary" size="lg">
-                Start Free Trial
-              </Button>
-              <Button variant="outline" size="lg" className="bg-transparent border-white text-white hover:bg-white hover:text-blue-600">
-                Schedule Demo
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

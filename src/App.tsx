@@ -130,6 +130,7 @@ const App = () => {
                         
                         {/* Public booking pages */}
                         <Route path="/booking/:businessId" element={<BookingPage />} />
+                        <Route path="/book/:businessId" element={<BookingPage />} />
                         <Route path="/b/:subdomain" element={<BookingPage />} />
                         
                         {/* Authenticated application */}

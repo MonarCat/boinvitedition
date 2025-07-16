@@ -180,7 +180,7 @@ const LandingPage = () => {
                 onClick={() => navigate('/auth')}
                 className="bg-royal-red hover:bg-royal-red/90 text-white px-8 py-3 text-lg"
               >
-                Start Free AI Trial
+                Start with Pay As You Go
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button 
@@ -195,11 +195,11 @@ const LandingPage = () => {
             <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-1">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>14-day free trial</span>
+                <span>Pay As You Go model</span>
               </div>
               <div className="flex items-center gap-1">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>No credit card required</span>
+                <span>No monthly fees</span>
               </div>
               <div className="flex items-center gap-1">
                 <CheckCircle className="h-4 w-4 text-green-500" />
@@ -307,7 +307,7 @@ const LandingPage = () => {
               onClick={() => navigate('/auth')}
               className="bg-white text-royal-red hover:bg-gray-50 px-8 py-3 text-lg"
             >
-              Start Your Free Trial
+              Start with Pay As You Go
             </Button>
             <Button 
               size="lg" 

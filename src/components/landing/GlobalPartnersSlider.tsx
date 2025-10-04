@@ -31,23 +31,35 @@ export const GlobalPartnersSlider = () => {
         <div className="relative">
           <div className="flex animate-scroll space-x-6">
             {GLOBAL_BUSINESSES.map((partner, index) => (
-              <Card key={`first-${index}`} className="flex-shrink-0 w-64 hover:shadow-lg transition-shadow">
+              <Card 
+                key={`first-${index}`} 
+                className="flex-shrink-0 w-64 hover:shadow-2xl hover:scale-105 hover:border-2 hover:border-blue-500 transition-all duration-300 group cursor-pointer border-2 border-transparent bg-gradient-to-br from-white to-blue-50"
+              >
                 <CardContent className="p-6 text-center">
-                  <div className="text-4xl mb-3">{partner.logo}</div>
-                  <h3 className="font-semibold text-lg mb-1">{partner.name}</h3>
+                  <div className="text-4xl mb-3 group-hover:scale-125 group-hover:rotate-6 transition-all duration-300">{partner.logo}</div>
+                  <h3 className="font-semibold text-lg mb-1 group-hover:text-blue-600 transition-colors">{partner.name}</h3>
                   <p className="text-gray-600 text-sm mb-1">{partner.category}</p>
-                  <p className="text-gray-500 text-xs">{partner.location}</p>
+                  <p className="text-gray-500 text-xs flex items-center justify-center gap-1">
+                    <span className="inline-block group-hover:animate-pulse">📍</span>
+                    {partner.location}
+                  </p>
                 </CardContent>
               </Card>
             ))}
             
             {GLOBAL_BUSINESSES.map((partner, index) => (
-              <Card key={`second-${index}`} className="flex-shrink-0 w-64 hover:shadow-lg transition-shadow">
+              <Card 
+                key={`second-${index}`} 
+                className="flex-shrink-0 w-64 hover:shadow-2xl hover:scale-105 hover:border-2 hover:border-blue-500 transition-all duration-300 group cursor-pointer border-2 border-transparent bg-gradient-to-br from-white to-blue-50"
+              >
                 <CardContent className="p-6 text-center">
-                  <div className="text-4xl mb-3">{partner.logo}</div>
-                  <h3 className="font-semibold text-lg mb-1">{partner.name}</h3>
+                  <div className="text-4xl mb-3 group-hover:scale-125 group-hover:rotate-6 transition-all duration-300">{partner.logo}</div>
+                  <h3 className="font-semibold text-lg mb-1 group-hover:text-blue-600 transition-colors">{partner.name}</h3>
                   <p className="text-gray-600 text-sm mb-1">{partner.category}</p>
-                  <p className="text-gray-500 text-xs">{partner.location}</p>
+                  <p className="text-gray-500 text-xs flex items-center justify-center gap-1">
+                    <span className="inline-block group-hover:animate-pulse">📍</span>
+                    {partner.location}
+                  </p>
                 </CardContent>
               </Card>
             ))}

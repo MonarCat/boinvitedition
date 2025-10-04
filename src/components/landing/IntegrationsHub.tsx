@@ -203,11 +203,14 @@ export const IntegrationsHub: React.FC = () => {
             <TabsContent key={category} value={category} className="space-y-6">
               <div className="grid md:grid-cols-3 gap-6">
                 {items.map((integration, index) => (
-                  <Card key={index} className="hover:shadow-lg transition-all duration-300 border-0 shadow-md">
+                  <Card 
+                    key={index} 
+                    className="hover:shadow-2xl hover:scale-105 hover:border-blue-400 transition-all duration-300 border-2 border-transparent shadow-md group cursor-pointer"
+                  >
                     <CardHeader className="pb-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <div className={`p-3 rounded-xl ${integration.color}`}>
+                          <div className={`p-3 rounded-xl ${integration.color} group-hover:scale-110 transition-transform duration-300`}>
                             <integration.icon className="h-6 w-6" />
                           </div>
                           <div>
@@ -229,8 +232,13 @@ export const IntegrationsHub: React.FC = () => {
                           </div>
                         ))}
                       </div>
-                      <Button variant="outline" size="sm" className="w-full mt-4">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full mt-4 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all duration-300"
+                      >
                         Connect {integration.name}
+                        <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
                       </Button>
                     </CardContent>
                   </Card>

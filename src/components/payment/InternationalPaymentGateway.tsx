@@ -100,11 +100,14 @@ export const InternationalPaymentGateway = () => {
         <CardContent>
           <div className="grid gap-4">
             {PAYMENT_METHODS.map((method) => (
-              <Card key={method.id} className="border-2 hover:border-blue-300 transition-colors">
+              <Card 
+                key={method.id} 
+                className="border-2 border-transparent hover:border-blue-500 hover:shadow-xl hover:scale-102 transition-all duration-300 group cursor-pointer bg-gradient-to-br from-white to-gray-50"
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{method.logo}</span>
+                      <span className="text-2xl group-hover:scale-125 transition-transform duration-300">{method.logo}</span>
                       <div>
                         <h3 className="font-semibold text-lg">{method.name}</h3>
                         <div className="flex flex-wrap gap-1 mt-1">
@@ -134,10 +137,11 @@ export const InternationalPaymentGateway = () => {
                       </div>
                       <Button
                         onClick={() => handleSetupPayment(method.id)}
-                        className="mt-2"
+                        className="mt-2 group-hover:bg-blue-600 group-hover:shadow-lg transition-all duration-300"
                         size="sm"
                       >
                         Setup
+                        <Zap className="ml-1 h-3 w-3 group-hover:animate-pulse" />
                       </Button>
                     </div>
                   </div>

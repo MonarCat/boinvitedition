@@ -23,7 +23,6 @@ import {
 import { GlobalPartnersSlider } from '@/components/landing/GlobalPartnersSlider';
 import { PricingSection } from '@/components/landing/PricingSection';
 import { AIFeaturesSection } from '@/components/landing/AIFeaturesSection';
-import { IntegrationsHub } from '@/components/landing/IntegrationsHub';
 import { ensureAuthButtonsVisible } from '@/utils/buttonVisibility';
 
 const LandingPage = () => {
@@ -215,9 +214,6 @@ const LandingPage = () => {
 
       {/* AI Features Section */}
       <AIFeaturesSection />
-
-      {/* Integrations Hub */}
-      <IntegrationsHub />
 
       {/* Features Section */}
       <section className="py-16 bg-white">

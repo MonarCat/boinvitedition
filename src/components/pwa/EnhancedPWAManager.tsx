@@ -147,23 +147,6 @@ export const EnhancedPWAManager = () => {
           </Badge>
         )}
         
-        <Badge 
-          variant={pwaState.isOnline ? "default" : "destructive"}
-          className="text-xs flex items-center gap-1"
-        >
-          {pwaState.isOnline ? (
-            <>
-              <Wifi className="w-3 h-3" />
-              Online
-            </>
-          ) : (
-            <>
-              <WifiOff className="w-3 h-3" />
-              Offline
-            </>
-          )}
-        </Badge>
-        
         {pwaState.hasNotificationPermission && (
           <Badge variant="outline" className="text-xs flex items-center gap-1">
             <Bell className="w-3 h-3" />

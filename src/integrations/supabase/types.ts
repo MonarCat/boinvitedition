@@ -7,10 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -643,7 +643,7 @@ export type Database = {
           paystack_subaccount_id: string | null
           phone: string | null
           preferred_payment_methods: string[] | null
-          search_vector: unknown | null
+          search_vector: unknown
           service_radius_km: number | null
           subdomain: string | null
           total_reviews: number | null
@@ -677,7 +677,7 @@ export type Database = {
           paystack_subaccount_id?: string | null
           phone?: string | null
           preferred_payment_methods?: string[] | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           service_radius_km?: number | null
           subdomain?: string | null
           total_reviews?: number | null
@@ -711,7 +711,7 @@ export type Database = {
           paystack_subaccount_id?: string | null
           phone?: string | null
           preferred_payment_methods?: string[] | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           service_radius_km?: number | null
           subdomain?: string | null
           total_reviews?: number | null
@@ -1503,12 +1503,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      assign_admin_role: {
-        Args: { _user_email: string }
-        Returns: undefined
-      }
+      assign_admin_role: { Args: { _user_email: string }; Returns: undefined }
       calculate_distance: {
-        Args: { lat1: number; lon1: number; lat2: number; lon2: number }
+        Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
       }
       calculate_reschedule_deadline: {
@@ -1517,8 +1514,8 @@ export type Database = {
       }
       check_rate_limit: {
         Args: {
-          p_identifier: string
           p_attempt_type: string
+          p_identifier: string
           p_max_attempts?: number
           p_window_minutes?: number
         }
@@ -1527,19 +1524,13 @@ export type Database = {
       create_paid_subscription: {
         Args: {
           business_id: string
-          plan_type: string
           paystack_reference?: string
+          plan_type: string
         }
         Returns: string
       }
-      generate_ticket_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_admin_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      generate_ticket_code: { Args: never; Returns: string }
+      get_admin_stats: { Args: never; Returns: Json }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: {
@@ -1548,27 +1539,21 @@ export type Database = {
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
-      is_business_owner: {
-        Args: { _business_id: string }
-        Returns: boolean
-      }
-      is_user_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      is_business_owner: { Args: { _business_id: string }; Returns: boolean }
+      is_user_admin: { Args: { user_id: string }; Returns: boolean }
       log_security_event: {
-        Args: { p_event_type: string; p_description: string; p_metadata?: Json }
+        Args: { p_description: string; p_event_type: string; p_metadata?: Json }
         Returns: string
       }
       log_security_event_enhanced: {
         Args: {
-          p_event_type: string
           p_description: string
+          p_event_type: string
           p_metadata?: Json
           p_severity?: string
         }
@@ -1576,8 +1561,8 @@ export type Database = {
       }
       safe_rate_limit_check: {
         Args: {
-          p_identifier: string
           p_attempt_type: string
+          p_identifier: string
           p_max_attempts?: number
           p_window_minutes?: number
         }
@@ -1587,39 +1572,39 @@ export type Database = {
         Args: {
           search_lat: number
           search_lng: number
-          search_radius_km?: number
           search_query?: string
+          search_radius_km?: number
         }
         Returns: {
-          id: string
-          name: string
-          description: string
           address: string
+          average_rating: number
+          business_hours: Json
           city: string
           country: string
-          phone: string
-          email: string
-          website: string
-          logo_url: string
-          featured_image_url: string
-          latitude: number
-          longitude: number
-          average_rating: number
-          total_reviews: number
-          business_hours: Json
-          is_verified: boolean
-          service_radius_km: number
           currency: string
-          show_on_map: boolean
+          description: string
+          distance_km: number
+          email: string
+          featured_image_url: string
+          id: string
+          is_verified: boolean
+          latitude: number
+          logo_url: string
+          longitude: number
           map_description: string
+          name: string
+          phone: string
           service_categories: string[]
           service_names: string[]
+          service_radius_km: number
+          show_on_map: boolean
+          total_reviews: number
           total_services: number
-          distance_km: number
+          website: string
         }[]
       }
       secure_assign_admin_role: {
-        Args: { _target_user_email: string; _admin_user_id?: string }
+        Args: { _admin_user_id?: string; _target_user_email: string }
         Returns: Json
       }
       secure_validate_business_ownership: {
@@ -1653,8 +1638,8 @@ export type Database = {
       validate_webhook_security: {
         Args: {
           p_payload: string
-          p_signature: string
           p_secret: string
+          p_signature: string
           p_timestamp?: string
         }
         Returns: Json

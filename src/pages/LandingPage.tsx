@@ -6,7 +6,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
   Users, 
-  Receipt, 
   Star, 
   CheckCircle, 
   ArrowRight,
@@ -14,13 +13,13 @@ import {
   Phone,
   Mail,
   Shield,
-  Globe,
   BarChart3,
-  CreditCard,
   UserCheck,
-  Building2
+  Building2,
+  ClipboardList,
+  FileText
 } from 'lucide-react';
-import { GlobalPartnersSlider } from '@/components/landing/GlobalPartnersSlider';
+import { TrustedOrganizations } from '@/components/landing/TrustedOrganizations';
 import { PricingSection } from '@/components/landing/PricingSection';
 import { AIFeaturesSection } from '@/components/landing/AIFeaturesSection';
 import { ensureAuthButtonsVisible } from '@/utils/buttonVisibility';
@@ -36,66 +35,66 @@ const LandingPage = () => {
   const features = [
     {
       icon: Calendar,
-      title: "Smart Booking",
-      points: ["Automated scheduling", "Real-time availability", "Capacity management"]
+      title: "Meeting Scheduling",
+      points: ["Automated scheduling", "Real-time availability", "Conflict detection"]
     },
     {
       icon: Users,
-      title: "Client & Staff Management",
-      points: ["Comprehensive profiles", "Attendance tracking", "Performance analytics"]
+      title: "Employee & Department Management",
+      points: ["Employee directories", "Department structure", "Role assignments"]
     },
     {
-      icon: Receipt,
-      title: "Invoice & Payments",
-      points: ["Professional invoicing", "Paystack integration", "Multiple payment options"]
+      icon: ClipboardList,
+      title: "Attendance Tracking",
+      points: ["Real-time attendance", "Training records", "Compliance tracking"]
     },
     {
       icon: BarChart3,
-      title: "Business Analytics",
-      points: ["Real-time insights", "Revenue tracking", "Growth metrics"]
-    },
-    {
-      icon: CreditCard,
-      title: "Payment Gateway",
-      points: ["Secure processing", "Mobile money", "Bank transfers"]
+      title: "Attendance Reports & Compliance",
+      points: ["Automated reports", "Export to Excel/PDF", "Audit-ready records"]
     },
     {
       icon: UserCheck,
-      title: "Staff Performance",
-      points: ["Productivity tracking", "Schedule management", "Operations monitoring"]
+      title: "Participation Tracking",
+      points: ["Training completion", "Meeting participation", "Performance insights"]
     },
     {
       icon: Building2,
-      title: "Multi-Location",
-      points: ["Centralized control", "Multiple locations", "Single dashboard"]
+      title: "Multi-Branch Coordination",
+      points: ["Centralized control", "Branch management", "Single dashboard"]
+    },
+    {
+      icon: FileText,
+      title: "Training Budget Tracking",
+      points: ["Budget allocation", "Cost tracking", "ROI analysis"]
     },
     {
       icon: Shield,
-      title: "Enterprise Security",
+      title: "Audit-Ready Records",
       points: ["Bank-grade security", "99.9% uptime", "Data protection"]
     }
   ];
 
   const testimonials = [
     {
-      name: "Sarah Johnson",
-      business: "Elegant Beauty Spa",
-      location: "Nairobi, Kenya",
-      text: "Boinvit transformed our entire business operations. Revenue increased by 60% with better management!",
+      name: "Grace Nyambura",
+      business: "HR Manager",
+      location: "TechnoServe Kenya",
+      text: "Before Boinvit, we used WhatsApp groups and Excel to coordinate training sessions. Now everything is in one place with proper attendance tracking.",
       rating: 5
     },
     {
-      name: "James Mwangi",
-      business: "FitLife Gym",
-      location: "Mombasa, Kenya",
-      text: "Complete business solution! From bookings to payments, everything is streamlined and professional.",
+      name: "David Ochieng",
+      business: "Admin Officer",
+      location: "Safaricom Dealers Association",
+      text: "The compliance reporting feature saves me hours every month. Management loves the automated attendance reports.",
       rating: 5
     },
     {
-      name: "Maria Wanjiku",
-      business: "HealthCare Plus Clinic",
-      location: "Kisumu, Kenya",
-      text: "The staff management and analytics features helped us optimize our operations significantly.",
+      name: "Faith Wanjiru",
+      business: "Operations Manager",
+      location: "KCB Foundation",
+      text: "Coordinating town halls and mandatory trainings across branches was a nightmare. Boinvit solved this completely.",
       rating: 5
     }
   ];
@@ -118,17 +117,14 @@ const LandingPage = () => {
             </div>
             
             <div className="hidden md:flex items-center space-x-8">
-              <Link to="/discover" className="text-gray-600 hover:text-royal-red transition-colors">
-                Discover Businesses
-              </Link>
-              <Link to="/demo" className="text-gray-600 hover:text-royal-red transition-colors">
-                Demo
-              </Link>
-              <Link to="/app-download" className="text-gray-600 hover:text-royal-red transition-colors flex items-center">
-                <span className="mr-1">📱</span> Mobile App
-              </Link>
-              <Link to="/safety" className="text-gray-600 hover:text-royal-red transition-colors">
-                Safety
+              <a href="#features" className="text-gray-600 hover:text-royal-red transition-colors">
+                Features
+              </a>
+              <a href="#pricing" className="text-gray-600 hover:text-royal-red transition-colors">
+                Pricing
+              </a>
+              <Link to="/contact" className="text-gray-600 hover:text-royal-red transition-colors">
+                Contact
               </Link>
               <Button 
                 variant="outline" 
@@ -141,7 +137,7 @@ const LandingPage = () => {
                 onClick={() => navigate('/auth')}
                 className="bg-royal-red hover:bg-royal-red/90 text-white auth-button relative z-50"
               >
-                Get Started
+                Start Free Trial
               </Button>
             </div>
 
@@ -163,15 +159,15 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Badge className="mb-4 bg-royal-red/10 text-royal-red">
-              🚀 AI-Powered Business Management Platform
+              For HR & Admin Teams
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              AI-First Business Management with 
-              <span className="text-royal-red"> Global Reach</span>
+              Run Internal Company Meetings
+              <span className="text-royal-red"> Without WhatsApp or Excel</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              The only platform that combines AI-powered automation with global integrations. 
-              Reduce no-shows by 60%, save 4 hours daily, and connect with customers worldwide through WhatsApp, Telegram, and 5000+ apps.
+              Boinvit helps HR and Admin teams plan meetings, send controlled invites, 
+              track attendance, and generate reports — all in one place.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
               <Button 
@@ -179,7 +175,7 @@ const LandingPage = () => {
                 onClick={() => navigate('/auth')}
                 className="bg-royal-red hover:bg-royal-red/90 text-white px-8 py-3 text-lg"
               >
-                Start with Pay As You Go
+                Start Free Trial
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button 
@@ -188,17 +184,17 @@ const LandingPage = () => {
                 onClick={() => navigate('/demo')}
                 className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white px-8 py-3 text-lg"
               >
-                Watch AI Demo
+                Watch Demo
               </Button>
             </div>
             <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-1">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Pay As You Go model</span>
+                <span>14-day free trial</span>
               </div>
               <div className="flex items-center gap-1">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>No monthly fees</span>
+                <span>No credit card required</span>
               </div>
               <div className="flex items-center gap-1">
                 <CheckCircle className="h-4 w-4 text-green-500" />
@@ -209,21 +205,21 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Global Partners Slider */}
-      <GlobalPartnersSlider />
+      {/* Trusted Organizations */}
+      <TrustedOrganizations />
 
       {/* AI Features Section */}
       <AIFeaturesSection />
 
       {/* Features Section */}
-      <section className="py-16 bg-white">
+      <section id="features" className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Complete Business Management Suite
+              Complete Meeting & Training Management
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Everything your business needs to thrive and scale in one platform
+              Everything HR and Admin teams need to coordinate internal events effectively
             </p>
           </div>
 
@@ -257,10 +253,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Trusted by Businesses Across Kenya & Beyond
+              Trusted by HR Teams Across East Africa
             </h2>
             <p className="text-lg text-gray-600">
-              See how Boinvit is transforming businesses and driving growth
+              See how Boinvit is transforming meeting coordination for organizations
             </p>
           </div>
 
@@ -285,17 +281,19 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Pricing Section - Now Collapsible */}
-      <PricingSection />
+      {/* Pricing Section */}
+      <div id="pricing">
+        <PricingSection />
+      </div>
 
       {/* CTA Section */}
       <section className="py-20 bg-royal-red">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to Transform Your Business Operations?
+            Ready to Eliminate Meeting Coordination Chaos?
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join thousands of businesses already using Boinvit's complete management platform
+            Join 50+ organizations already using Boinvit to manage their internal meetings and trainings
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -303,15 +301,15 @@ const LandingPage = () => {
               onClick={() => navigate('/auth')}
               className="bg-white text-royal-red hover:bg-gray-50 px-8 py-3 text-lg"
             >
-              Start with Pay As You Go
+              Start Free Trial
             </Button>
             <Button 
               size="lg" 
               variant="outline"
-              onClick={() => navigate('/discover')}
+              onClick={() => navigate('/contact')}
               className="border-white text-white hover:bg-white hover:text-royal-red px-8 py-3 text-lg"
             >
-              Discover Businesses
+              Contact Sales
             </Button>
           </div>
         </div>
@@ -331,16 +329,16 @@ const LandingPage = () => {
                 <span className="text-xl font-bold">Boinvit</span>
               </div>
               <p className="text-gray-400">
-                Complete business management platform for modern entrepreneurs worldwide.
+                Internal meeting and training management platform for HR and Admin teams.
               </p>
             </div>
             
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-gray-400">
+                <li><a href="#features" className="hover:text-white">Features</a></li>
+                <li><a href="#pricing" className="hover:text-white">Pricing</a></li>
                 <li><Link to="/demo" className="hover:text-white">Demo</Link></li>
-                <li><Link to="/discover" className="hover:text-white">Discover</Link></li>
-                <li><Link to="/safety" className="hover:text-white">Safety</Link></li>
               </ul>
             </div>
             

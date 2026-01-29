@@ -12,24 +12,58 @@ export const PricingSection = () => {
 
   const pricingPlans = [
     {
-      name: "Pay As You Go",
-      price: "5% Commission",
-      period: "/transaction",
+      name: "Starter",
+      price: "KES 3,000",
+      period: "/month",
+      description: "Perfect for small teams getting started",
       features: [
-        "No monthly subscription fees",
-        "Only 5% commission on payments received",
-        "Unlimited staff members",
-        "Unlimited bookings",
-        "Full platform access",
-        "QR code booking system",
-        "WhatsApp notifications",
-        "Advanced analytics",
-        "Custom branding",
-        "White-label options",
-        "API access",
-        "24/7 priority support"
+        "Up to 100 employees",
+        "Unlimited meetings",
+        "Basic attendance reports",
+        "Email notifications",
+        "Calendar sync",
+        "7-day data history"
       ],
-      popular: true
+      popular: false,
+      cta: "Start Free Trial"
+    },
+    {
+      name: "Professional",
+      price: "KES 7,500",
+      period: "/month",
+      description: "For growing organizations with multiple departments",
+      features: [
+        "Up to 500 employees",
+        "Advanced reporting & analytics",
+        "Multi-branch support",
+        "WhatsApp & SMS notifications",
+        "Compliance exports (PDF/Excel)",
+        "AI scheduling assistant",
+        "Attendance prediction",
+        "Priority support",
+        "90-day data history"
+      ],
+      popular: true,
+      cta: "Start Free Trial"
+    },
+    {
+      name: "Enterprise",
+      price: "Custom",
+      period: "",
+      description: "For large organizations with specific needs",
+      features: [
+        "Unlimited employees",
+        "Custom integrations",
+        "Dedicated account manager",
+        "On-premise deployment option",
+        "Custom branding",
+        "API access",
+        "SLA guarantee",
+        "Training & onboarding",
+        "Unlimited data retention"
+      ],
+      popular: false,
+      cta: "Contact Sales"
     }
   ];
 
@@ -48,68 +82,67 @@ export const PricingSection = () => {
             <CollapsibleContent className="mt-8">
               <div className="mb-8">
                 <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                  Simple, Transparent Pricing
+                  Simple, Predictable Pricing
                 </h2>
                 <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                  Pay As You Go - Only pay when you get paid. No monthly fees, no hidden costs.
+                  Per-organization pricing. No per-user fees. No hidden costs.
                 </p>
               </div>
 
-              {/* Use a centered max-width container for better positioning */}
-              <div className="max-w-2xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                 {pricingPlans.map((plan, index) => (
                   <Card 
                     key={index} 
-                    className="relative border-2 border-primary/20 shadow-xl transform hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-primary/5 to-white"
+                    className={`relative ${plan.popular ? 'border-2 border-primary shadow-xl scale-105' : 'border shadow-lg'} transition-all duration-300 hover:shadow-xl`}
                   >
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                      <Badge className="bg-primary text-white px-6 py-2 font-bold shadow-lg text-lg">
-                        <Star className="w-4 h-4 mr-1" />
-                        NO MONTHLY FEE
-                      </Badge>
-                    </div>
+                    {plan.popular && (
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                        <Badge className="bg-primary text-white px-4 py-1 font-bold shadow-lg">
+                          <Star className="w-3 h-3 mr-1" />
+                          MOST POPULAR
+                        </Badge>
+                      </div>
+                    )}
                     
-                    <CardHeader className="text-center pb-0">
-                      <CardTitle className="text-3xl font-bold text-primary">{plan.name}</CardTitle>
-                      <p className="text-lg text-primary/80 font-medium">Only pay when you get paid</p>
+                    <CardHeader className="text-center pb-4 pt-8">
+                      <CardTitle className="text-2xl font-bold text-gray-900">{plan.name}</CardTitle>
+                      <p className="text-sm text-gray-500 mt-1">{plan.description}</p>
                       
-                      <div className="mt-6 mb-4">
-                        <div className="text-5xl font-bold text-primary">
-                          5% commission
-                        </div>
-                        <div className="text-xl text-primary/80 font-semibold mt-2">
-                          No monthly subscription
+                      <div className="mt-4">
+                        <div className="flex items-baseline justify-center">
+                          <span className="text-4xl font-bold text-primary">{plan.price}</span>
+                          {plan.period && <span className="text-gray-500 ml-1">{plan.period}</span>}
                         </div>
                       </div>
                     </CardHeader>
                     
-                    <CardContent className="space-y-6 pt-4">
-                      <div className="grid md:grid-cols-2 gap-3">
+                    <CardContent className="space-y-4">
+                      <div className="space-y-3">
                         {plan.features.map((feature, featureIndex) => (
                           <div key={featureIndex} className="flex items-start">
-                            <CheckCircle className="h-5 w-5 text-success mr-3 mt-0.5 flex-shrink-0" />
-                            <span className="text-gray-700 font-medium">{feature}</span>
+                            <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                            <span className="text-gray-700 text-sm">{feature}</span>
                           </div>
                         ))}
                       </div>
                       
                       <Button 
-                        className="w-full bg-primary hover:bg-primary-hover text-white py-6 text-xl font-bold shadow-lg transform transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
-                        onClick={() => navigate('/auth')}
+                        className={`w-full py-5 text-base font-semibold ${plan.popular ? 'bg-primary hover:bg-primary/90 text-white' : ''}`}
+                        variant={plan.popular ? 'default' : 'outline'}
+                        onClick={() => plan.name === 'Enterprise' ? navigate('/contact') : navigate('/auth')}
                       >
-                        🚀 Get Started with Pay As You Go
+                        {plan.cta}
                       </Button>
                     </CardContent>
                   </Card>
                 ))}
               </div>
 
-              {/* Payment Methods Info */}
-              <div className="text-center bg-gradient-to-r from-primary/5 to-accent/5 rounded-xl p-8 mt-8 max-w-3xl mx-auto border border-primary/10">
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Why Pay As You Go?</h3>
-                <p className="text-lg text-gray-700 font-medium">
-                  <strong>Risk-Free Growth:</strong> No upfront costs, no monthly fees. We only succeed when you do. 
-                  Pay just 5% commission on payments received through the platform.
+              {/* Trust Message */}
+              <div className="text-center bg-gradient-to-r from-primary/5 to-blue-50 rounded-xl p-8 mt-8 max-w-3xl mx-auto border border-primary/10">
+                <h3 className="text-xl font-bold text-gray-900 mb-3">14-Day Free Trial on All Plans</h3>
+                <p className="text-lg text-gray-700">
+                  Try Boinvit risk-free. No credit card required. Cancel anytime.
                 </p>
               </div>
             </CollapsibleContent>

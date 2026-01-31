@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from '@/pages/Dashboard';
@@ -13,11 +12,33 @@ import AdminPage from '@/pages/AdminPage';
 import StaffDashboardPage from '@/pages/StaffDashboardPage';
 import StaffAttendancePage from '@/pages/StaffAttendancePage';
 import BusinessDiscoveryPage from '@/pages/BusinessDiscoveryPage';
+import OnboardingPage from '@/pages/OnboardingPage';
 import NotFound from '@/pages/NotFound';
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
+import { Loader2 } from 'lucide-react';
 
 const AuthenticatedApp = () => {
+  const { needsOnboarding, isLoading } = useOnboardingStatus();
+
+  // Show loading while checking onboarding status
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <Routes>
+      {/* Onboarding route */}
+      <Route path="onboarding" element={<OnboardingPage />} />
+      
+      {/* If onboarding needed, redirect to onboarding */}
+      {needsOnboarding && (
+        <Route path="*" element={<Navigate to="onboarding" replace />} />
+      )}
+      
       {/* Default route - redirect to dashboard */}
       <Route path="/" element={<Navigate to="dashboard" replace />} />
       

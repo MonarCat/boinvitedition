@@ -624,6 +624,7 @@ export type Database = {
           bank_name: string | null
           business_hours: Json | null
           city: string | null
+          company_size: string | null
           country: string | null
           created_at: string | null
           currency: string | null
@@ -638,11 +639,14 @@ export type Database = {
           longitude: number | null
           mpesa_number: string | null
           name: string
+          onboarding_completed: boolean | null
+          onboarding_completed_at: string | null
           payment_instructions: string | null
           payment_setup_complete: boolean | null
           paystack_subaccount_id: string | null
           phone: string | null
           preferred_payment_methods: string[] | null
+          primary_use_cases: string[] | null
           search_vector: unknown
           service_radius_km: number | null
           subdomain: string | null
@@ -658,6 +662,7 @@ export type Database = {
           bank_name?: string | null
           business_hours?: Json | null
           city?: string | null
+          company_size?: string | null
           country?: string | null
           created_at?: string | null
           currency?: string | null
@@ -672,11 +677,14 @@ export type Database = {
           longitude?: number | null
           mpesa_number?: string | null
           name: string
+          onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           payment_instructions?: string | null
           payment_setup_complete?: boolean | null
           paystack_subaccount_id?: string | null
           phone?: string | null
           preferred_payment_methods?: string[] | null
+          primary_use_cases?: string[] | null
           search_vector?: unknown
           service_radius_km?: number | null
           subdomain?: string | null
@@ -692,6 +700,7 @@ export type Database = {
           bank_name?: string | null
           business_hours?: Json | null
           city?: string | null
+          company_size?: string | null
           country?: string | null
           created_at?: string | null
           currency?: string | null
@@ -706,11 +715,14 @@ export type Database = {
           longitude?: number | null
           mpesa_number?: string | null
           name?: string
+          onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           payment_instructions?: string | null
           payment_setup_complete?: boolean | null
           paystack_subaccount_id?: string | null
           phone?: string | null
           preferred_payment_methods?: string[] | null
+          primary_use_cases?: string[] | null
           search_vector?: unknown
           service_radius_km?: number | null
           subdomain?: string | null

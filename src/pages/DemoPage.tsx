@@ -21,9 +21,9 @@ const DemoPage = () => {
       description: 'Complete client profiles with booking history and preferences.'
     },
     {
-      icon: <MapPin className="h-6 w-6 text-primary" />,
-      title: 'Transport Integration',
-      description: 'Full transport services with route planning and real-time tracking.'
+      icon: <Star className="h-6 w-6 text-primary" />,
+      title: 'Service Management',
+      description: 'Easy service catalog management with pricing and staff assignment.'
     },
     {
       icon: <CreditCard className="h-6 w-6 text-primary" />,

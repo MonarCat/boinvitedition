@@ -101,6 +101,62 @@ serve(async (req) => {
         });
       }
 
+      // Check if this is a platform balance clearance payment
+      const metadata = data.metadata || {};
+      const paymentType = metadata.payment_type || 'booking';
+      
+      if (paymentType === 'platform_clearance') {
+        // Handle platform balance clearance payment
+        console.log('Processing platform balance clearance:', { reference, amount });
+        
+        const businessId = metadata.business_id;
+        if (!businessId) {
+          console.error('Missing business_id in metadata');
+          return new Response('Invalid metadata', { 
+            status: 400, 
+            headers: corsHeaders 
+          });
+        }
+        
+        // Call the clear_platform_balance function
+        const { data: paymentId, error: clearError } = await supabase
+          .rpc('clear_platform_balance', {
+            p_business_id: businessId,
+            p_amount_paid: amount,
+            p_paystack_reference: reference,
+            p_payment_method: data.authorization?.channel || 'card'
+          });
+        
+        if (clearError) {
+          console.error('Failed to clear platform balance:', clearError);
+          return new Response('Failed to process payment', { 
+            status: 500, 
+            headers: corsHeaders 
+          });
+        }
+        
+        console.log('Platform balance cleared successfully:', paymentId);
+        
+        // Log successful platform payment
+        await supabase.rpc('log_security_event_enhanced', {
+          p_event_type: 'PLATFORM_BALANCE_CLEARED',
+          p_description: 'Platform balance payment processed',
+          p_metadata: {
+            reference,
+            amount,
+            business_id: businessId,
+            payment_id: paymentId
+          },
+          p_severity: 'low'
+        });
+        
+        return new Response(JSON.stringify({ success: true, payment_id: paymentId }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        });
+      }
+      
+      // Otherwise, handle regular booking payment
       // Find the corresponding transaction
       const { data: transaction, error: fetchError } = await supabase
         .from('client_business_transactions')

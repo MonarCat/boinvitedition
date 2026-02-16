@@ -16,9 +16,7 @@ import { toast } from "sonner";
 import { DirectBusinessPayment } from "@/components/payment/DirectBusinessPayment";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { EnhancedTransportBooking } from "@/components/transport/EnhancedTransportBooking";
-import { TaxiBooking } from "@/components/transport/TaxiBooking";
-import { ShuttleSeatMap } from "@/components/transport/ShuttleSeatMap";
+
 
 interface BookingDetails {
   id: string;
@@ -32,30 +30,6 @@ interface BookingDetails {
   payment_reference: string;
 }
 
-// Mock transport details - in a real app, this would come from an API call or database
-const mockTransportDetails = {
-  route: { 
-    from: "Nairobi CBD",
-    to: "Westlands"
-  },
-  passengers: { 
-    adult: 1, 
-    child: 0, 
-    infant: 0 
-  },
-  luggage: 1,
-  departure_time: "08:00 AM",
-  expected_arrival: "08:45 AM",
-  vehicle: {
-    registration_number: "KCB 123A",
-    body_type: "Taxi",
-    driver_name: "John Doe",
-    driver_phone: "+254700123456"
-  },
-  seat_layout: "4-seater",
-  price_range: { min: 300, max: 500 },
-  exact_price: 350
-};
 
 const BookingPage = () => {
   const { businessId } = useParams();
@@ -72,33 +46,12 @@ const BookingPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [pendingBookingId, setPendingBookingId] = useState<string | null>(null);
-  const [transportDetails, setTransportDetails] = useState(mockTransportDetails);
 
   const { services, business, servicesLoading } = useClientPayments(
     businessId || ""
   );
   
-  // Determine if the selected service is a transport service
   const selectedServiceData = selectedService ? services.find(s => s.id === selectedService) : null;
-  
-  // Check for transport service based on service name or transport_details
-  const isTransportService = selectedServiceData?.is_transport_service === true || 
-                            selectedServiceData?.transport_details !== undefined ||
-                            selectedServiceData?.name?.toLowerCase().includes('taxi') || 
-                            selectedServiceData?.name?.toLowerCase().includes('shuttle') || 
-                            selectedServiceData?.name?.toLowerCase().includes('matatu') ||
-                            selectedServiceData?.name?.toLowerCase().includes('transport') ||
-                            business?.name?.toLowerCase().includes('taxi') ||
-                            business?.name?.toLowerCase().includes('shuttle') ||
-                            business?.name?.toLowerCase().includes('matatu');
-  
-  // Further determine if it's a taxi or shuttle service
-  const isTaxiService = isTransportService && 
-                       (selectedServiceData?.name?.toLowerCase().includes('taxi'));
-  
-  const isShuttleService = isTransportService && 
-                          (selectedServiceData?.name?.toLowerCase().includes('shuttle') || 
-                           selectedServiceData?.name?.toLowerCase().includes('matatu'));
   
   // Ensure auth buttons visibility
   useEffect(() => {
@@ -217,11 +170,7 @@ const BookingPage = () => {
     setPendingBookingId(null);
   };
 
-  const isFormValid = selectedService && 
-    // Regular booking flow validation
-    (((!isTransportService) && selectedDate && selectedTime && clientEmail && clientName && clientPhone)
-    // Transport booking validation is handled within the transport components
-    || (isTransportService));
+  const isFormValid = selectedService && selectedDate && selectedTime && clientEmail && clientName && clientPhone;
 
   if (servicesLoading) {
     return (
@@ -266,11 +215,6 @@ const BookingPage = () => {
     );
   }
 
-  const handleTransportBookingComplete = (bookingId: string) => {
-    setPendingBookingId(bookingId);
-    setShowPayment(true);
-  };
-
   const BookingContent = () => (
     <div className="space-y-8">
       {business && (
@@ -285,43 +229,8 @@ const BookingPage = () => {
         business={business}
       />
 
-      {/* Transport Service Booking */}
-      {selectedService && isTransportService && (
-        <div className="mt-8">
-          {isTaxiService ? (
-            <TaxiBooking
-              serviceId={selectedService}
-              businessId={business?.id || ''}
-              serviceName={selectedServiceData?.name || ''}
-              servicePrice={selectedServiceData?.price || 0}
-              transportDetails={transportDetails}
-              onBookingComplete={handleTransportBookingComplete}
-            />
-          ) : isShuttleService ? (
-            <EnhancedTransportBooking
-              serviceId={selectedService}
-              businessId={business?.id || ''}
-              serviceName={selectedServiceData?.name || ''}
-              servicePrice={selectedServiceData?.price || 0}
-              transportDetails={transportDetails}
-              isShuttle={true}
-              onBookingComplete={handleTransportBookingComplete}
-            />
-          ) : (
-            <EnhancedTransportBooking
-              serviceId={selectedService}
-              businessId={business?.id || ''}
-              serviceName={selectedServiceData?.name || ''}
-              servicePrice={selectedServiceData?.price || 0}
-              transportDetails={transportDetails}
-              onBookingComplete={handleTransportBookingComplete}
-            />
-          )}
-        </div>
-      )}
-
       {/* Standard Booking Flow */}
-      {selectedService && !isTransportService && (
+      {selectedService && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2 space-y-8">
             <DateTimeSelectionCard

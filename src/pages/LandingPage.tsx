@@ -13,11 +13,10 @@ import {
   Phone,
   Mail,
   Shield,
-  BarChart3,
-  UserCheck,
-  Building2,
-  ClipboardList,
-  FileText
+  Scissors,
+  CreditCard,
+  Clock,
+  Sparkles
 } from 'lucide-react';
 import { TrustedOrganizations } from '@/components/landing/TrustedOrganizations';
 import { PricingSection } from '@/components/landing/PricingSection';
@@ -35,66 +34,66 @@ const LandingPage = () => {
   const features = [
     {
       icon: Calendar,
-      title: "Meeting Scheduling",
-      points: ["Automated scheduling", "Real-time availability", "Conflict detection"]
+      title: "Smart Booking System",
+      points: ["Online appointments", "Real-time availability", "Automated reminders"]
     },
     {
       icon: Users,
-      title: "Employee & Department Management",
-      points: ["Employee directories", "Department structure", "Role assignments"]
+      title: "Customer Management",
+      points: ["Client profiles", "Booking history", "Loyalty tracking"]
     },
     {
-      icon: ClipboardList,
-      title: "Attendance Tracking",
-      points: ["Real-time attendance", "Training records", "Compliance tracking"]
+      icon: Scissors,
+      title: "Service Management",
+      points: ["Service catalog", "Staff assignments", "Pricing management"]
     },
     {
-      icon: BarChart3,
-      title: "Attendance Reports & Compliance",
-      points: ["Automated reports", "Export to Excel/PDF", "Audit-ready records"]
+      icon: CreditCard,
+      title: "Payment Processing",
+      points: ["Multiple payment methods", "Secure transactions", "Invoice generation"]
     },
     {
-      icon: UserCheck,
-      title: "Participation Tracking",
-      points: ["Training completion", "Meeting participation", "Performance insights"]
+      icon: Clock,
+      title: "Staff Scheduling",
+      points: ["Shift management", "Availability tracking", "Performance metrics"]
     },
     {
-      icon: Building2,
-      title: "Multi-Branch Coordination",
-      points: ["Centralized control", "Branch management", "Single dashboard"]
+      icon: Sparkles,
+      title: "Marketing Tools",
+      points: ["SMS reminders", "Email campaigns", "Promotional offers"]
     },
     {
-      icon: FileText,
-      title: "Training Budget Tracking",
-      points: ["Budget allocation", "Cost tracking", "ROI analysis"]
+      icon: MapPin,
+      title: "Multi-Location Support",
+      points: ["Multiple branches", "Centralized dashboard", "Location analytics"]
     },
     {
       icon: Shield,
-      title: "Audit-Ready Records",
-      points: ["Bank-grade security", "99.9% uptime", "Data protection"]
+      title: "Business Insights",
+      points: ["Revenue reports", "Customer analytics", "Booking trends"]
     }
   ];
 
   const testimonials = [
     {
-      name: "Grace Nyambura",
-      business: "HR Manager",
-      location: "TechnoServe Kenya",
-      text: "Before Boinvit, we used WhatsApp groups and Excel to coordinate training sessions. Now everything is in one place with proper attendance tracking.",
+      name: "Sarah Mwangi",
+      business: "Elegance Hair Salon",
+      location: "Westlands, Nairobi",
+      text: "Boinvit transformed how we manage bookings. No more double bookings or missed appointments. Our clients love the online booking system!",
       rating: 5
     },
     {
-      name: "David Ochieng",
-      business: "Admin Officer",
-      location: "Safaricom Dealers Association",
-      text: "The compliance reporting feature saves me hours every month. Management loves the automated attendance reports.",
+      name: "John Kamau",
+      business: "Prime Cuts Barbershop",
+      location: "Kilimani, Nairobi",
+      text: "The payment integration and SMS reminders have reduced no-shows by 70%. My revenue has increased significantly since using Boinvit.",
       rating: 5
     },
     {
-      name: "Faith Wanjiru",
-      business: "Operations Manager",
-      location: "KCB Foundation",
-      text: "Coordinating town halls and mandatory trainings across branches was a nightmare. Boinvit solved this completely.",
+      name: "Grace Akinyi",
+      business: "Glamour Beauty Spa",
+      location: "Karen, Nairobi",
+      text: "Managing 3 locations was chaotic. Now I can see everything from one dashboard - bookings, staff schedules, and revenue. Game changer!",
       rating: 5
     }
   ];
@@ -159,15 +158,15 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Badge className="mb-4 bg-royal-red/10 text-royal-red">
-              For HR & Admin Teams
+              For Salons & Barbershops
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Run Internal Company Meetings
-              <span className="text-royal-red"> Without WhatsApp or Excel</span>
+              Grow Your Beauty Business
+              <span className="text-royal-red"> With Smart Booking Management</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Boinvit helps HR and Admin teams plan meetings, send controlled invites, 
-              track attendance, and generate reports — all in one place.
+              The complete booking platform for hair salons, barbershops, and beauty parlours. 
+              Manage appointments, clients, payments, and staff — all in one place.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
               <Button 
@@ -181,10 +180,10 @@ const LandingPage = () => {
               <Button 
                 size="lg" 
                 variant="outline"
-                onClick={() => navigate('/demo')}
+                onClick={() => navigate('/contact')}
                 className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white px-8 py-3 text-lg"
               >
-                Watch Demo
+                Contact Sales
               </Button>
             </div>
             <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
@@ -216,10 +215,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Complete Meeting & Training Management
+              Complete Salon & Barbershop Management
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Everything HR and Admin teams need to coordinate internal events effectively
+              Everything you need to run a successful beauty business
             </p>
           </div>
 
@@ -253,10 +252,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Trusted by HR Teams Across East Africa
+              Trusted by Beauty Professionals Across East Africa
             </h2>
             <p className="text-lg text-gray-600">
-              See how Boinvit is transforming meeting coordination for organizations
+              See how Boinvit is helping salons and barbershops grow their business
             </p>
           </div>
 
@@ -290,10 +289,10 @@ const LandingPage = () => {
       <section className="py-20 bg-royal-red">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to Eliminate Meeting Coordination Chaos?
+            Ready to Transform Your Beauty Business?
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join 50+ organizations already using Boinvit to manage their internal meetings and trainings
+            Join 100+ salons and barbershops already using Boinvit to manage bookings and grow revenue
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -329,7 +328,7 @@ const LandingPage = () => {
                 <span className="text-xl font-bold">Boinvit</span>
               </div>
               <p className="text-gray-400">
-                Internal meeting and training management platform for HR and Admin teams.
+                Booking and appointment management platform for beauty businesses and service providers.
               </p>
             </div>
             
@@ -338,7 +337,7 @@ const LandingPage = () => {
               <ul className="space-y-2 text-gray-400">
                 <li><a href="#features" className="hover:text-white">Features</a></li>
                 <li><a href="#pricing" className="hover:text-white">Pricing</a></li>
-                <li><Link to="/demo" className="hover:text-white">Demo</Link></li>
+                <li><Link to="/contact" className="hover:text-white">Contact</Link></li>
               </ul>
             </div>
             

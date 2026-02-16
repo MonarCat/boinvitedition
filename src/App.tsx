@@ -16,6 +16,7 @@ import SafetyPage from "@/pages/SafetyPage";
 import AppDownloadPage from "@/pages/AppDownloadPage";
 import BookingPage from "@/pages/BookingPage";
 import AuthPage from "@/pages/AuthPage";
+import ContactPage from "@/pages/ContactPage";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import NotFound from "@/pages/NotFound";
@@ -124,6 +125,7 @@ const App = () => {
                         <Route path="/discover" element={<DiscoverPage />} />
                         <Route path="/safety" element={<SafetyPage />} />
                         <Route path="/app-download" element={<AppDownloadPage />} />
+                        <Route path="/contact" element={<ContactPage />} />
                         
                         {/* Authentication */}
                         <Route path="/auth" element={<AuthPage />} />

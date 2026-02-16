@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { usePlatformBalance } from "@/hooks/usePlatformBalance";
 import { AlertTriangle, CreditCard, Loader2 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatCurrency";
+import { PLATFORM_BALANCE_WARNING_RATIO } from "@/constants/platformConfig";
 
 interface PlatformBalanceBannerProps {
   businessId: string;
@@ -18,7 +19,7 @@ export function PlatformBalanceBanner({ businessId }: PlatformBalanceBannerProps
   const { is_restricted, total_balance, threshold_amount } = balanceInfo;
 
   // Only show banner if restricted or approaching threshold
-  if (total_balance < threshold_amount * 0.4) {
+  if (total_balance < threshold_amount * PLATFORM_BALANCE_WARNING_RATIO) {
     return null;
   }
 

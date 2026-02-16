@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePlatformBalance } from "@/hooks/usePlatformBalance";
 import { AlertCircle, CheckCircle, CreditCard, Loader2 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatCurrency";
+import { PLATFORM_BALANCE_WARNING_RATIO } from "@/constants/platformConfig";
 
 interface PlatformBalanceSummaryProps {
   businessId: string;
@@ -34,7 +35,7 @@ export function PlatformBalanceSummary({ businessId }: PlatformBalanceSummaryPro
     if (is_restricted) {
       return "border-red-500 bg-red-50/50";
     }
-    if (total_balance >= threshold_amount * 0.4) {
+    if (total_balance >= threshold_amount * PLATFORM_BALANCE_WARNING_RATIO) {
       return "border-amber-500 bg-amber-50/50";
     }
     return "border-green-500 bg-green-50/50";
@@ -44,7 +45,7 @@ export function PlatformBalanceSummary({ businessId }: PlatformBalanceSummaryPro
     if (is_restricted) {
       return <AlertCircle className="h-5 w-5 text-red-500" />;
     }
-    if (total_balance >= threshold_amount * 0.4) {
+    if (total_balance >= threshold_amount * PLATFORM_BALANCE_WARNING_RATIO) {
       return <AlertCircle className="h-5 w-5 text-amber-500" />;
     }
     return <CheckCircle className="h-5 w-5 text-green-500" />;
@@ -54,7 +55,7 @@ export function PlatformBalanceSummary({ businessId }: PlatformBalanceSummaryPro
     if (is_restricted) {
       return <Badge variant="destructive">Restricted</Badge>;
     }
-    if (total_balance >= threshold_amount * 0.4) {
+    if (total_balance >= threshold_amount * PLATFORM_BALANCE_WARNING_RATIO) {
       return <Badge variant="default" className="bg-amber-500">Action Needed</Badge>;
     }
     return <Badge variant="default" className="bg-green-500">All Clear</Badge>;
@@ -136,7 +137,7 @@ export function PlatformBalanceSummary({ businessId }: PlatformBalanceSummaryPro
         <p className="text-xs text-muted-foreground text-center">
           {is_restricted 
             ? "Clear your balance to continue accepting new bookings"
-            : total_balance >= threshold_amount * 0.4
+            : total_balance >= threshold_amount * PLATFORM_BALANCE_WARNING_RATIO
             ? "Consider clearing your balance soon to avoid restrictions"
             : "Platform fees accumulate from completed services"
           }

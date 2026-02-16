@@ -37,6 +37,8 @@ END $$;
 -- PART 2: Remove transport service categories
 -- ========================================
 
+-- WARNING: This is a destructive operation that permanently deletes transport services
+-- If you need to preserve this data, create a backup before running this migration
 -- Delete any existing transport services (bus, train, taxi, etc.)
 -- This is a data cleanup operation
 DELETE FROM public.services

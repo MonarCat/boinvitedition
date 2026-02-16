@@ -5,7 +5,7 @@ export const TrustedOrganizations = () => {
   const stats = [
     { icon: Scissors, value: "100+", label: "Salons & Barbershops" },
     { icon: Users, value: "50,000+", label: "Appointments Booked" },
-    { icon: TrendingUp, value: "85%", label: "Revenue Increase" },
+    { icon: TrendingUp, value: "85%", label: "Avg. Revenue Increase" },
     { icon: Star, value: "4.9/5", label: "Customer Rating" }
   ];
 

@@ -45,7 +45,7 @@ export const AIFeaturesSection: React.FC = () => {
     { number: "60%", label: "Reduction in No-Shows", color: "text-green-600" },
     { number: "3hrs", label: "Time Saved Daily", color: "text-blue-600" },
     { number: "85%", label: "Client Satisfaction", color: "text-purple-600" },
-    { number: "40%", label: "Revenue Growth", color: "text-orange-600" }
+    { number: "40%", label: "Avg. Revenue Growth", color: "text-orange-600" }
   ];
 
   return (

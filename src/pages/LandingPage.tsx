@@ -181,10 +181,10 @@ const LandingPage = () => {
               <Button 
                 size="lg" 
                 variant="outline"
-                onClick={() => navigate('/demo')}
+                onClick={() => navigate('/contact')}
                 className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white px-8 py-3 text-lg"
               >
-                Watch Demo
+                Contact Sales
               </Button>
             </div>
             <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
@@ -338,7 +338,7 @@ const LandingPage = () => {
               <ul className="space-y-2 text-gray-400">
                 <li><a href="#features" className="hover:text-white">Features</a></li>
                 <li><a href="#pricing" className="hover:text-white">Pricing</a></li>
-                <li><Link to="/demo" className="hover:text-white">Demo</Link></li>
+                <li><Link to="/contact" className="hover:text-white">Contact</Link></li>
               </ul>
             </div>
             

@@ -126,9 +126,9 @@ export const AIFeaturesSection: React.FC = () => {
               size="lg" 
               variant="outline" 
               className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3"
-              onClick={() => navigate('/demo')}
+              onClick={() => navigate('/contact')}
             >
-              Watch Demo
+              Contact Sales
             </Button>
           </div>
           <p className="text-sm text-gray-500 mt-4">

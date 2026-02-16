@@ -17,25 +17,25 @@ export const AIFeaturesSection: React.FC = () => {
   const aiFeatures = [
     {
       icon: Brain,
-      title: "Smart Scheduling Assistant",
-      description: "AI analyzes meeting patterns to suggest optimal time slots and automatically detects scheduling conflicts across departments",
-      benefits: ["50% fewer scheduling conflicts", "Optimal time suggestions", "Department-aware scheduling"],
+      title: "Smart Booking Assistant",
+      description: "AI analyzes booking patterns to suggest optimal time slots and automatically manages your appointment calendar for maximum efficiency",
+      benefits: ["50% fewer scheduling conflicts", "Optimal slot suggestions", "Automatic calendar management"],
       badge: "Most Used",
       color: "bg-blue-100 text-blue-600"
     },
     {
       icon: Clock,
-      title: "Attendance Prediction",
-      description: "Machine learning predicts which employees are likely to miss mandatory trainings and sends personalized reminders",
-      benefits: ["Reduce no-shows by 60%", "Smart reminder timing", "Historical pattern analysis"],
+      title: "No-Show Prediction",
+      description: "Machine learning predicts which clients are likely to miss appointments and sends personalized reminders at the perfect time",
+      benefits: ["Reduce no-shows by 60%", "Smart reminder timing", "Client behavior analysis"],
       badge: "Top Feature",
       color: "bg-green-100 text-green-600"
     },
     {
       icon: Bell,
-      title: "Automated Reminders",
-      description: "Intelligent reminder system that sends the right message at the right time through email, SMS, or WhatsApp",
-      benefits: ["Multi-channel delivery", "Compliance deadline alerts", "Escalation workflows"],
+      title: "Automated Notifications",
+      description: "Intelligent notification system that keeps clients informed through SMS, email, or WhatsApp at the right moments",
+      benefits: ["Multi-channel notifications", "Booking confirmations", "Review requests"],
       badge: "Essential",
       color: "bg-purple-100 text-purple-600"
     }
@@ -43,9 +43,9 @@ export const AIFeaturesSection: React.FC = () => {
 
   const impactStats = [
     { number: "60%", label: "Reduction in No-Shows", color: "text-green-600" },
-    { number: "4hrs", label: "Time Saved Weekly", color: "text-blue-600" },
-    { number: "70%", label: "Faster Coordination", color: "text-purple-600" },
-    { number: "98%", label: "Attendance Rate", color: "text-orange-600" }
+    { number: "3hrs", label: "Time Saved Daily", color: "text-blue-600" },
+    { number: "85%", label: "Client Satisfaction", color: "text-purple-600" },
+    { number: "40%", label: "Revenue Growth", color: "text-orange-600" }
   ];
 
   return (
@@ -55,15 +55,15 @@ export const AIFeaturesSection: React.FC = () => {
         <div className="text-center mb-16">
           <Badge className="mb-4 bg-blue-100 text-blue-700 border-blue-200">
             <Sparkles className="h-4 w-4 mr-2" />
-            Smart Meeting Management
+            Smart Salon Management
           </Badge>
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            AI That Makes HR 
-            <span className="text-blue-600"> Work Smarter</span>
+            AI That Makes Your 
+            <span className="text-blue-600"> Salon Smarter</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Leverage intelligent automation to eliminate scheduling conflicts, 
-            predict attendance issues, and ensure compliance deadlines are never missed.
+            Leverage intelligent automation to reduce no-shows, optimize schedules, 
+            and keep clients engaged with personalized communications.
           </p>
         </div>
 

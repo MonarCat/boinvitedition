@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Users, MapPin, BarChart3, ArrowLeft, Star, CheckCircle, ClipboardList } from 'lucide-react';
+import { Calendar, Users, CreditCard, BarChart3, ArrowLeft, Star, CheckCircle, Scissors } from 'lucide-react';
 
 const DemoPage = () => {
   const navigate = useNavigate();
@@ -11,42 +11,42 @@ const DemoPage = () => {
   const demoFeatures = [
     {
       icon: <Calendar className="h-6 w-6 text-primary" />,
-      title: 'Smart Meeting Scheduling',
-      description: 'Create and schedule internal meetings with automated conflict detection. The system suggests optimal time slots based on employee availability and department schedules.',
+      title: 'Smart Online Booking',
+      description: 'Allow clients to book appointments 24/7 through your custom booking page. Real-time availability shows open slots, and automated confirmations keep everyone informed.',
       screenshots: [
-        'Meeting creation interface with calendar view',
-        'Conflict detection and resolution suggestions',
-        'Time slot optimization based on availability'
+        'Custom booking page with your branding',
+        'Real-time calendar with available time slots',
+        'Automated booking confirmations via SMS/Email'
       ]
     },
     {
       icon: <Users className="h-6 w-6 text-primary" />,
-      title: 'Controlled Invitations',
-      description: 'Send targeted invitations to specific employees or departments. No more WhatsApp group chaos - maintain control over who receives meeting notifications.',
+      title: 'Client Management',
+      description: 'Build detailed client profiles with booking history, preferences, and notes. Track loyalty, send personalized offers, and keep clients coming back.',
       screenshots: [
-        'Department and employee selection interface',
-        'Invitation preview and customization',
-        'RSVP tracking dashboard'
+        'Client database with search and filters',
+        'Individual client profiles and history',
+        'Automated birthday and loyalty messages'
       ]
     },
     {
-      icon: <ClipboardList className="h-6 w-6 text-primary" />,
-      title: 'Attendance Tracking',
-      description: 'Real-time attendance marking with QR code check-ins. Track who attended, who missed, and generate comprehensive reports for compliance.',
+      icon: <Scissors className="h-6 w-6 text-primary" />,
+      title: 'Service & Staff Management',
+      description: 'Create your service menu with pricing, duration, and staff assignments. Manage stylist schedules, track performance, and optimize resource allocation.',
       screenshots: [
-        'QR code check-in system',
-        'Real-time attendance dashboard',
-        'Attendance history per employee'
+        'Service catalog with categories and pricing',
+        'Staff schedule and availability management',
+        'Performance metrics per stylist'
       ]
     },
     {
-      icon: <BarChart3 className="h-6 w-6 text-primary" />,
-      title: 'Automated Reports',
-      description: 'Generate attendance reports, training completion records, and compliance documentation with a single click. Export to Excel or PDF for management.',
+      icon: <CreditCard className="h-6 w-6 text-primary" />,
+      title: 'Payment Processing & Invoicing',
+      description: 'Accept payments through multiple channels including M-Pesa, cards, and cash. Generate professional invoices and track all transactions in one place.',
       screenshots: [
-        'Report generation interface',
-        'Customizable report templates',
-        'Export options (Excel, PDF)'
+        'Multiple payment options (M-Pesa, Card, Cash)',
+        'Automated invoice generation',
+        'Payment history and reports'
       ]
     }
   ];
@@ -87,8 +87,8 @@ const DemoPage = () => {
             See Boinvit in Action
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Discover how Boinvit transforms internal meeting coordination for HR and Admin teams. 
-            No more WhatsApp chaos or Excel tracking - everything in one platform.
+            Discover how Boinvit helps salons, barbershops, and beauty parlours manage bookings, 
+            clients, payments, and staff — all from one powerful platform.
           </p>
         </div>
       </div>
@@ -101,7 +101,7 @@ const DemoPage = () => {
               Key Features Walkthrough
             </h2>
             <p className="text-lg text-muted-foreground">
-              See how each feature solves real HR and Admin challenges
+              See how each feature helps you grow your beauty business
             </p>
           </div>
 
@@ -152,10 +152,10 @@ const DemoPage = () => {
             <CardContent className="p-8 text-center">
               <Star className="h-12 w-12 text-primary mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-foreground mb-4">
-                Ready to Transform Your Meeting Coordination?
+                Ready to Transform Your Beauty Business?
               </h2>
               <p className="text-muted-foreground mb-6">
-                Join 50+ organizations using Boinvit to manage internal meetings and training sessions
+                Join 100+ salons and barbershops using Boinvit to manage bookings and grow revenue
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" onClick={() => navigate('/auth')}>

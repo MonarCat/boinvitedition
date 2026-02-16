@@ -1,12 +1,12 @@
 import React from 'react';
-import { Building2, Users, Award, TrendingUp } from 'lucide-react';
+import { Scissors, Users, TrendingUp, Star } from 'lucide-react';
 
 export const TrustedOrganizations = () => {
   const stats = [
-    { icon: Building2, value: "50+", label: "Organizations" },
-    { icon: Users, value: "5,000+", label: "Employees Managed" },
-    { icon: Award, value: "70%", label: "Time Saved on Coordination" },
-    { icon: TrendingUp, value: "98%", label: "Meeting Attendance Rate" }
+    { icon: Scissors, value: "100+", label: "Salons & Barbershops" },
+    { icon: Users, value: "50,000+", label: "Appointments Booked" },
+    { icon: TrendingUp, value: "85%", label: "Revenue Increase" },
+    { icon: Star, value: "4.9/5", label: "Customer Rating" }
   ];
 
   return (
@@ -14,7 +14,7 @@ export const TrustedOrganizations = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <p className="text-lg text-gray-600 font-medium">
-            Trusted by HR Teams Across East Africa
+            Trusted by Beauty Professionals Across East Africa
           </p>
         </div>
 

@@ -20,6 +20,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Booking, Service, StaffMember as Staff } from '@/types/models';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { PlatformBalanceSummary } from '@/components/platform/PlatformBalanceSummary';
+import { PlatformBreakdownModal } from '@/components/platform/PlatformBreakdownModal';
 
 // Interface for payment transactions
 interface PaymentTransaction {
@@ -317,6 +319,47 @@ export function BusinessDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Platform Balance Section */}
+      {businessId && (
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="md:col-span-1">
+            <PlatformBalanceSummary businessId={businessId} />
+          </div>
+          <div className="md:col-span-2">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Platform Fee Details</CardTitle>
+                  <PlatformBreakdownModal businessId={businessId} />
+                </div>
+                <CardDescription>
+                  Transparent breakdown of platform fees
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                    <span className="text-sm text-muted-foreground">Commission Rate</span>
+                    <span className="font-semibold">3%</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                    <span className="text-sm text-muted-foreground">You Receive</span>
+                    <span className="font-semibold text-green-600">97% of booking amount</span>
+                  </div>
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-900">
+                      <strong>How it works:</strong> Clients pay you directly for services. 
+                      A 3% platform fee accumulates from completed bookings and should be 
+                      cleared regularly to continue accepting new bookings.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid grid-cols-4 md:w-[500px]">

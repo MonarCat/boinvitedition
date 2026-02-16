@@ -12,6 +12,7 @@ import { RealtimeDashboard } from '@/components/dashboard/RealtimeDashboard';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { useDashboardRefresh } from '@/hooks/useDashboardRefresh';
 import { useRealtimeBookingNotifications } from '@/hooks/useRealtimeBookingNotifications';
+import { PlatformBalanceBanner } from '@/components/platform/PlatformBalanceBanner';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -69,6 +70,11 @@ const Dashboard = () => {
           onSearch={(query) => console.log("Search:", query)}
           badge={isListening ? { variant: "success", text: "Real-time updates active" } : undefined}
         />
+        
+        {/* Platform Balance Banner - shows when balance is high or account is restricted */}
+        {business?.id && (
+          <PlatformBalanceBanner businessId={business.id} />
+        )}
         
         {/* Realtime Status Indicator */}
         {business?.id && (

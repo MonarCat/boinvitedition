@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { usePlatformBalance } from "@/hooks/usePlatformBalance";
 import { History, Loader2 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/utils/formatCurrency";
 import { format } from "date-fns";
 
 interface PlatformPaymentHistoryProps {

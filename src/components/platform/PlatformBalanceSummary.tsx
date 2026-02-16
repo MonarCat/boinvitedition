@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePlatformBalance } from "@/hooks/usePlatformBalance";
 import { AlertCircle, CheckCircle, CreditCard, Loader2 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 interface PlatformBalanceSummaryProps {
   businessId: string;

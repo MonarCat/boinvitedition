@@ -6,13 +6,8 @@
   GIT_LFS_SKIP_SMUDGE = "1"
 
 # SPA redirect - all routes should serve index.html for client-side routing
+# This is appropriate for React Router apps with no backend API endpoints
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-# Ensure service worker is never cached
-[[headers]]
-  for = "/sw.js"
-  [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"

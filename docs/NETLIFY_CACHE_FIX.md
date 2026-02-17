@@ -38,21 +38,18 @@ This Netlify-specific file sets proper cache control headers:
 
 ### 2. Updated `netlify.toml`
 
-Added critical configurations:
+Added critical SPA redirect configuration:
 
 ```toml
 # SPA redirect - ensures client-side routing works
+# This is appropriate for React Router apps with no backend API endpoints
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-# Additional service worker cache headers
-[[headers]]
-  for = "/sw.js"
-  [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"
 ```
+
+**Note**: All HTTP header configuration (including service worker cache headers) is handled in the `_headers` file to maintain a single source of truth.
 
 ### 3. Cleaned Up Repository
 

@@ -4,7 +4,6 @@
 
 [build.environment]
   GIT_LFS_SKIP_SMUDGE = "1"
-  NETLIFY_USE_YARN = "true"
 
 # SPA redirect - all routes should serve index.html for client-side routing
 [[redirects]]

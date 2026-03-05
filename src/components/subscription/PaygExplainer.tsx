@@ -84,21 +84,22 @@ export const PaygExplainer: React.FC = () => {
                 <div>
                   <h4 className="font-medium">When am I charged?</h4>
                   <p className="text-gray-600">
-                    Only when your customers make a successful payment through our platform.
+                    Only when your customers make a successful payment through our platform. After your 14-day free trial, fees start accumulating from each successful booking.
                   </p>
                 </div>
                 <div>
                   <h4 className="font-medium">Are there any hidden fees?</h4>
                   <p className="text-gray-600">
-                    No. Boinvit simply retains {formatCommissionRate(commissionRate)} on transactions and disburses 95% to your business. 
-                    No setup fees, no monthly subscriptions, no cancellation fees.
+                    No. Boinvit retains {formatCommissionRate(commissionRate)} on transactions and disburses 95% to your business. 
+                    No setup fees, no monthly subscriptions, no cancellation fees. Starting limit is KES 1,000.
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-medium">How do I cancel?</h4>
+                  <h4 className="font-medium">How do I pay the platform fee?</h4>
                   <p className="text-gray-600">
-                    There's nothing to cancel! Since you only pay when you receive payments,
-                    you can stop using the platform anytime without any penalty.
+                    Platform fees accumulate as you receive bookings. When your balance approaches KES 1,000, 
+                    you'll be reminded to pay via Paystack (M-Pesa, card, or bank transfer) to continue receiving bookings — 
+                    just like how Bolt works for drivers.
                   </p>
                 </div>
               </div>

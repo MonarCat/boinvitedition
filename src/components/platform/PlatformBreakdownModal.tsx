@@ -112,8 +112,8 @@ export function PlatformBreakdownModal({ businessId }: PlatformBreakdownModalPro
             {/* Info */}
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-900">
-                <strong>Note:</strong> Platform fees are calculated as 3% of each completed service. 
-                These fees accumulate and should be cleared regularly to maintain an active account.
+                <strong>Note:</strong> Platform fees are calculated as 5% of each completed service. 
+                These fees accumulate and should be cleared to maintain an active account. Starting limit is KES 1,000.
               </p>
             </div>
           </div>

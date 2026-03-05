@@ -162,7 +162,7 @@ const DemoPage = () => {
                   Start Free Trial
                 </Button>
                 <Button size="lg" variant="outline" onClick={() => navigate('/contact')}>
-                  Contact Sales
+                  Contact Us
                 </Button>
               </div>
             </CardContent>

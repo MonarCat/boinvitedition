@@ -79,7 +79,7 @@ export function PlatformBalanceSummary({ businessId }: PlatformBalanceSummaryPro
         {/* Balance Breakdown */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Platform Fee (3%)</span>
+            <span className="text-sm text-muted-foreground">Platform Fee (5%)</span>
             <span className="font-semibold">{formatCurrency(platform_balance, "KES")}</span>
           </div>
           

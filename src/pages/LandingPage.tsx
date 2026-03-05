@@ -10,7 +10,6 @@ import {
   CheckCircle, 
   ArrowRight,
   MapPin,
-  Phone,
   Mail,
   Shield,
   Scissors,
@@ -183,7 +182,7 @@ const LandingPage = () => {
                 onClick={() => navigate('/contact')}
                 className="border-royal-red text-royal-red hover:bg-royal-red hover:text-white px-8 py-3 text-lg"
               >
-                Contact Sales
+                Contact Us
               </Button>
             </div>
             <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
@@ -308,7 +307,7 @@ const LandingPage = () => {
               onClick={() => navigate('/contact')}
               className="border-white text-white hover:bg-white hover:text-royal-red px-8 py-3 text-lg"
             >
-              Contact Sales
+              Contact Us
             </Button>
           </div>
         </div>
@@ -355,11 +354,7 @@ const LandingPage = () => {
               <ul className="space-y-2 text-gray-400">
                 <li className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  support@boinvit.com
-                </li>
-                <li className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  +254 769 829 304
+                  boinvit@gmail.com
                 </li>
                 <li className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />

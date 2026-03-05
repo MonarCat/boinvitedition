@@ -341,17 +341,17 @@ export function BusinessDashboard() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                     <span className="text-sm text-muted-foreground">Commission Rate</span>
-                    <span className="font-semibold">3%</span>
+                    <span className="font-semibold">5%</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                     <span className="text-sm text-muted-foreground">You Receive</span>
-                    <span className="font-semibold text-green-600">97% of booking amount</span>
+                    <span className="font-semibold text-green-600">95% of booking amount</span>
                   </div>
                   <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm text-blue-900">
                       <strong>How it works:</strong> Clients pay you directly for services. 
-                      A 3% platform fee accumulates from completed bookings and should be 
-                      cleared regularly to continue accepting new bookings.
+                      A 5% platform fee accumulates from completed bookings. When your balance 
+                      reaches KES 1,000, you'll be reminded to clear it to continue accepting new bookings.
                     </p>
                   </div>
                 </div>

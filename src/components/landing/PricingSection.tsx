@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, ChevronDown, ChevronUp, Star } from 'lucide-react';
+import { CheckCircle, ChevronDown, ChevronUp, Star, TrendingUp } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,61 +10,18 @@ export const PricingSection = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
-  const pricingPlans = [
-    {
-      name: "Starter",
-      price: "KES 3,000",
-      period: "/month",
-      description: "Perfect for small teams getting started",
-      features: [
-        "Up to 100 employees",
-        "Unlimited meetings",
-        "Basic attendance reports",
-        "Email notifications",
-        "Calendar sync",
-        "7-day data history"
-      ],
-      popular: false,
-      cta: "Start Free Trial"
-    },
-    {
-      name: "Professional",
-      price: "KES 7,500",
-      period: "/month",
-      description: "For growing organizations with multiple departments",
-      features: [
-        "Up to 500 employees",
-        "Advanced reporting & analytics",
-        "Multi-branch support",
-        "WhatsApp & SMS notifications",
-        "Compliance exports (PDF/Excel)",
-        "AI scheduling assistant",
-        "Attendance prediction",
-        "Priority support",
-        "90-day data history"
-      ],
-      popular: true,
-      cta: "Start Free Trial"
-    },
-    {
-      name: "Enterprise",
-      price: "Custom",
-      period: "",
-      description: "For large organizations with specific needs",
-      features: [
-        "Unlimited employees",
-        "Custom integrations",
-        "Dedicated account manager",
-        "On-premise deployment option",
-        "Custom branding",
-        "API access",
-        "SLA guarantee",
-        "Training & onboarding",
-        "Unlimited data retention"
-      ],
-      popular: false,
-      cta: "Contact Sales"
-    }
+  const payAsYouGoFeatures = [
+    "14-day free trial — no credit card required",
+    "Only 5% platform fee on every successful booking",
+    "Fees accumulate and are paid via Paystack",
+    "Unlimited staff members",
+    "Unlimited bookings",
+    "Full platform access",
+    "Advanced analytics & reporting",
+    "Custom branding",
+    "SMS & Email reminders",
+    "Priority support",
+    "Multi-location support",
   ];
 
   return (
@@ -82,67 +39,67 @@ export const PricingSection = () => {
             <CollapsibleContent className="mt-8">
               <div className="mb-8">
                 <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                  Simple, Predictable Pricing
+                  Simple, Pay As You Go Pricing
                 </h2>
                 <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                  Per-organization pricing. No per-user fees. No hidden costs.
+                  No monthly fees. No hidden costs. Just a 5% platform fee on every successful booking.
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                {pricingPlans.map((plan, index) => (
-                  <Card 
-                    key={index} 
-                    className={`relative ${plan.popular ? 'border-2 border-primary shadow-xl scale-105' : 'border shadow-lg'} transition-all duration-300 hover:shadow-xl`}
-                  >
-                    {plan.popular && (
-                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                        <Badge className="bg-primary text-white px-4 py-1 font-bold shadow-lg">
-                          <Star className="w-3 h-3 mr-1" />
-                          MOST POPULAR
-                        </Badge>
+              <div className="max-w-lg mx-auto">
+                <Card className="relative border-4 border-primary shadow-2xl transform hover:scale-105 bg-gradient-to-br from-red-50 to-white transition-all duration-300">
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <Badge className="bg-primary text-white px-6 py-2 font-bold shadow-lg text-base">
+                      <Star className="w-4 h-4 mr-1" />
+                      NO MONTHLY FEE
+                    </Badge>
+                  </div>
+
+                  <CardHeader className="text-center pb-4 pt-10">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                      <TrendingUp className="w-8 h-8 text-primary" />
+                    </div>
+                    <CardTitle className="text-2xl font-bold text-gray-900">Pay As You Go</CardTitle>
+                    <p className="text-sm text-gray-500 mt-1">Perfect for every business, big or small</p>
+
+                    <div className="mt-4">
+                      <div className="flex items-baseline justify-center">
+                        <span className="text-5xl font-bold text-primary">5%</span>
+                        <span className="text-gray-500 ml-2">per successful booking</span>
                       </div>
-                    )}
-                    
-                    <CardHeader className="text-center pb-4 pt-8">
-                      <CardTitle className="text-2xl font-bold text-gray-900">{plan.name}</CardTitle>
-                      <p className="text-sm text-gray-500 mt-1">{plan.description}</p>
-                      
-                      <div className="mt-4">
-                        <div className="flex items-baseline justify-center">
-                          <span className="text-4xl font-bold text-primary">{plan.price}</span>
-                          {plan.period && <span className="text-gray-500 ml-1">{plan.period}</span>}
+                      <p className="text-sm text-gray-400 mt-1">Starting limit: KES 1,000</p>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      {payAsYouGoFeatures.map((feature, index) => (
+                        <div key={index} className="flex items-start">
+                          <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700 text-sm">{feature}</span>
                         </div>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="space-y-4">
-                      <div className="space-y-3">
-                        {plan.features.map((feature, featureIndex) => (
-                          <div key={featureIndex} className="flex items-start">
-                            <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                            <span className="text-gray-700 text-sm">{feature}</span>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <Button 
-                        className={`w-full py-5 text-base font-semibold ${plan.popular ? 'bg-primary hover:bg-primary/90 text-white' : ''}`}
-                        variant={plan.popular ? 'default' : 'outline'}
-                        onClick={() => plan.name === 'Enterprise' ? navigate('/contact') : navigate('/auth')}
-                      >
-                        {plan.cta}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                      ))}
+                    </div>
+
+                    <Button
+                      className="w-full py-5 text-base font-semibold bg-primary hover:bg-primary/90 text-white"
+                      onClick={() => navigate('/auth')}
+                    >
+                      Start 14-Day Free Trial
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
 
-              {/* Trust Message */}
+              {/* How It Works */}
               <div className="text-center bg-gradient-to-r from-primary/5 to-blue-50 rounded-xl p-8 mt-8 max-w-3xl mx-auto border border-primary/10">
-                <h3 className="text-xl font-bold text-gray-900 mb-3">14-Day Free Trial on All Plans</h3>
-                <p className="text-lg text-gray-700">
-                  Try Boinvit risk-free. No credit card required. Cancel anytime.
+                <h3 className="text-xl font-bold text-gray-900 mb-3">How It Works</h3>
+                <p className="text-lg text-gray-700 mb-4">
+                  Like Bolt — fees accumulate from every successful booking. You'll be reminded to pay when 
+                  your balance approaches KES 1,000. Pay via Paystack to keep receiving bookings.
+                </p>
+                <p className="text-sm text-gray-500">
+                  14-day free trial • No credit card required • Cancel anytime
                 </p>
               </div>
             </CollapsibleContent>

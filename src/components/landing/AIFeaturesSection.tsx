@@ -122,14 +122,6 @@ export const AIFeaturesSection: React.FC = () => {
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3"
-              onClick={() => navigate('/contact')}
-            >
-              Contact Sales
-            </Button>
           </div>
           <p className="text-sm text-gray-500 mt-4">
             Free 14-day trial • No credit card required • Setup in 5 minutes
